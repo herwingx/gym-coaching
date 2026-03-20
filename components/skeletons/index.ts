@@ -1,0 +1,7 @@
+export { AdminDashboardSkeleton } from './admin-dashboard-skeleton'
+export { AdminPageSkeleton } from './admin-page-skeleton'
+export { ClientDashboardSkeleton } from './client-dashboard-skeleton'
+export { ClientPageSkeleton } from './client-page-skeleton'
+export { ReceptionistDashboardSkeleton } from './receptionist-dashboard-skeleton'
+export { TableSkeleton } from './table-skeleton'
+export { PageSkeleton } from './page-skeleton'

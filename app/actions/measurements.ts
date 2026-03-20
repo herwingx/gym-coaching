@@ -1,0 +1,45 @@
+'use server'
+
+import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth-utils'
+
+export async function addMeasurement(data: {
+  weight?: number
+  body_fat_pct?: number
+  waist_cm?: number
+  hip_cm?: number
+  chest_cm?: number
+  arm_cm?: number
+  thigh_cm?: number
+  recorded_at?: string
+}) {
+  const user = await getAuthUser()
+  if (!user) return { success: false, error: 'No autenticado' }
+
+  const supabase = await createClient()
+
+  const { data: client } = await supabase
+    .from('clients')
+    .select('id')
+    .eq('user_id', user.id)
+    .single()
+
+  if (!client) return { success: false, error: 'Cliente no encontrado' }
+
+  const recordedAt = data.recorded_at || new Date().toISOString().slice(0, 10)
+
+  const { error } = await supabase.from('body_measurements').insert({
+    client_id: client.id,
+    recorded_at: recordedAt,
+    weight: data.weight ?? null,
+    body_fat_pct: data.body_fat_pct ?? null,
+    waist_cm: data.waist_cm ?? null,
+    hip_cm: data.hip_cm ?? null,
+    chest_cm: data.chest_cm ?? null,
+    arm_cm: data.arm_cm ?? null,
+    thigh_cm: data.thigh_cm ?? null,
+  })
+
+  if (error) return { success: false, error: error.message }
+  return { success: true }
+}

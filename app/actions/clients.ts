@@ -1,0 +1,206 @@
+'use server'
+
+import { createClient } from '@/lib/supabase/server'
+import { getAuthUser, getUserProfile } from '@/lib/auth-utils'
+import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
+import { randomUUID } from 'crypto'
+import { sendClientInvitationEmail } from '@/lib/email'
+
+function generateAccessCode(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+  let code = ''
+  for (let i = 0; i < 8; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return code
+}
+
+export async function createNewClient(formData: FormData) {
+  const user = await getAuthUser()
+  const profile = await getUserProfile()
+
+  if (!user || profile?.role !== 'admin') {
+    throw new Error('No autorizado')
+  }
+
+  const supabase = await createClient()
+
+  const fullName = formData.get('fullName') as string
+  const email = formData.get('email') as string
+  const phone = formData.get('phone') as string
+  const birthDate = formData.get('birthDate') as string
+  const gender = formData.get('gender') as string
+  const goalRaw = formData.get('goal') as string
+  const validGoals = ['lose_weight', 'gain_muscle', 'maintain', 'strength', 'endurance']
+  const goal = validGoals.includes(goalRaw) ? goalRaw : null
+
+  const experienceLevelRaw = formData.get('experienceLevel') as string
+  const validExperienceLevels = ['beginner', 'intermediate', 'advanced']
+  const experienceLevel = validExperienceLevels.includes(experienceLevelRaw) ? experienceLevelRaw : null
+
+  const notes = formData.get('notes') as string
+
+  const clientId = randomUUID()
+
+  const { data, error } = await supabase
+    .from('clients')
+    .insert([
+      {
+        id: clientId,
+        coach_id: user.id,
+        email,
+        full_name: fullName,
+        phone: phone || '',
+        birth_date: birthDate || null,
+        gender: gender || null,
+        goal: goal || null,
+        experience_level: experienceLevel || null,
+        status: 'pending',
+        notes: notes || null,
+      },
+    ])
+    .select()
+
+  if (error) {
+    console.error('Error creating client:', error)
+    throw new Error(error.message)
+  }
+
+  const code = generateAccessCode()
+  const expiresAt = new Date()
+  expiresAt.setDate(expiresAt.getDate() + 30)
+
+  await supabase.from('invitation_codes').insert({
+    code,
+    created_by: user.id,
+    email: email || null,
+    client_id: clientId,
+    expires_at: expiresAt.toISOString(),
+    max_uses: 1,
+    times_used: 0,
+    is_active: true,
+  })
+
+  let emailSent = false
+  if (email?.trim()) {
+    const result = await sendClientInvitationEmail({
+      to: email.trim(),
+      clientName: fullName,
+      code,
+    })
+    emailSent = result.success
+    if (!result.success) {
+      console.warn('No se pudo enviar el correo de invitación:', result.error)
+    }
+  }
+
+  const params = new URLSearchParams({ accessCode: code })
+  if (email?.trim()) params.set('emailSent', emailSent ? '1' : '0')
+  redirect(`/admin/clients/${clientId}?${params.toString()}`)
+}
+
+export async function updateClient(clientId: string, formData: FormData) {
+  const user = await getAuthUser()
+  const profile = await getUserProfile()
+
+  if (!user || profile?.role !== 'admin') {
+    throw new Error('No autorizado')
+  }
+
+  const supabase = await createClient()
+
+  const fullName = formData.get('fullName') as string
+  const phone = formData.get('phone') as string
+  const birthDate = formData.get('birthDate') as string
+  const gender = formData.get('gender') as string
+  const status = formData.get('status') as string
+  const goalRaw = formData.get('goal') as string
+  const validGoals = ['lose_weight', 'gain_muscle', 'maintain', 'strength', 'endurance']
+  const goal = validGoals.includes(goalRaw) ? goalRaw : null
+
+  const experienceLevelRaw = formData.get('experienceLevel') as string
+  const validExperienceLevels = ['beginner', 'intermediate', 'advanced']
+  const experienceLevel = validExperienceLevels.includes(experienceLevelRaw) ? experienceLevelRaw : null
+
+  const notes = formData.get('notes') as string
+  const currentWeight = formData.get('currentWeight') as string
+  const height = formData.get('height') as string
+
+  const { error } = await supabase
+    .from('clients')
+    .update({
+      full_name: fullName,
+      phone: phone || null,
+      birth_date: birthDate || null,
+      gender: gender || null,
+      status,
+      goal: goal || null,
+      experience_level: experienceLevel || null,
+      notes: notes || null,
+      current_weight: currentWeight ? parseFloat(currentWeight) : null,
+      height: height ? parseFloat(height) : null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', clientId)
+    .eq('coach_id', user.id)
+
+  if (error) {
+    console.error('Error updating client:', error)
+    throw new Error(error.message)
+  }
+
+  // Nota: La sincronización con la tabla 'profiles' se maneja automáticamente
+  // mediante un trigger de base de datos (tr_sync_client_status_to_profile).
+
+  redirect(`/admin/clients/${clientId}`)
+}
+
+export async function deleteClient(clientId: string) {
+  const user = await getAuthUser()
+  const profile = await getUserProfile()
+
+  if (!user || profile?.role !== 'admin') {
+    return { success: false, error: 'No autorizado' }
+  }
+
+  const supabase = await createClient()
+
+  const { error } = await supabase.from('clients').delete().eq('id', clientId).eq('coach_id', user.id)
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  return { success: true }
+}
+
+export async function updateClientStatus(clientId: string, status: string) {
+  const user = await getAuthUser()
+  const profile = await getUserProfile()
+
+  if (!user || profile?.role !== 'admin') {
+    return { success: false, error: 'No autorizado' }
+  }
+
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('clients')
+    .update({ 
+      status,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', clientId)
+    .eq('coach_id', user.id)
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  // Si el cliente tiene un usuario vinculado, el trigger se encargará de sincronizar con profiles.
+  // Pero necesitamos revalidar el path
+  revalidatePath('/admin/clients')
+  
+  return { success: true }
+}
