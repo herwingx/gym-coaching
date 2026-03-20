@@ -77,7 +77,7 @@ export default function RootLayout({
         >
           <a
             href="#main-content"
-            className="fixed left-4 z-[100] -translate-y-[150%] px-4 py-3 bg-primary text-primary-foreground rounded-lg font-medium outline-none ring-2 ring-ring transition-transform duration-200 focus:translate-y-0 focus-visible:translate-y-0 top-[max(1rem,env(safe-area-inset-top))]"
+            className="fixed left-4 z-100 -translate-y-[150%] px-4 py-3 bg-primary text-primary-foreground rounded-lg font-medium outline-none ring-2 ring-ring transition-transform duration-200 focus:translate-y-0 focus-visible:translate-y-0 top-[max(1rem,env(safe-area-inset-top))]"
           >
             Saltar al contenido principal
           </a>
