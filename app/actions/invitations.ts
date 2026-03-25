@@ -69,7 +69,7 @@ export async function createInvitationCode(formData: FormData) {
     })
     emailSent = result.success
     if (!result.success) {
-      console.warn('No se pudo enviar el correo de invitación:', result.error)
+      console.warn('No se pudo enviar el correo de invitaci?n:', result.error)
     }
   }
 
@@ -132,10 +132,9 @@ export async function useInvitationCode(code: string, userId: string, role?: 'ad
     return { success: true }
   }
 
-  const supabase = await createClient()
-
-  // 1. Usar la función atómica en la DB para marcar el código como usado
-  const { data: atomicResult, error: atomicError } = await supabase.rpc('use_invitation_code_atomic', {
+  // 1. RPC atómica: usar admin para que funcione sin sesión (email confirm pendiente)
+  const admin = createAdminClient()
+  const { data: atomicResult, error: atomicError } = await admin.rpc('use_invitation_code_atomic', {
     code_text: normalizedCode,
     user_id_val: userId,
   })
@@ -148,25 +147,24 @@ export async function useInvitationCode(code: string, userId: string, role?: 'ad
 
   // 2. Si el código es para admin, actualizar el perfil a admin
   if (forRole === 'admin') {
-    const adminClient = createAdminClient()
     try {
-      await adminClient.from('profiles').update({ role: 'admin' }).eq('id', userId)
+      await admin.from('profiles').update({ role: 'admin' }).eq('id', userId)
     } catch {
       // Ignorar si falla
     }
   }
 
   // 3. Vincular el perfil con el coach que lo invitó
-  await supabase
-    .from('profiles')
-    .update({ invited_by: coachId })
-    .eq('id', userId)
+  try {
+    await admin.from('profiles').update({ invited_by: coachId }).eq('id', userId)
+  } catch {
+    // No bloquear si falla
+  }
 
   // 4. Gestión del registro en la tabla 'clients'
   if (clientId) {
-    // Escenario A: El código ya estaba vinculado a un cliente pre-creado
-    // Obtenemos el estado actual para no sobrescribir si el coach ya lo marcó como 'suspended'
-    const { data: existingClient } = await supabase
+    // Escenario A: El código ya estaba vinculado a un cliente pre-creado (ej. Eduardo)
+    const { data: existingClient } = await admin
       .from('clients')
       .select('status')
       .eq('id', clientId)
@@ -174,7 +172,7 @@ export async function useInvitationCode(code: string, userId: string, role?: 'ad
 
     const newStatus = existingClient?.status === 'suspended' ? 'suspended' : 'active'
 
-    await supabase
+    const { error } = await admin
       .from('clients')
       .update({
         user_id: userId,
@@ -182,19 +180,20 @@ export async function useInvitationCode(code: string, userId: string, role?: 'ad
         updated_at: new Date().toISOString(),
       })
       .eq('id', clientId)
+
+    if (error) {
+      console.error('[useInvitationCode] Error vinculando cliente:', error)
+    }
   } else if (forRole === 'client') {
-    // Escenario B: Código genérico de cliente -> Crear registro automático en 'clients'
-    // Así evitamos que el cliente sea un "fantasma" y aparezca en el panel del coach
-    const { data: profile } = await supabase.from('profiles').select('full_name, email').eq('id', userId).single()
-    
-    await supabase.from('clients').insert({
+    // Escenario B: Código genérico -> Crear registro automático en 'clients'
+    const { data: profile } = await admin.from('profiles').select('full_name, email').eq('id', userId).single()
+    await admin.from('clients').insert({
       user_id: userId,
       coach_id: coachId,
       full_name: profile?.full_name || 'Nuevo Asesorado',
+      phone: '',
       email: profile?.email || '',
       status: 'active',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
     })
   }
 
@@ -212,6 +211,52 @@ export async function deactivateInvitationCode(codeId: string) {
     .from('invitation_codes')
     .update({ is_active: false })
     .eq('id', codeId)
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/admin/invitations')
+  return { success: true }
+}
+
+// Delete an invitation code (admin only, only if unused and inactive)
+export async function deleteInvitationCode(codeId: string) {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+
+  // Verify admin
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.role !== 'admin') {
+    return { error: 'Solo administradores pueden eliminar codigos' }
+  }
+
+  const { data: invitation, error: invitationError } = await supabase
+    .from('invitation_codes')
+    .select('times_used, is_active')
+    .eq('id', codeId)
+    .single()
+
+  if (invitationError || !invitation) {
+    return { error: 'C?digo no encontrado' }
+  }
+
+  if (invitation.times_used > 0) {
+    return { error: 'No se puede eliminar un c?digo que ya fue usado' }
+  }
+
+  if (invitation.is_active) {
+    return { error: 'Primero desactiva el c?digo antes de eliminarlo' }
+  }
+
+  const { error } = await supabase.from('invitation_codes').delete().eq('id', codeId)
 
   if (error) return { error: error.message }
 

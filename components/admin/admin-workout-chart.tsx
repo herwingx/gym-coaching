@@ -59,15 +59,24 @@ export function AdminWorkoutChart({ data }: { data: ChartDataPoint[] }) {
     return data.filter((item) => new Date(item.date) >= startDate)
   }, [data, timeRange])
 
+  const sessionsInRange = React.useMemo(
+    () => filteredData.reduce((acc, d) => acc + d.sessions, 0),
+    [filteredData],
+  )
+
   return (
-    <Card className="@container/card overflow-hidden border-none shadow-sm">
+    <Card className="@container/card overflow-hidden border-muted/70 shadow-none">
       <CardHeader>
-        <CardTitle>Entrenamientos completados</CardTitle>
+        <CardTitle>Sesiones completadas</CardTitle>
         <CardDescription>
-          <span className="hidden @[540px]/card:block">
-            Total de sesiones por día (todos los asesorados)
+          <span className="hidden @[540px]/card:inline">
+            Suma diaria de todas las sesiones terminadas. En este período:{' '}
+            <span className="font-semibold tabular-nums text-foreground">{sessionsInRange}</span>{' '}
+            sesiones.
           </span>
-          <span className="@[540px]/card:hidden">Últimos 3 meses</span>
+          <span className="@[540px]/card:hidden">
+            Período: <span className="font-semibold tabular-nums">{sessionsInRange}</span> sesiones
+          </span>
         </CardDescription>
         <CardAction>
           <ToggleGroup

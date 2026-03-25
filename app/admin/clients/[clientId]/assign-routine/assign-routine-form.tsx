@@ -84,8 +84,8 @@ export function AssignRoutineForm({ clientId, clientName, routines }: Props) {
               Elige la rutina que seguirá el asesorado. Podrás modificarla más adelante.
             </p>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
+          <CardContent className="flex flex-col gap-6">
+            <div className="flex flex-col gap-2">
               <Label htmlFor="routine">Rutina *</Label>
               <Select value={routineId} onValueChange={setRoutineId}>
                 <SelectTrigger id="routine" className="w-full">
@@ -109,7 +109,7 @@ export function AssignRoutineForm({ clientId, clientName, routines }: Props) {
               </Select>
             </div>
 
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               <Label htmlFor="notes">Notas para el asesorado</Label>
               <Textarea
                 id="notes"

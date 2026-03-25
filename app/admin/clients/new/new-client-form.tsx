@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { FieldGroup, Field, FieldLabel } from '@/components/ui/field'
+import { unstable_rethrow } from 'next/navigation'
 import { createNewClient } from '@/app/actions/clients'
 import { toast } from 'sonner'
 
@@ -56,6 +57,7 @@ export function NewClientForm() {
       await createNewClient(formData)
       toast.success('¡Asesorado creado correctamente!')
     } catch (error) {
+      unstable_rethrow(error)
       toast.error('No pudimos crear el asesorado. Revisa los datos e intenta de nuevo.')
       console.error(error)
     } finally {
@@ -184,7 +186,5 @@ export function NewClientForm() {
         </form>
       </CardContent>
     </Card>
-  )
-}
   )
 }

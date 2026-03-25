@@ -4,8 +4,13 @@ import { redirect } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { ArrowLeft, Plus } from 'lucide-react'
+import { ArrowLeft, CalendarDays, Pencil, Sparkles } from 'lucide-react'
+import { DeleteRoutineButton } from './delete-routine-button'
 import { createClient } from '@/lib/supabase/server'
+import { Badge } from '@/components/ui/badge'
+import { RoutineDayCards } from '@/components/routines/routine-day-cards'
+
+type RoutineDayRow = { is_rest_day: boolean }
 
 interface Props {
   params: Promise<{ routineId: string }>
@@ -46,120 +51,86 @@ export default async function RoutineDetailsPage({ params }: Props) {
       )
     `)
     .eq('id', routineId)
-    .eq('coach_id', user.id)
     .single()
 
   if (!routine) {
     redirect('/admin/routines')
   }
+  const configuredDays = routine.routine_days ?? []
+  const hasConfiguredDays = configuredDays.length > 0
+  const trainingDaysPerWeek = hasConfiguredDays
+    ? (configuredDays as RoutineDayRow[]).filter((day) => !day.is_rest_day).length
+    : (routine.days_per_week ?? 0)
 
   return (
     <div className="bg-background">
       <header className="border-b">
-        <div className="container flex items-center justify-between py-4">
-          <div className="flex items-center gap-4">
+        <div className="container flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-4">
             <Button variant="ghost" size="icon" asChild>
               <Link href="/admin/routines">
                 <ArrowLeft className="w-4 h-4" />
               </Link>
             </Button>
-            <h1 className="text-2xl font-bold">{routine.name}</h1>
+            <div className="min-w-0">
+              <h1 className="truncate text-2xl font-bold">{routine.name}</h1>
+              <div className="mt-1 flex flex-wrap items-center gap-2">
+                <Badge variant="secondary">{routine.level || 'Nivel libre'}</Badge>
+                <Badge variant="outline">{routine.goal || 'Objetivo general'}</Badge>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <Button asChild>
+              <Link href={`/admin/routines/${routineId}/edit`}>
+                <Pencil className="w-4 h-4 mr-2" />
+                Editar
+              </Link>
+            </Button>
+            <DeleteRoutineButton routineId={routineId} routineName={routine.name} />
           </div>
         </div>
       </header>
 
-      <main className="container py-8">
+      <main className="container py-6 sm:py-8">
         <div className="grid gap-6">
           {/* Routine Info */}
           <Card>
             <CardHeader>
-              <CardTitle>Información de la Rutina</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="size-4" />
+                Información de la rutina
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="flex flex-col gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">Descripción</p>
                 <p className="font-medium">{routine.description || 'Sin descripción'}</p>
               </div>
-              <div className="grid md:grid-cols-3 gap-4">
+              <div className="grid gap-4 md:grid-cols-3">
                 <div>
-                  <p className="text-sm text-muted-foreground">Dificultad</p>
-                  <p className="font-medium capitalize">{routine.difficulty}</p>
+                  <p className="text-sm text-muted-foreground">Nivel</p>
+                  <p className="font-medium capitalize">{routine.level || 'No especificado'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Duración</p>
-                  <p className="font-medium">{routine.duration_weeks} semanas</p>
+                  <p className="font-medium">{routine.duration_weeks ? `${routine.duration_weeks} semanas` : '-'}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Tipo</p>
-                  <p className="font-medium">{routine.is_template ? 'Template' : 'Personalizada'}</p>
-                </div>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Grupos Musculares</p>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {routine.target_muscle_groups?.map((group: string) => (
-                    <span key={group} className="px-2 py-1 bg-secondary text-secondary-foreground text-sm rounded">
-                      {group}
-                    </span>
-                  ))}
+                  <p className="text-sm text-muted-foreground">Días/semana</p>
+                  <p className="font-medium">{trainingDaysPerWeek}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Days */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0">
-              <CardTitle>Días de Entrenamiento</CardTitle>
-              <Button asChild size="sm">
-                <Link href={`/admin/routines/${routineId}/add-day`}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Agregar Día
-                </Link>
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {!routine.routine_days || routine.routine_days.length === 0 ? (
-                <p className="text-muted-foreground">
-                  Esta rutina no tiene días configurados aún.
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {routine.routine_days.map((day: any) => (
-                    <div key={day.id} className="border rounded-lg p-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-semibold">
-                          Día {day.day_number} - {day.day_name}
-                        </h4>
-                        {day.is_rest_day && (
-                          <span className="px-2 py-1 bg-primary/20 text-primary text-xs rounded">
-                            Día de descanso
-                          </span>
-                        )}
-                      </div>
-                      {day.focus_muscle_group && (
-                        <p className="text-sm text-muted-foreground">
-                          Enfoque: {day.focus_muscle_group}
-                        </p>
-                      )}
-                      {!day.is_rest_day && day.routine_exercises && day.routine_exercises.length > 0 && (
-                        <div className="space-y-2">
-                          <p className="text-sm font-medium">Ejercicios:</p>
-                          <ul className="space-y-1">
-                            {day.routine_exercises.map((ex: any) => (
-                              <li key={ex.id} className="text-sm text-muted-foreground">
-                                • {ex.exercises.name} - {ex.sets}x{ex.reps || 'variable'}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <section className="grid gap-3">
+            <div className="flex items-center gap-2">
+              <CalendarDays className="size-4 text-muted-foreground" />
+              <h2 className="text-base font-semibold">Plan semanal</h2>
+            </div>
+            <RoutineDayCards days={routine.routine_days || []} />
+          </section>
         </div>
       </main>
     </div>

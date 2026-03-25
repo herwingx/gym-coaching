@@ -189,7 +189,7 @@ export function NewPaymentForm({ clients, plans }: NewPaymentFormProps) {
                     <SelectItem value="none">Sin plan específico</SelectItem>
                     {plans.map((plan) => (
                       <SelectItem key={plan.id} value={plan.id}>
-                        {plan.name} (${plan.price})
+                        {plan.name}
                       </SelectItem>
                     ))}
                   </SelectGroup>
@@ -211,6 +211,9 @@ export function NewPaymentForm({ clients, plans }: NewPaymentFormProps) {
                   onChange={(e) => setAmount(e.target.value)}
                   required
                 />
+                <p className="text-xs text-muted-foreground mt-1.5">
+                  Al seleccionar un plan se sugiere el precio; puedes personalizarlo.
+                </p>
               </Field>
               <Field>
                 <FieldLabel htmlFor="paymentMethod">Método de Pago</FieldLabel>

@@ -1,152 +1,158 @@
 import { getAuthUser } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import Link from 'next/link'
-import { ArrowLeft, Dumbbell, Calendar } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getWorkoutSessions } from '@/lib/workouts'
+import { CalendarDays, Clock, Dumbbell } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import {
+  CLIENT_DATA_PAGE_SHELL,
+  ClientIncompleteProfileCard,
+  ClientStackPageHeader,
+} from '@/components/client/client-app-page-parts'
 
 export default async function ClientWorkoutsPage() {
   const user = await getAuthUser()
+  if (!user) redirect('/auth/login')
 
-  if (!user) {
-    redirect('/auth/login')
-  }
-
-  // Get client record
   const supabase = await createClient()
-  const { data: clientRecord } = await supabase
-    .from('clients')
-    .select('id')
-    .eq('user_id', user.id)
-    .single()
+  const { data: clientRecord } = await supabase.from('clients').select('id').eq('user_id', user.id).single()
 
   if (!clientRecord) {
     return (
-      <div className="min-h-dvh bg-background">
-        <header className="sticky top-0 z-40 border-b bg-background safe-area-header-pt">
-          <div className="container flex items-center gap-3 py-3 sm:py-4">
-            <Button variant="ghost" size="icon" asChild className="shrink-0 -ml-1">
-              <Link href="/client/dashboard" aria-label="Volver al inicio">
-                <ArrowLeft className="size-4" />
-              </Link>
-            </Button>
-            <h1 className="text-xl font-bold truncate sm:text-2xl">Mis Entrenamientos</h1>
-          </div>
-        </header>
-
-        <main id="main-content" className="container py-8" tabIndex={-1}>
-          <Card>
-            <CardHeader>
-              <CardTitle>Perfil incompleto</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Tu perfil de cliente aún no ha sido configurado. Contacta a tu entrenador.
-              </p>
-            </CardContent>
-          </Card>
-        </main>
-      </div>
+      <>
+        <ClientStackPageHeader
+          title="Historial"
+          subtitle="Completa tu perfil para ver tus sesiones y volumen."
+        />
+        <div className={CLIENT_DATA_PAGE_SHELL}>
+          <ClientIncompleteProfileCard />
+        </div>
+      </>
     )
   }
 
-  const workoutSessions = await getWorkoutSessions(clientRecord.id)
+  const workoutSessions = await getWorkoutSessions(clientRecord.id, 80)
+  const sessionCount = workoutSessions?.length ?? 0
+  const historySubtitle =
+    sessionCount === 0
+      ? 'Sin sesiones aún · empieza un entreno desde Mis rutinas.'
+      : `${sessionCount} ${sessionCount === 1 ? 'sesión registrada' : 'sesiones registradas'} · tiempo, volumen y notas.`
 
   return (
-    <div className="min-h-dvh bg-background">
-      <header className="sticky top-0 z-40 border-b bg-background safe-area-header-pt">
-        <div className="container flex items-center gap-3 py-3 sm:py-4">
-          <Button variant="ghost" size="icon" asChild className="shrink-0 -ml-1">
-            <Link href="/client/dashboard" aria-label="Volver al inicio">
-              <ArrowLeft className="size-4" />
-            </Link>
-          </Button>
-          <h1 className="text-xl font-bold truncate sm:text-2xl">Mis Entrenamientos</h1>
-        </div>
-      </header>
+    <>
+      <ClientStackPageHeader title="Historial" subtitle={historySubtitle} />
 
-      <main id="main-content" className="container py-8" tabIndex={-1}>
-        {!workoutSessions || workoutSessions.length === 0 ? (
-          <Card>
-            <CardHeader>
-              <CardTitle>Historial de Entrenamientos</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Aún no tienes entrenamientos registrados.
+      <div className={CLIENT_DATA_PAGE_SHELL}>
+      {!workoutSessions || workoutSessions.length === 0 ? (
+        <Card className="overflow-hidden border-border/80 shadow-sm ring-1 ring-primary/5">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
+                <CalendarDays className="size-4 text-primary" aria-hidden />
+              </div>
+              <div>
+                <CardTitle className="text-base sm:text-lg">Sesiones</CardTitle>
+                <CardDescription>Cada entreno que completes aparecerá aquí</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-xl border border-border/60 bg-muted/15 px-4 py-8 text-center sm:px-6">
+              <p className="text-sm font-medium text-foreground">Aún no tienes entrenamientos registrados</p>
+              <p className="mt-2 text-sm text-muted-foreground text-pretty">
+                Cuando completes un entreno desde <span className="font-medium">Mis rutinas</span>, aparecerá en
+                esta lista con fecha, volumen y notas.
               </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="size-5" />
-                  Historial de Entrenamientos
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {workoutSessions.map((session) => (
-                    <div
-                      key={session.id}
-                      className="border rounded-lg p-4"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div>
-                          <h4 className="font-semibold">
-                            {session.routine_days?.day_name || `Día ${session.routine_days?.day_number || '-'}`}
-                          </h4>
-                          <p className="text-sm text-muted-foreground">
-                            {session.started_at 
-                              ? new Date(session.started_at).toLocaleDateString()
-                              : new Date(session.created_at).toLocaleDateString()
-                            }
-                          </p>
-                        </div>
-                        <Badge
-                          variant="secondary"
-                          className={
-                            session.status === 'completed'
-                              ? 'bg-success/20 text-success hover:bg-success/20'
-                              : session.status === 'in_progress'
-                              ? 'bg-warning/20 text-warning-foreground hover:bg-warning/20'
-                              : 'bg-muted text-muted-foreground hover:bg-muted'
-                          }
-                        >
-                          {session.status === 'completed' ? 'Completado' :
-                           session.status === 'in_progress' ? 'En progreso' : session.status}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Dumbbell className="size-4" />
-                          <span>{session.exercises_completed || 0} ejercicios</span>
-                        </div>
-                        {session.duration_minutes && (
-                          <span>{session.duration_minutes} min</span>
-                        )}
-                        {session.total_volume_kg && (
-                          <span>{session.total_volume_kg} kg total</span>
-                        )}
-                      </div>
-                      {session.feeling_note && (
-                        <p className="mt-2 text-sm italic text-muted-foreground">
-                          {session.feeling_note}
-                        </p>
-                      )}
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="overflow-hidden border-border/80 shadow-sm ring-1 ring-primary/5">
+          <CardHeader className="pb-4">
+            <div className="flex items-center gap-2">
+              <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
+                <CalendarDays className="size-4 text-primary" aria-hidden />
+              </div>
+              <div>
+                <CardTitle className="text-base sm:text-lg">Sesiones</CardTitle>
+                <CardDescription>Lista ordenada por fecha</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            {workoutSessions.map((session) => {
+              const rd = session.routine_days
+              const dayMeta = Array.isArray(rd) ? rd[0] : rd
+              const dateSrc = session.started_at ?? session.created_at
+              const dateLabel = new Date(dateSrc).toLocaleDateString('es', {
+                weekday: 'short',
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+              })
+
+              return (
+                <article
+                  key={session.id}
+                  className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-muted/15 p-4 shadow-sm transition-colors sm:p-5"
+                >
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                    <div className="min-w-0 text-center sm:text-left">
+                      <h2 className="text-base font-semibold leading-snug">
+                        {dayMeta?.day_name || `Día ${dayMeta?.day_number ?? '—'}`}
+                      </h2>
+                      <p className="mt-1 text-sm text-muted-foreground tabular-nums">{dateLabel}</p>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-      </main>
-    </div>
+                    <Badge
+                      variant="secondary"
+                      className={cn(
+                        'mx-auto shrink-0 sm:mx-0',
+                        session.status === 'completed' &&
+                          'border border-success/30 bg-success/10 text-success',
+                        session.status === 'in_progress' &&
+                          'border border-warning/35 bg-warning/15 text-warning-foreground',
+                      )}
+                    >
+                      {session.status === 'completed'
+                        ? 'Completado'
+                        : session.status === 'in_progress'
+                          ? 'En progreso'
+                          : session.status}
+                    </Badge>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-muted-foreground sm:justify-start">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Dumbbell className="size-4 shrink-0 text-primary/80" aria-hidden />
+                      <span className="tabular-nums">{session.exercises_completed ?? 0} ejercicios</span>
+                    </span>
+                    {session.duration_minutes != null ? (
+                      <span className="inline-flex items-center gap-1.5">
+                        <Clock className="size-4 shrink-0 text-primary/80" aria-hidden />
+                        <span className="tabular-nums">{session.duration_minutes} min</span>
+                      </span>
+                    ) : null}
+                    {session.total_volume_kg != null ? (
+                      <span className="tabular-nums font-medium text-foreground">
+                        {session.total_volume_kg} kg volumen
+                      </span>
+                    ) : null}
+                  </div>
+
+                  {session.feeling_note ? (
+                    <p className="rounded-lg border border-border/50 bg-background/80 px-3 py-2 text-sm italic leading-relaxed text-muted-foreground">
+                      {session.feeling_note}
+                    </p>
+                  ) : null}
+                </article>
+              )
+            })}
+          </CardContent>
+        </Card>
+      )}
+      </div>
+    </>
   )
 }

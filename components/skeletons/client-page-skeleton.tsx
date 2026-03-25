@@ -1,25 +1,25 @@
 import { Skeleton } from '@/components/ui/skeleton'
 
+/**
+ * Generic client main-area placeholder (header comes from ClientLayoutShell).
+ * Spacing matches `max-w-7xl` client pages (progress, measurements, etc.).
+ */
 export function ClientPageSkeleton() {
   return (
-    <div className="min-h-dvh w-full bg-background">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            <Skeleton className="size-8 rounded-lg shrink-0" />
-            <div>
-              <Skeleton className="h-5 w-24" />
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <div className="space-y-6">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-[300px] w-full rounded-lg" />
-        </div>
-      </main>
+    <div
+      className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8"
+      aria-busy="true"
+      aria-label="Cargando"
+    >
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-48 sm:h-9 sm:w-56" />
+        <Skeleton className="h-4 w-full max-w-xl" />
+      </div>
+      <Skeleton className="h-[280px] w-full rounded-xl" />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Skeleton className="h-40 rounded-xl" />
+        <Skeleton className="h-40 rounded-xl" />
+      </div>
     </div>
   )
 }

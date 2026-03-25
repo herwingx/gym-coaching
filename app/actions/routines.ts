@@ -27,6 +27,7 @@ export async function createNewRoutine(formData: FormData) {
     .insert([
       {
         id: randomUUID(),
+        coach_id: user.id,
         name,
         description: description || null,
         goal: goal || null,

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { CheckCircle, XCircle, Calendar, Mail } from 'lucide-react'
+import { getGoalLabel } from '@/lib/constants'
 
 interface PendingClient {
   id: string
@@ -26,15 +27,24 @@ export default function PendingClientsPage() {
     const loadPendingClients = async () => {
       try {
         const supabase = createClient()
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+        if (!user) {
+          setClients([])
+          return
+        }
+
         const { data, error } = await supabase
           .from('clients')
           .select('id, full_name, email, created_at, phone, goal')
+          .eq('coach_id', user.id)
           .eq('admin_approved', false)
           .order('created_at', { ascending: false })
 
         if (error) throw error
         setClients(data || [])
-      } catch (err: any) {
+      } catch {
         toast.error('No pudimos cargar la lista de asesorados pendientes. Recarga la página.')
       } finally {
         setLoading(false)
@@ -48,6 +58,11 @@ export default function PendingClientsPage() {
     setApproving(clientId)
     try {
       const supabase = createClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) throw new Error('Sesión requerida')
+
       const { error } = await supabase
         .from('clients')
         .update({
@@ -56,12 +71,13 @@ export default function PendingClientsPage() {
           status: 'active',
         })
         .eq('id', clientId)
+        .eq('coach_id', user.id)
 
       if (error) throw error
 
       toast.success('¡Asesorado aprobado! Ya puede usar la app.')
       setClients(clients.filter(c => c.id !== clientId))
-    } catch (err: any) {
+    } catch {
       toast.error('No pudimos aprobar al asesorado. Intenta de nuevo.')
     } finally {
       setApproving(null)
@@ -71,16 +87,22 @@ export default function PendingClientsPage() {
   const handleRejectClient = async (clientId: string) => {
     try {
       const supabase = createClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) throw new Error('Sesión requerida')
+
       const { error } = await supabase
         .from('clients')
         .delete()
         .eq('id', clientId)
+        .eq('coach_id', user.id)
 
       if (error) throw error
 
       toast.success('Solicitud rechazada correctamente.')
       setClients(clients.filter(c => c.id !== clientId))
-    } catch (err: any) {
+    } catch {
       toast.error('No pudimos rechazar la solicitud. Intenta de nuevo.')
     }
   }
@@ -123,7 +145,7 @@ export default function PendingClientsPage() {
 
                 {client.goal && (
                   <p className="text-sm mb-4">
-                    <span className="font-medium">Objetivo:</span> {client.goal}
+                    <span className="font-medium">Objetivo:</span> {getGoalLabel(client.goal)}
                   </p>
                 )}
 

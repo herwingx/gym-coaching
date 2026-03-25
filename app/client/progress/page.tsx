@@ -1,52 +1,41 @@
 import { getAuthUser } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, Sparkles, TrendingUp } from 'lucide-react'
-import { ExerciseProgressChart } from '@/components/charts/exercise-progress-chart'
-import { VolumeChart } from '@/components/charts/volume-chart'
+import { Sparkles, TrendingUp } from 'lucide-react'
+import {
+  VolumeChartLazy,
+  ExerciseProgressChartLazy,
+} from '@/components/charts/progress-charts-lazy'
+import {
+  CLIENT_DATA_PAGE_SHELL,
+  ClientIncompleteProfileCard,
+  ClientStackPageHeader,
+} from '@/components/client/client-app-page-parts'
 
 export default async function ClientProgressPage() {
   const user = await getAuthUser()
   if (!user) redirect('/auth/login')
 
   const supabase = await createClient()
-
-  const { data: clientRecord } = await supabase
-    .from('clients')
-    .select('id')
-    .eq('user_id', user.id)
-    .single()
+  const { data: clientRecord } = await supabase.from('clients').select('id').eq('user_id', user.id).single()
 
   if (!clientRecord) {
     return (
-      <div className="min-h-dvh bg-background">
-        <header className="border-b">
-          <div className="container flex items-center gap-4 py-4">
-            <Button variant="ghost" size="icon" asChild aria-label="Volver al dashboard">
-              <Link href="/client/dashboard">
-                <ArrowLeft className="size-4" />
-              </Link>
-            </Button>
-            <h1 className="text-2xl font-bold">Mi Progreso</h1>
-          </div>
-        </header>
-        <main id="main-content" className="container py-8" tabIndex={-1}>
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-muted-foreground">Tu perfil aún no está configurado.</p>
-            </CardContent>
-          </Card>
-        </main>
-      </div>
+      <>
+        <ClientStackPageHeader
+          title="Progreso"
+          subtitle="Completa tu perfil para ver volumen, PRs e insights."
+        />
+        <div className={CLIENT_DATA_PAGE_SHELL}>
+          <ClientIncompleteProfileCard />
+        </div>
+      </>
     )
   }
 
   const clientId = clientRecord.id as string
 
-  // Volume over time
   const { data: completedSessions } = await supabase
     .from('workout_sessions')
     .select('started_at,total_volume_kg,status')
@@ -55,7 +44,6 @@ export default async function ClientProgressPage() {
     .order('started_at', { ascending: true })
     .limit(60)
 
-  // PRs per exercise (used to build the exercise progress chart)
   const { data: prRows } = await supabase
     .from('personal_records')
     .select('achieved_at,weight_kg,reps,exercise_id,exercises(name,primary_muscle)')
@@ -65,26 +53,32 @@ export default async function ClientProgressPage() {
 
   const exercises = Array.from(
     new Map(
-      (prRows || []).map((r: any) => [
-        r.exercise_id,
-        { id: r.exercise_id, name: r.exercises?.name || 'Ejercicio' },
-      ]),
+      (prRows || []).map((r) => {
+        const ex = r.exercises
+        const meta = Array.isArray(ex) ? ex[0] : ex
+        return [
+          r.exercise_id,
+          { id: r.exercise_id as string, name: meta?.name || 'Ejercicio' },
+        ] as const
+      }),
     ).values(),
   )
 
-  const pointsByExerciseId: Record<string, any[]> = {}
+  const pointsByExerciseId: Record<
+    string,
+    { achieved_at: string; weight_kg: number; reps: number | null }[]
+  > = {}
   for (const r of prRows || []) {
     const id = r.exercise_id
     if (!id) continue
     if (!pointsByExerciseId[id]) pointsByExerciseId[id] = []
     pointsByExerciseId[id].push({
-      achieved_at: r.achieved_at,
-      weight_kg: r.weight_kg,
+      achieved_at: r.achieved_at as string,
+      weight_kg: r.weight_kg as number,
       reps: r.reps ?? null,
     })
   }
 
-  // Insights
   const now = new Date()
   const start30 = new Date()
   start30.setDate(now.getDate() - 29)
@@ -116,10 +110,17 @@ export default async function ClientProgressPage() {
     }
   }
 
+  const sessionCountForChart = (completedSessions || []).length
+  const prExerciseCount = exercises.length
+  const progressSubtitle =
+    sessionCountForChart === 0 && prExerciseCount === 0
+      ? 'Sin datos aún · completa entrenos y registra PRs para ver tendencias.'
+      : `${sessionCountForChart} ${sessionCountForChart === 1 ? 'sesión' : 'sesiones'} en volumen · ${prExerciseCount} ${prExerciseCount === 1 ? 'ejercicio con PR' : 'ejercicios con PR'}`
+
   const volumeInsights = (() => {
     const volumes = (completedSessions || [])
-      .filter((s: any) => typeof s.total_volume_kg === 'number')
-      .map((s: any) => s.total_volume_kg as number)
+      .filter((s) => typeof s.total_volume_kg === 'number')
+      .map((s) => s.total_volume_kg as number)
 
     if (volumes.length < 6) return null
     const last3 = volumes.slice(-3)
@@ -135,102 +136,110 @@ export default async function ClientProgressPage() {
   })()
 
   return (
-    <div className="min-h-dvh bg-background">
-      <header className="border-b">
-        <div className="container flex items-center gap-4 py-4">
-          <Button variant="ghost" size="icon" asChild aria-label="Volver al dashboard">
-            <Link href="/client/dashboard">
-              <ArrowLeft className="size-4" />
-            </Link>
-          </Button>
-          <div className="min-w-0">
-            <h1 className="text-2xl font-bold">Mi Progreso</h1>
-            <p className="text-sm text-muted-foreground">Gráficas de peso, PR y volumen</p>
-          </div>
-        </div>
-      </header>
+    <>
+      <ClientStackPageHeader title="Progreso" subtitle={progressSubtitle} />
 
-      <main id="main-content" className="container py-8 space-y-6" tabIndex={-1}>
-        <div className="grid gap-6 lg:grid-cols-5">
-          <Card className="lg:col-span-2">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <TrendingUp className="w-4 h-4" />
-                Volumen
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <VolumeChart
-                sessions={(completedSessions || []).map((s: any) => ({
-                  started_at: s.started_at,
-                  total_volume_kg: s.total_volume_kg,
-                }))}
-              />
-            </CardContent>
-          </Card>
-
-          <Card className="lg:col-span-3">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Sparkles className="w-4 h-4" />
-                Progreso por Ejercicio
-              </CardTitle>
-              <div className="text-xs text-muted-foreground">Usa tus PRs para ver tendencia</div>
-            </CardHeader>
-            <CardContent>
-              <ExerciseProgressChart
-                exercises={exercises}
-                pointsByExerciseId={pointsByExerciseId}
-                defaultExerciseId={exercises[0]?.id}
-              />
-            </CardContent>
-          </Card>
-        </div>
-
-        <Card>
+      <div className={CLIENT_DATA_PAGE_SHELL}>
+      <div className="grid gap-6 lg:grid-cols-5">
+        <Card className="overflow-hidden border-border/80 shadow-sm ring-1 ring-primary/5 lg:col-span-2">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Sparkles className="w-4 h-4" />
-              Insights
-            </CardTitle>
-            <div className="text-xs text-muted-foreground">Recomendaciones automáticas basadas en tus últimos datos</div>
+            <div className="flex items-center gap-2">
+              <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
+                <TrendingUp className="size-4 text-primary" aria-hidden />
+              </div>
+              <div>
+                <CardTitle className="text-base sm:text-lg">Volumen</CardTitle>
+                <CardDescription>Kilos totales por sesión completada</CardDescription>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {bestExerciseName && bestDeltaPct != null ? (
-              <div className="rounded-lg border p-4">
-                <div className="font-semibold">
-                  {bestExerciseName} subió {bestDeltaPct >= 0 ? '+' : ''}
-                  {bestDeltaPct.toFixed(1)}% en los últimos 30 días
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  De {bestFromWeight?.toFixed(1)}kg a {bestToWeight?.toFixed(1)}kg
-                </div>
-              </div>
-            ) : (
-              <div className="rounded-lg border p-4 text-sm text-muted-foreground">
-                Aún no hay suficientes PRs recientes para generar insights. Sigue entrenando y registrando tus sesiones.
-              </div>
-            )}
-
-            {volumeInsights ? (
-              <div className="rounded-lg border p-4">
-                <div className="font-semibold">
-                  {volumeInsights === 'progress'
-                    ? 'Tu volumen está mejorando'
-                    : volumeInsights === 'down'
-                      ? 'Tu volumen está bajando'
-                      : 'Tu volumen está estable'}
-                </div>
-                <div className="text-sm text-muted-foreground">Comparación promedio de últimos 3 vs 3 entrenamientos anteriores</div>
-              </div>
-            ) : (
-              <div className="rounded-lg border p-4 text-sm text-muted-foreground">
-                Registra más entrenamientos para ver tendencia de volumen.
-              </div>
-            )}
+          <CardContent>
+            <VolumeChartLazy
+              sessions={(completedSessions || []).map((s) => ({
+                started_at: s.started_at,
+                total_volume_kg: s.total_volume_kg,
+              }))}
+            />
           </CardContent>
         </Card>
-      </main>
-    </div>
+
+        <Card className="overflow-hidden border-border/80 shadow-sm ring-1 ring-primary/5 lg:col-span-3">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
+                <Sparkles className="size-4 text-primary" aria-hidden />
+              </div>
+              <div>
+                <CardTitle className="text-base sm:text-lg">Progreso por ejercicio</CardTitle>
+                <CardDescription>Tendencia según tus PRs registrados</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <ExerciseProgressChartLazy
+              exercises={exercises}
+              pointsByExerciseId={pointsByExerciseId}
+              defaultExerciseId={exercises[0]?.id}
+            />
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="overflow-hidden border-border/80 shadow-sm ring-1 ring-primary/5">
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
+              <Sparkles className="size-4 text-primary" aria-hidden />
+            </div>
+            <div>
+              <CardTitle className="text-base sm:text-lg">Insights</CardTitle>
+              <CardDescription>Resumen automático con lo que tus datos sugieren hoy</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          {bestExerciseName && bestDeltaPct != null ? (
+            <div className="rounded-xl border border-border/60 bg-muted/15 p-4 sm:p-5">
+              <p className="font-semibold leading-snug">
+                {bestExerciseName} subió {bestDeltaPct >= 0 ? '+' : ''}
+                <span className="tabular-nums">{bestDeltaPct.toFixed(1)}</span>% en los últimos 30 días
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground tabular-nums">
+                De {bestFromWeight?.toFixed(1)} kg a {bestToWeight?.toFixed(1)} kg
+              </p>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-border/60 bg-muted/15 px-4 py-6 text-center sm:text-left">
+              <p className="text-sm text-muted-foreground text-pretty">
+                Aún no hay suficientes PRs recientes para generar insights. Sigue entrenando y registrando tus
+                sesiones.
+              </p>
+            </div>
+          )}
+
+          {volumeInsights ? (
+            <div className="rounded-xl border border-border/60 bg-muted/15 p-4 sm:p-5">
+              <p className="font-semibold leading-snug">
+                {volumeInsights === 'progress'
+                  ? 'Tu volumen está mejorando'
+                  : volumeInsights === 'down'
+                    ? 'Tu volumen está bajando'
+                    : 'Tu volumen está estable'}
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Comparación del promedio de los últimos 3 entrenos vs los 3 anteriores.
+              </p>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-border/60 bg-muted/15 px-4 py-6 text-center sm:text-left">
+              <p className="text-sm text-muted-foreground text-pretty">
+                Registra más entrenamientos completados para ver tendencia de volumen.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      </div>
+    </>
   )
 }

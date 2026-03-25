@@ -38,10 +38,12 @@ export function UserProfileContent({
   initialProfile,
   userId,
   userEmail,
+  clientId,
 }: {
   initialProfile: Profile
   userId: string
   userEmail: string
+  clientId?: string
 }) {
   const [profile, setProfile] = useState<Profile>(initialProfile || {})
   const [uploading, setUploading] = useState(false)
@@ -88,22 +90,34 @@ export function UserProfileContent({
   const handleSaveProfile = async () => {
     setSaving(true)
     try {
+      const profilePayload = {
+        username: profile.username,
+        full_name: profile.full_name,
+        phone: profile.phone,
+        gender: profile.gender,
+        birth_date: profile.birth_date,
+        fitness_goal: profile.fitness_goal,
+        experience_level: profile.experience_level,
+      }
       const { error } = await supabase
         .from('profiles')
-        .update({
-          username: profile.username,
-          full_name: profile.full_name,
-          phone: profile.phone,
-          gender: profile.gender,
-          birth_date: profile.birth_date,
-          fitness_goal: profile.fitness_goal,
-          experience_level: profile.experience_level,
-        })
+        .update(profilePayload)
         .eq('id', userId)
 
       if (error) {
         toast.error('No pudimos guardar. Intenta de nuevo.')
         return
+      }
+
+      if (clientId && (profile.phone || profile.gender || profile.birth_date)) {
+        await supabase
+          .from('clients')
+          .update({
+            phone: profile.phone || '',
+            gender: profile.gender || null,
+            birth_date: profile.birth_date || null,
+          })
+          .eq('id', clientId)
       }
 
       toast.success('¡Perfil actualizado!')

@@ -25,11 +25,25 @@ La app depende de Supabase con RLS activo. El orden de scripts para entornos nue
 ## Desarrollo
 
 ```bash
+pnpm install
+cp .env.example .env.local
+# Completa Supabase, service role y (si aplica) ADMIN_SETUP_CODE — ver .env.example
 pnpm dev
-pnpm build
 ```
 
-Variables requeridas en `.env.local`:
+En Supabase, ejecuta los SQL en el orden de `scripts/README.md` (proyecto nuevo). En **Auth → URL Configuration** añade `http://localhost:3000/auth/callback` en Redirect URLs.
 
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+Comprobar que todo compila y pasa tests antes de desplegar:
+
+```bash
+pnpm verify
+```
+
+Solo producción local estática:
+
+```bash
+pnpm build
+pnpm start
+```
+
+Variables en `.env.local`: copia desde `.env.example`. Mínimo para arrancar: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`. Para crear el primer admin: `ADMIN_SETUP_CODE` (y opcionalmente Resend / `NEXT_PUBLIC_APP_URL`).

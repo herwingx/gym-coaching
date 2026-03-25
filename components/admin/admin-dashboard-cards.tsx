@@ -1,22 +1,34 @@
 'use client'
 
-import { TrendingDown, TrendingUp, Flame, AlertTriangle, Users, Trophy } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import Link from 'next/link'
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+  Activity,
+  AlertTriangle,
+  Flame,
+  LayoutGrid,
+  Trophy,
+  TrendingDown,
+  TrendingUp,
+  Users,
+} from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
+import { AdminKpiStatCard } from '@/components/admin/admin-kpi-stat-card'
 
 export type AdminDashboardMetrics = {
   totalTrainingsThisWeek: number
   prsThisMonth: number
+  mostActiveClientId: string | null
   mostActiveClientName: string | null
+  attentionClientId: string | null
   attentionClientName: string | null
   attentionReason?: string | null
-  totalClients?: number
+  totalClients: number
+  activeThisWeekCount: number
+  attentionCount: number
   trainingsLastWeek?: number
 }
 
@@ -28,80 +40,137 @@ function computeTrend(current: number, previous: number): number | null {
 export function AdminDashboardCards({
   totalTrainingsThisWeek,
   prsThisMonth,
+  mostActiveClientId,
   mostActiveClientName,
+  attentionClientId,
   attentionClientName,
   attentionReason,
-  totalClients = 0,
+  totalClients,
+  activeThisWeekCount,
+  attentionCount,
   trainingsLastWeek = 0,
 }: AdminDashboardMetrics) {
   const weekTrend = computeTrend(totalTrainingsThisWeek, trainingsLastWeek)
+  const activePct =
+    totalClients > 0 ? Math.round((activeThisWeekCount / totalClients) * 100) : 0
 
   return (
-    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:px-6">
-      <Card className="overflow-hidden border-none shadow-sm bg-linear-to-br from-primary/10 via-background to-background group hover:scale-[1.02] transition-all duration-300">
-        <CardHeader className="p-4 pb-2">
-          <div className="flex items-center justify-between">
-            <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Users className="size-4 text-primary" />
-            </div>
-            {weekTrend != null && (
-              <Badge variant="outline" className={cn(
-                "h-5 text-[10px] font-black border-none px-1.5",
-                weekTrend >= 0 ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
-              )}>
-                {weekTrend >= 0 ? '+' : ''}{weekTrend}%
+    <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <AdminKpiStatCard
+          icon={Users}
+          value={totalClients}
+          label="Asesorados"
+          badge={
+            <Badge variant="outline" className="tabular-nums text-[10px] font-semibold uppercase tracking-wide">
+              Cartera
+            </Badge>
+          }
+        />
+
+        <AdminKpiStatCard
+          icon={Activity}
+          value={totalTrainingsThisWeek}
+          label="Sesiones esta semana"
+          badge={
+            weekTrend != null ? (
+              <Badge
+                variant="outline"
+                className={cn(
+                  'tabular-nums text-[10px] font-semibold uppercase tracking-wide border-none',
+                  weekTrend >= 0
+                    ? 'bg-primary/10 text-primary'
+                    : 'bg-destructive/10 text-destructive',
+                )}
+              >
+                {weekTrend >= 0 ? (
+                  <TrendingUp className="mr-1 inline size-3 align-middle" />
+                ) : (
+                  <TrendingDown className="mr-1 inline size-3 align-middle" />
+                )}
+                {weekTrend >= 0 ? '+' : ''}
+                {weekTrend}%
+              </Badge>
+            ) : null
+          }
+        />
+
+        <AdminKpiStatCard icon={Trophy} value={prsThisMonth} label="PRs este mes" />
+
+        <AdminKpiStatCard
+          icon={LayoutGrid}
+          value={activeThisWeekCount}
+          label="Activos (7 días)"
+          badge={
+            <Badge variant="secondary" className="tabular-nums text-[10px] font-semibold">
+              {activePct}%
+            </Badge>
+          }
+        />
+      </div>
+
+      <Card className="overflow-hidden border-muted/70 border-dashed shadow-none">
+        <CardHeader className="p-4 pb-2 sm:p-5 sm:pb-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <CardTitle className="text-base font-semibold">Seguimiento</CardTitle>
+            {attentionCount > 0 ? (
+              <Badge variant="destructive" className="gap-1 font-normal">
+                <AlertTriangle className="size-3.5" />
+                {attentionCount} prioritaria{attentionCount !== 1 ? 's' : ''}
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="font-normal text-muted-foreground">
+                Sin alertas críticas
               </Badge>
             )}
           </div>
+          <CardDescription className="text-xs sm:text-sm">
+            Basado en sesiones reales, rutina asignada y estado del plan — no son estimaciones.
+          </CardDescription>
         </CardHeader>
-        <CardContent className="p-4 pt-0">
-          <div className="space-y-1">
-            <p className="text-3xl font-black tracking-tighter tabular-nums">{totalTrainingsThisWeek}</p>
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Entrenos / Semana</p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="overflow-hidden border-none shadow-sm bg-linear-to-br from-amber-500/10 via-background to-background group hover:scale-[1.02] transition-all duration-300">
-        <CardHeader className="p-4 pb-2">
-          <div className="size-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
-            <Trophy className="size-4 text-amber-500" />
-          </div>
-        </CardHeader>
-        <CardContent className="p-4 pt-0">
-          <div className="space-y-1">
-            <p className="text-3xl font-black tracking-tighter tabular-nums">{prsThisMonth}</p>
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">PRs / Mes</p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="overflow-hidden border-none shadow-sm bg-linear-to-br from-indigo-500/10 via-background to-background group hover:scale-[1.02] transition-all duration-300">
-        <CardHeader className="p-4 pb-2">
-          <div className="size-8 rounded-lg bg-indigo-500/10 flex items-center justify-center">
-            <Flame className="size-4 text-indigo-500" />
-          </div>
-        </CardHeader>
-        <CardContent className="p-4 pt-0">
-          <div className="space-y-1">
-            <p className="text-xl font-black tracking-tighter truncate leading-7">{mostActiveClientName || '-'}</p>
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Más Activo</p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="overflow-hidden border-none shadow-sm bg-linear-to-br from-destructive/10 via-background to-background group hover:scale-[1.02] transition-all duration-300">
-        <CardHeader className="p-4 pb-2">
-          <div className="size-8 rounded-lg bg-destructive/10 flex items-center justify-center">
-            <AlertTriangle className="size-4 text-destructive" />
-          </div>
-        </CardHeader>
-        <CardContent className="p-4 pt-0">
-          <div className="space-y-1">
-            <p className="text-xl font-black tracking-tighter truncate leading-7">{attentionClientName || '-'}</p>
-            <p className="text-[10px] font-bold text-destructive uppercase tracking-widest leading-tight">
-              {attentionReason || 'Atención'}
-            </p>
+        <CardContent className="p-0">
+          <div className="grid gap-0 sm:grid-cols-2">
+            <div className="flex flex-col gap-3 p-4 sm:p-5">
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <Flame className="size-3.5" />
+                Mayor constancia (30 días)
+              </div>
+              <p className="truncate text-lg font-semibold leading-tight">
+                {mostActiveClientName || '—'}
+              </p>
+              {mostActiveClientId ? (
+                <Button variant="outline" size="sm" className="w-full sm:w-fit" asChild>
+                  <Link href={`/admin/clients/${mostActiveClientId}`}>Ver perfil</Link>
+                </Button>
+              ) : null}
+            </div>
+            <Separator className="sm:hidden" />
+            <div className="border-t border-dashed bg-muted/20 sm:border-t-0 sm:border-l sm:border-dashed">
+              <div className="flex flex-col gap-3 p-4 sm:p-5">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <AlertTriangle className="size-3.5 text-destructive" />
+                  Revisar primero
+                </div>
+                {attentionClientName ? (
+                  <>
+                    <p className="truncate text-lg font-semibold leading-tight text-destructive">
+                      {attentionClientName}
+                    </p>
+                    <p className="text-sm text-muted-foreground">{attentionReason || 'Requiere acción'}</p>
+                    {attentionClientId ? (
+                      <Button size="sm" className="w-full sm:w-fit" asChild>
+                        <Link href={`/admin/clients/${attentionClientId}`}>Abrir ficha</Link>
+                      </Button>
+                    ) : null}
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No hay casos priorizados con la lógica actual. Filtra por &quot;Atención&quot; si quieres
+                    revisar todos.
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>

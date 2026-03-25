@@ -1,7 +1,8 @@
 'use client'
 
+import { useMemo } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { useLayoutBasePath } from '@/hooks/use-layout-base-path'
 import {
   Users,
   Dumbbell,
@@ -11,7 +12,6 @@ import {
   LogOut,
   Layers,
   Ticket,
-  UserCog,
   MessageCircle,
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
@@ -31,7 +31,7 @@ import { cn } from '@/lib/utils'
 
 const menuItems = [
   { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
-  { label: 'Asesorados', href: '/admin/clients', icon: Users },
+  { label: 'Gestionar Asesorados', href: '/admin/clients', icon: Users },
   { label: 'Rutinas', href: '/admin/routines', icon: Dumbbell },
   { label: 'Builder', href: '/admin/routines/builder', icon: Layers },
   { label: 'Pagos / Asesorías', href: '/admin/payments', icon: CreditCard },
@@ -40,8 +40,21 @@ const menuItems = [
   { label: 'Configuración', href: '/admin/settings', icon: Settings },
 ]
 
+/** Longest href wins so /admin/routines/builder activates Builder, not Rutinas. */
+function activeMenuHref(path: string): string | null {
+  if (!path) return null
+  const ordered = [...menuItems].sort((a, b) => b.href.length - a.href.length)
+  for (const item of ordered) {
+    if (path === item.href) return item.href
+    if (item.href === '/admin/dashboard') continue
+    if (path.startsWith(`${item.href}/`)) return item.href
+  }
+  return null
+}
+
 export function AdminSidebar() {
-  const pathname = usePathname()
+  const path = useLayoutBasePath('/admin')
+  const activeHref = useMemo(() => activeMenuHref(path), [path])
 
   return (
     <Sidebar side="left" collapsible="icon">
@@ -63,16 +76,14 @@ export function AdminSidebar() {
             <SidebarMenu>
               {menuItems.map((item) => {
                 const Icon = item.icon
-                const isActive =
-                  pathname === item.href ||
-                  (item.href !== '/admin/dashboard' && pathname.startsWith(item.href))
+                const isActive = activeHref === item.href
                 return (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton asChild isActive={isActive} tooltip={item.label}>
                       <Link
                         href={item.href}
                         className={cn(
-                          isActive && 'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground'
+                          isActive && "bg-primary/10 text-primary hover:bg-primary/20 font-bold"
                         )}
                       >
                         <Icon className="size-4 shrink-0" />

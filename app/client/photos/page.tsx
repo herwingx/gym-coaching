@@ -1,9 +1,10 @@
 import { getAuthUser } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, ImageIcon } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import {
+  CLIENT_DATA_PAGE_SHELL,
+  ClientStackPageHeader,
+} from '@/components/client/client-app-page-parts'
 import { PhotosContent } from './photos-content'
 
 export default async function ClientPhotosPage() {
@@ -26,33 +27,19 @@ export default async function ClientPhotosPage() {
     .eq('client_id', clientRecord.id)
     .order('taken_at', { ascending: false })
 
-  return (
-    <div className="min-h-dvh bg-background">
-      <header className="border-b">
-        <div className="container flex items-center gap-4 py-4">
-          <Button variant="ghost" size="icon" asChild aria-label="Volver al dashboard">
-            <Link href="/client/dashboard">
-              <ArrowLeft className="size-5" />
-            </Link>
-          </Button>
-          <div className="min-w-0">
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <ImageIcon className="w-6 h-6" />
-              Fotos de progreso
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Sube fotos, compáralas y visualiza tu evolución
-            </p>
-          </div>
-        </div>
-      </header>
+  const photoList = photos || []
+  const n = photoList.length
+  const photosSubtitle =
+    n === 0
+      ? 'Sin fotos aún · sube la primera desde la pestaña Subir'
+      : `${n} ${n === 1 ? 'foto' : 'fotos'} en tu galería`
 
-      <main id="main-content" className="container py-8" tabIndex={-1}>
-        <PhotosContent
-          clientId={clientRecord.id as string}
-          initialPhotos={photos || []}
-        />
-      </main>
-    </div>
+  return (
+    <>
+      <ClientStackPageHeader title="Fotos" subtitle={photosSubtitle} />
+      <div className={`${CLIENT_DATA_PAGE_SHELL} gap-6`}>
+        <PhotosContent clientId={clientRecord.id as string} initialPhotos={photoList} />
+      </div>
+    </>
   )
 }

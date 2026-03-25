@@ -2,7 +2,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Trophy, Zap, Flame, Target, Award } from 'lucide-react'
+import { Award, Dumbbell, Flame, Target, Trophy } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface Achievement {
   id: string
@@ -15,18 +16,10 @@ interface Achievement {
 
 const achievementIcons = {
   trophy: Trophy,
-  zap: Zap,
+  dumbbell: Dumbbell,
   flame: Flame,
   target: Target,
   award: Award,
-}
-
-const rarityColors = {
-  common: 'bg-gray-100 text-gray-800',
-  uncommon: 'bg-success/20 text-success',
-  rare: 'bg-primary/20 text-primary',
-  epic: 'bg-accent/50 text-accent-foreground',
-  legendary: 'bg-warning/20 text-warning',
 }
 
 export function AchievementsSection({ achievements }: { achievements: Achievement[] }) {
@@ -34,40 +27,44 @@ export function AchievementsSection({ achievements }: { achievements: Achievemen
 
   return (
     <div className="flex flex-col gap-6">
-      <Card>
+      <Card className="border-muted/70 shadow-none">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-primary" />
-            Logros ({unlockedCount}/{achievements.length})
+          <CardTitle className="flex items-center gap-2 text-base font-semibold">
+            <Award className="size-5 shrink-0 text-primary" aria-hidden />
+            Hitos ({unlockedCount}/{achievements.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
             {achievements.map((achievement) => {
               const Icon = achievementIcons[achievement.icon as keyof typeof achievementIcons] || Trophy
               const isUnlocked = !!achievement.unlockedAt
-              
+
               return (
                 <div
                   key={achievement.id}
-                  className={`relative p-4 rounded-lg border-2 transition-all ${
+                  className={cn(
+                    'relative flex flex-col items-center gap-2 rounded-xl border p-4 transition-colors',
                     isUnlocked
-                      ? `border-primary bg-accent/50 ${rarityColors[achievement.rarity]}`
-                      : 'border-muted bg-muted/50 opacity-50'
-                  }`}
+                      ? 'border-primary/25 bg-primary/5'
+                      : 'border-muted bg-muted/30 opacity-70',
+                  )}
                 >
-                  <div className="flex flex-col items-center gap-2">
-                    <div className={`p-3 rounded-full ${isUnlocked ? 'bg-primary/20' : 'bg-muted'}`}>
-                      <Icon className={`w-6 h-6 ${isUnlocked ? 'text-primary' : 'text-muted-foreground'}`} />
-                    </div>
-                    <h4 className="text-sm font-bold text-center">{achievement.name}</h4>
-                    <p className="text-xs text-muted-foreground text-center">{achievement.description}</p>
-                    {isUnlocked && achievement.unlockedAt && (
-                      <Badge variant="secondary" className="text-xs">
-                        {new Date(achievement.unlockedAt).toLocaleDateString()}
-                      </Badge>
+                  <div
+                    className={cn(
+                      'flex size-12 items-center justify-center rounded-2xl',
+                      isUnlocked ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground',
                     )}
+                  >
+                    <Icon className="size-6 shrink-0" aria-hidden />
                   </div>
+                  <h4 className="text-center text-sm font-semibold leading-snug">{achievement.name}</h4>
+                  <p className="text-center text-xs text-muted-foreground">{achievement.description}</p>
+                  {isUnlocked && achievement.unlockedAt && (
+                    <Badge variant="secondary" className="text-xs font-medium">
+                      {new Date(achievement.unlockedAt).toLocaleDateString()}
+                    </Badge>
+                  )}
                 </div>
               )
             })}

@@ -2,10 +2,17 @@
 
 import { useEffect } from 'react'
 
+const SW_RELOAD_GUARD_KEY = 'gymcoach-sw-reload-guard-ts'
+
 export function PWASetup() {
   useEffect(() => {
     try {
       if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
+        return
+      }
+
+      // En dev el SW + HMR provocan updates constantes; el reload automático puede buclear la app.
+      if (process.env.NODE_ENV === 'development') {
         return
       }
 
@@ -18,13 +25,15 @@ export function PWASetup() {
             registration.update().catch(() => {})
           }, 60_000)
 
-          // Reload when new SW activates (after skipWaiting)
           registration.addEventListener('updatefound', () => {
             const newWorker = registration.installing
             if (!newWorker) return
             newWorker.addEventListener('statechange', () => {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // New version ready - could show toast to user; for now we reload
+                const now = Date.now()
+                const last = Number(sessionStorage.getItem(SW_RELOAD_GUARD_KEY) || 0)
+                if (now - last < 8000) return
+                sessionStorage.setItem(SW_RELOAD_GUARD_KEY, String(now))
                 window.location.reload()
               }
             })
@@ -32,13 +41,14 @@ export function PWASetup() {
         })
         .catch(() => {})
 
+      type DeferredWindow = { deferredPrompt?: Event | null }
       const handleBeforeInstall = (e: Event) => {
         e.preventDefault()
-        ;(window as unknown as { deferredPrompt?: Event }).deferredPrompt = e
+        ;(window as unknown as DeferredWindow).deferredPrompt = e
       }
 
       const handleAppInstalled = () => {
-        ;(window as unknown as { deferredPrompt?: Event }).deferredPrompt = null
+        ;(window as unknown as DeferredWindow).deferredPrompt = null
       }
 
       window.addEventListener('beforeinstallprompt', handleBeforeInstall)

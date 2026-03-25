@@ -50,10 +50,10 @@ export async function startWorkoutSession(clientId: string, routineDayId?: strin
 export async function completeWorkoutSession(data: WorkoutCompletionData) {
   const supabase = await createClient()
 
-  // Get user ID from client
+  // Get user ID and total_sessions from client
   const { data: client } = await supabase
     .from('clients')
-    .select('user_id')
+    .select('user_id, total_sessions')
     .eq('id', data.clientId)
     .single()
 
@@ -88,9 +88,10 @@ export async function completeWorkoutSession(data: WorkoutCompletionData) {
     return { success: false, error: sessionError.message }
   }
 
-  // Log all sets
+  // Log all sets (exercise_logs requiere user_id)
   const exerciseLogs = data.sets.map(set => ({
     workout_session_id: session.id,
+    user_id: client.user_id,
     exercise_id: set.exerciseId,
     set_number: set.setNumber,
     weight_kg: set.weight,
@@ -102,30 +103,39 @@ export async function completeWorkoutSession(data: WorkoutCompletionData) {
 
   await supabase.from('exercise_logs').insert(exerciseLogs)
 
-  // Check for PRs and update personal_records
-  const prSets = data.sets.filter(s => s.isPR)
+  const prSets = data.sets.filter((s) => s.isPR)
+  const prExerciseIds = [...new Set(prSets.map((s) => s.exerciseId))]
+  const { data: exerciseRows } =
+    prExerciseIds.length > 0
+      ? await supabase.from('exercises').select('id, name').in('id', prExerciseIds)
+      : { data: [] as { id: string; name: string }[] }
+  const nameById = new Map((exerciseRows ?? []).map((e) => [e.id, e.name]))
+
   for (const prSet of prSets) {
     const estimated1RM = calculate1RM(prSet.weight, prSet.reps)
-    
-    await supabase
-      .from('personal_records')
-      .upsert({
+    const exerciseName = nameById.get(prSet.exerciseId) ?? undefined
+
+    await supabase.from('personal_records').upsert(
+      {
         client_id: data.clientId,
         exercise_id: prSet.exerciseId,
+        exercise_name: exerciseName ?? '',
         weight_kg: prSet.weight,
         reps: prSet.reps,
         estimated_1rm: estimated1RM,
         achieved_at: new Date().toISOString(),
-      }, {
-        onConflict: 'client_id,exercise_id'
-      })
+      },
+      {
+        onConflict: 'client_id,exercise_id',
+      },
+    )
   }
 
   // Update client stats
   await supabase
     .from('clients')
     .update({
-      total_sessions: supabase.rpc('increment_total_sessions'),
+      total_sessions: (client.total_sessions ?? 0) + 1,
       last_session_at: new Date().toISOString(),
     })
     .eq('id', data.clientId)

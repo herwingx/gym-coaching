@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { RoutineBuilderClient } from './routine-builder-client'
+import { RoutineBuilderLazy } from './routine-builder-lazy'
 
 export default async function BuilderPage() {
   const user = await getAuthUser()
@@ -22,29 +22,29 @@ export default async function BuilderPage() {
 
   const { data: exercises } = await supabase
     .from('exercises')
-    .select('id, name')
+    .select('*')
     .order('name')
 
   return (
-    <div className="bg-background min-h-dvh">
-      <header className="border-b sticky top-0 bg-background z-10 safe-area-header-pt">
-        <div className="container flex items-center gap-4 py-4">
-          <Button variant="ghost" size="icon" asChild>
+    <div className="min-h-dvh bg-background">
+      <header className="sticky top-0 z-40 border-b bg-background safe-area-header-pt">
+        <div className="container flex items-center gap-4 py-4 sm:py-5">
+          <Button variant="ghost" size="icon" asChild className="size-9 sm:size-10">
             <Link href="/admin/routines">
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="size-4" />
             </Link>
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold">Builder de Rutinas</h1>
-            <p className="text-sm text-muted-foreground">
-              Crea rutinas visuales con días y ejercicios
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-xl font-semibold tracking-tight sm:text-2xl">Constructor de rutinas</h1>
+            <p className="truncate text-sm text-muted-foreground">
+              Organiza la semana, arrastra ejercicios y guarda en un clic
             </p>
           </div>
         </div>
       </header>
 
-      <main className="container py-8 max-w-3xl">
-        <RoutineBuilderClient exercises={exercises || []} />
+      <main className="container py-8">
+        <RoutineBuilderLazy exercises={exercises || []} />
       </main>
     </div>
   )

@@ -6,6 +6,13 @@ import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { NewPaymentForm } from './new-payment-form'
 
+type MembershipPlanRow = {
+  id: string
+  name: string
+  price: number
+  duration_days: number
+}
+
 export default async function NewPaymentPage() {
   const user = await getAuthUser()
 
@@ -18,6 +25,7 @@ export default async function NewPaymentPage() {
   const { data: clients } = await supabase
     .from('clients')
     .select('id, full_name, email')
+    .eq('coach_id', user.id)
     .eq('status', 'active')
     .order('full_name')
 
@@ -43,9 +51,9 @@ export default async function NewPaymentPage() {
 
       <main className="container py-6 sm:py-8">
         <div className="mx-auto max-w-2xl">
-          <NewPaymentForm 
-            clients={clients || []} 
-            plans={(plans as any) || []} 
+          <NewPaymentForm
+            clients={clients || []}
+            plans={(plans ?? []) as MembershipPlanRow[]}
           />
         </div>
       </main>

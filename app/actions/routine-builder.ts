@@ -12,7 +12,7 @@ export async function saveRoutineFromBuilder(data: {
     day_number: number
     day_name: string
     is_rest_day: boolean
-    exercises: { exercise_id: string; order_index: number; sets: number; reps: string }[]
+    exercises: { exercise_id: string; order_index: number; sets: number; reps: string; rest_seconds: number }[]
   }[]
 }): Promise<string> {
   const user = await getAuthUser()
@@ -27,9 +27,11 @@ export async function saveRoutineFromBuilder(data: {
 
   const { error: routineError } = await supabase.from('routines').insert({
     id: routineId,
+    coach_id: user.id,
     name: data.name,
     description: data.description,
     duration_weeks: data.duration_weeks,
+    days_per_week: data.days.length,
   })
 
   if (routineError) throw new Error(routineError.message)
@@ -41,6 +43,7 @@ export async function saveRoutineFromBuilder(data: {
       routine_id: routineId,
       day_number: day.day_number,
       day_name: day.day_name,
+      is_rest_day: day.is_rest_day,
     })
 
     if (dayError) throw new Error(dayError.message)
@@ -52,10 +55,127 @@ export async function saveRoutineFromBuilder(data: {
         order_index: ex.order_index,
         sets: ex.sets,
         reps: ex.reps,
+        rest_seconds: ex.rest_seconds,
       })
       if (reError) throw new Error(reError.message)
     }
   }
 
   return routineId
+}
+
+export async function updateRoutineFromBuilder(
+  routineId: string,
+  data: {
+    name: string
+    description: string | null
+    duration_weeks: number
+    days: {
+      day_number: number
+      day_name: string
+      is_rest_day: boolean
+      exercises: { exercise_id: string; order_index: number; sets: number; reps: string; rest_seconds: number }[]
+    }[]
+  }
+): Promise<void> {
+  const user = await getAuthUser()
+  const profile = await getUserProfile()
+
+  if (!user || profile?.role !== 'admin') {
+    throw new Error('No autorizado')
+  }
+
+  const supabase = await createClient()
+
+  const { data: existing } = await supabase
+    .from('routines')
+    .select('id, coach_id')
+    .eq('id', routineId)
+    .single()
+
+  if (!existing || existing.coach_id !== user.id) {
+    throw new Error('No autorizado para editar esta rutina')
+  }
+
+  const { error: routineError } = await supabase
+    .from('routines')
+    .update({
+      name: data.name,
+      description: data.description,
+      duration_weeks: data.duration_weeks,
+      days_per_week: data.days.length,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', routineId)
+
+  if (routineError) throw new Error(routineError.message)
+
+  const { data: existingDays } = await supabase
+    .from('routine_days')
+    .select('id')
+    .eq('routine_id', routineId)
+
+  for (const day of existingDays || []) {
+    await supabase.from('routine_days').delete().eq('id', day.id)
+  }
+
+  for (const day of data.days) {
+    const dayId = randomUUID()
+    const { error: dayError } = await supabase.from('routine_days').insert({
+      id: dayId,
+      routine_id: routineId,
+      day_number: day.day_number,
+      day_name: day.day_name,
+      is_rest_day: day.is_rest_day,
+    })
+
+    if (dayError) throw new Error(dayError.message)
+
+    for (const ex of day.exercises) {
+      const { error: reError } = await supabase.from('routine_exercises').insert({
+        routine_day_id: dayId,
+        exercise_id: ex.exercise_id,
+        order_index: ex.order_index,
+        sets: ex.sets,
+        reps: ex.reps,
+        rest_seconds: ex.rest_seconds,
+      })
+      if (reError) throw new Error(reError.message)
+    }
+  }
+}
+
+export async function deleteRoutine(routineId: string): Promise<{ success: boolean; error?: string }> {
+  const user = await getAuthUser()
+  const profile = await getUserProfile()
+
+  if (!user || profile?.role !== 'admin') {
+    return { success: false, error: 'No autorizado' }
+  }
+
+  const supabase = await createClient()
+
+  const { data: existing } = await supabase
+    .from('routines')
+    .select('id, coach_id')
+    .eq('id', routineId)
+    .single()
+
+  if (!existing || existing.coach_id !== user.id) {
+    return { success: false, error: 'No autorizado para eliminar esta rutina' }
+  }
+
+  const { error } = await supabase.from('routines').delete().eq('id', routineId)
+
+  if (error) {
+    if (error.code === '23503') {
+      return {
+        success: false,
+        error: 'No se puede eliminar: la rutina está asignada a clientes o tiene sesiones registradas.',
+      }
+    }
+    return { success: false, error: error.message }
+  }
+
+  return { success: true }
 }

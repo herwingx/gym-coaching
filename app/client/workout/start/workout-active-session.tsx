@@ -21,7 +21,9 @@ import {
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { calculate1RM } from '@/lib/types'
-import type { RoutineDay, RoutineExercise, PersonalRecord } from '@/lib/types'
+import type { RoutineDay, RoutineExercise, PersonalRecord, Exercise } from '@/lib/types'
+import { ExerciseDetailDrawer } from '@/components/client/exercise-detail-drawer'
+import { Badge } from '@/components/ui/badge'
 
 interface WorkoutActiveSessionProps {
   clientId: string
@@ -57,13 +59,17 @@ export function WorkoutActiveSession({
   const [totalRestTime, setTotalRestTime] = useState(90)
   const [workoutStartTime] = useState(Date.now())
   const [isPaused, setIsPaused] = useState(false)
+  
+  // Drawer state
+  const [detailOpen, setDetailOpen] = useState(false)
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null)
 
   const currentExercise = exercises[currentExerciseIndex]
-  const currentSets = sets.get(currentExercise?.id) || []
+  const currentSets = sets.get(currentExercise?.id?.toString()) || []
 
   // Initialize sets for current exercise
   useEffect(() => {
-    if (currentExercise && !sets.has(currentExercise.id)) {
+    if (currentExercise && !sets.has(currentExercise.id.toString())) {
       const initialSets: SetLog[] = Array.from(
         { length: currentExercise.sets },
         (_, i) => ({
@@ -74,7 +80,7 @@ export function WorkoutActiveSession({
           isPR: false,
         })
       )
-      setSets(new Map(sets).set(currentExercise.id, initialSets))
+      setSets(new Map(sets).set(currentExercise.id.toString(), initialSets))
     }
   }, [currentExercise])
 
@@ -117,7 +123,7 @@ export function WorkoutActiveSession({
     set.completed = true
     set.isPR = isPR
     
-    setSets(new Map(sets).set(currentExercise.id, updatedSets))
+    setSets(new Map(sets).set(currentExercise.id.toString(), updatedSets))
     
     if (isPR) {
       toast.success('¡Nuevo récord personal!', {
@@ -146,7 +152,7 @@ export function WorkoutActiveSession({
       set.reps = Math.max(1, set.reps + delta)
     }
     
-    setSets(new Map(sets).set(currentExercise.id, updatedSets))
+    setSets(new Map(sets).set(currentExercise.id.toString(), updatedSets))
   }
 
   const nextExercise = () => {
@@ -256,7 +262,7 @@ export function WorkoutActiveSession({
         {currentExercise && (
           <>
             {/* Exercise Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-2">
               <Button 
                 variant="ghost" 
                 size="icon" 
@@ -266,12 +272,8 @@ export function WorkoutActiveSession({
                 <ChevronLeft className="w-5 h-5" />
               </Button>
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Ejercicio {currentExerciseIndex + 1} de {exercises.length}
-                </p>
-                <h2 className="text-xl font-bold">{currentExercise.exercises?.name}</h2>
-                <p className="text-sm text-muted-foreground">
-                  {currentExercise.sets} series x {currentExercise.reps || 'var'} reps
                 </p>
               </div>
               <Button 
@@ -282,6 +284,47 @@ export function WorkoutActiveSession({
               >
                 <ChevronRight className="w-5 h-5" />
               </Button>
+            </div>
+
+            <div 
+              className="bg-card border rounded-2xl p-4 shadow-sm flex gap-4 items-center cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => {
+                setSelectedExercise(currentExercise.exercises)
+                setDetailOpen(true)
+              }}
+            >
+              <div className="size-20 shrink-0 bg-muted rounded-xl overflow-hidden relative shadow-sm border border-border/50">
+                {currentExercise.exercises?.gif_url ? (
+                  <img
+                    src={currentExercise.exercises.gif_url}
+                    alt={currentExercise.exercises.name}
+                    className="w-full h-full object-cover mix-blend-multiply dark:mix-blend-normal"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center text-[10px] text-muted-foreground">
+                    GIF
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-lg font-bold capitalize truncate leading-tight mb-1">
+                  {currentExercise.exercises?.name}
+                </h2>
+                <div className="flex flex-wrap items-center gap-1.5 mb-2">
+                  <Badge variant="secondary" className="px-1.5 py-0 text-[10px] uppercase font-semibold h-4">
+                    {currentExercise.exercises?.primary_muscle || 'General'}
+                  </Badge>
+                  {currentExercise.exercises?.equipment && (
+                    <Badge variant="outline" className="px-1.5 py-0 text-[10px] uppercase font-semibold h-4 text-muted-foreground border-border/60">
+                      {currentExercise.exercises.equipment}
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-sm font-medium text-primary">
+                  {currentExercise.sets} series x {currentExercise.reps || 'var'} reps
+                </p>
+              </div>
             </div>
 
             {/* Sets */}
@@ -326,7 +369,7 @@ export function WorkoutActiveSession({
                               const val = parseFloat(e.target.value) || 0
                               const updatedSets = [...currentSets]
                               updatedSets[index].weight = val
-                              setSets(new Map(sets).set(currentExercise.id, updatedSets))
+                              setSets(new Map(sets).set(currentExercise.id.toString(), updatedSets))
                             }}
                             className="w-16 text-center font-bold"
                             disabled={set.completed}
@@ -363,7 +406,7 @@ export function WorkoutActiveSession({
                               const val = parseInt(e.target.value) || 1
                               const updatedSets = [...currentSets]
                               updatedSets[index].reps = val
-                              setSets(new Map(sets).set(currentExercise.id, updatedSets))
+                              setSets(new Map(sets).set(currentExercise.id.toString(), updatedSets))
                             }}
                             className="w-12 text-center font-bold"
                             disabled={set.completed}
@@ -428,6 +471,12 @@ export function WorkoutActiveSession({
           </>
         )}
       </main>
+
+      <ExerciseDetailDrawer
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        exercise={selectedExercise}
+      />
     </div>
   )
 }

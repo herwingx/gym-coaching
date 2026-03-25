@@ -42,12 +42,13 @@ export async function assignRoutineToClient(
     .update({ is_active: false })
     .eq('client_id', clientId)
 
-  // Assign routine
+  // Asignar rutina en client_routines
   const { data, error } = await supabase
     .from('client_routines')
     .insert({
       client_id: clientId,
       routine_id: routineId,
+      assigned_by: user.id,
       notes,
       is_active: true,
     })
@@ -55,7 +56,12 @@ export async function assignRoutineToClient(
 
   if (error) throw error
 
-  // Workout/dashboard usan client_routines activa como fuente de verdad
+  // Sincronizar clients.assigned_routine_id para vistas que lo usan
+  await supabase
+    .from('clients')
+    .update({ assigned_routine_id: routineId })
+    .eq('id', clientId)
+
   return data[0]
 }
 
@@ -144,7 +150,13 @@ export async function getNextWorkoutDay(clientRoutineId: string) {
 
   if (routineError) throw routineError
 
-  const routine = clientRoutine.routines
+  const raw = clientRoutine.routines as
+    | { duration_weeks: number; days_per_week: number }
+    | { duration_weeks: number; days_per_week: number }[]
+    | null
+  const routine = Array.isArray(raw) ? raw[0] : raw
+  if (!routine) throw new Error('Rutina no encontrada para esta asignación')
+
   const currentWeek = clientRoutine.current_week
   const currentDay = clientRoutine.current_day_index
   const daysPerWeek = routine.days_per_week
@@ -168,8 +180,8 @@ export async function getNextWorkoutDay(clientRoutineId: string) {
     }
   }
 
-  // Get next workout day details
-  const { data: routineDay, error: dayError } = await supabase
+  // Get next workout day details (nextDay is 0-based index; routine_days.day_number is 1-based)
+  const { data: routineDays, error: daysError } = await supabase
     .from('routine_days')
     .select(`
       id,
@@ -184,21 +196,31 @@ export async function getNextWorkoutDay(clientRoutineId: string) {
         exercises (
           id,
           name,
-          primary_muscle
+          primary_muscle,
+          secondary_muscle,
+          equipment,
+          exercise_type,
+          gif_url,
+          image_url,
+          demo_video_url,
+          instructions,
+          target_muscles,
+          technique_notes
         )
       )
     `)
     .eq('routine_id', clientRoutine.routine_id)
-    .eq('day_number', nextDay)
-    .single()
+    .order('day_number', { ascending: true })
 
-  if (dayError) {
+  const routineDay = routineDays?.[nextDay]
+
+  if (daysError || !routineDay) {
     return {
       isComplete: false,
       week: nextWeek,
       day: nextDay,
       isRestDay: true,
-      message: 'Dia de descanso! Recuperate bien 💪',
+      message: 'Día de descanso. Recuperate bien.',
     }
   }
 
@@ -216,61 +238,60 @@ export async function getNextWorkoutDay(clientRoutineId: string) {
 export async function suggestProgressionWeekly(clientRoutineId: string) {
   const supabase = await createClient()
 
-  // Get all exercise logs for this client routine in the last week
-  const { data: exerciseLogs, error } = await supabase
+  const { data: clientRoutine } = await supabase
+    .from('client_routines')
+    .select('client_id')
+    .eq('id', clientRoutineId)
+    .single()
+
+  if (!clientRoutine?.client_id) return []
+
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+
+  const { data: sessions } = await supabase
+    .from('workout_sessions')
+    .select('id')
+    .eq('client_id', clientRoutine.client_id)
+    .gte('started_at', weekAgo)
+
+  const sessionIds = (sessions ?? []).map((s) => s.id)
+  if (sessionIds.length === 0) return []
+
+  const { data: logs } = await supabase
     .from('exercise_logs')
-    .select(`
-      id,
-      exercise_name,
-      weight,
-      reps,
-      set_number,
-      is_pr,
-      personal_records (
-        max_weight,
-        max_reps
-      )
-    `)
-    .gte('performed_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-    .order('performed_at', { ascending: false })
+    .select(`id, weight_kg, reps, set_number, is_pr, exercise_id, exercises(name)`)
+    .in('workout_session_id', sessionIds)
+    .order('created_at', { ascending: false })
 
-  if (error) throw error
+  const progressionSuggestions: { exercise: string; currentWeight?: number; suggestedWeight?: number; currentReps?: number; suggestedReps?: number; reason: string }[] = []
 
-  const progressionSuggestions = []
-
-  // Analyze progression opportunities
-  const groupedByExercise = exerciseLogs.reduce((acc, log) => {
-    if (!acc[log.exercise_name]) {
-      acc[log.exercise_name] = []
-    }
-    acc[log.exercise_name].push(log)
+  const groupedByExercise = (logs ?? []).reduce<Record<string, typeof logs>>((acc, log) => {
+    const name = (log.exercises as { name?: string })?.name ?? log.exercise_id
+    if (!acc[name]) acc[name] = []
+    acc[name].push(log)
     return acc
   }, {})
 
-  for (const [exercise, logs] of Object.entries(groupedByExercise)) {
-    if (logs.length > 0) {
-      const lastLog = logs[0]
-      const avgWeight = logs.reduce((sum, log) => sum + (log.weight || 0), 0) / logs.length
+  for (const [exercise, logList] of Object.entries(groupedByExercise)) {
+    if (!logList?.length) continue
+    const lastLog = logList[0]
+    const avgWeight = logList.reduce((sum, l) => sum + (l.weight_kg || 0), 0) / logList.length
 
-      // Suggest 5% increase if consistent
-      if (lastLog.weight && avgWeight > lastLog.weight * 0.9) {
-        progressionSuggestions.push({
-          exercise,
-          currentWeight: lastLog.weight,
-          suggestedWeight: Math.round(lastLog.weight * 1.05 * 10) / 10,
-          reason: 'Has been performing consistently',
-        })
-      }
-
-      // Suggest reps increase if weight stable
-      if (lastLog.reps && lastLog.reps >= 12) {
-        progressionSuggestions.push({
-          exercise,
-          currentReps: lastLog.reps,
-          suggestedReps: lastLog.reps + 2,
-          reason: 'Can increase reps for overload',
-        })
-      }
+    if (lastLog.weight_kg && avgWeight > lastLog.weight_kg * 0.9) {
+      progressionSuggestions.push({
+        exercise,
+        currentWeight: lastLog.weight_kg,
+        suggestedWeight: Math.round(lastLog.weight_kg * 1.05 * 10) / 10,
+        reason: 'Has sido consistente, intenta subir un poco',
+      })
+    }
+    if (lastLog.reps != null && lastLog.reps >= 12) {
+      progressionSuggestions.push({
+        exercise,
+        currentReps: lastLog.reps,
+        suggestedReps: lastLog.reps + 2,
+        reason: 'Puedes aumentar reps para sobrecarga',
+      })
     }
   }
 

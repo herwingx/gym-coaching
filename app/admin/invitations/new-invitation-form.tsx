@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { FieldGroup, Field, FieldLabel } from '@/components/ui/field'
+import { Separator } from '@/components/ui/separator'
 import { createInvitationCode } from '@/app/actions/invitations'
 import { UserPlus } from 'lucide-react'
 import { toast } from 'sonner'
@@ -17,8 +18,9 @@ export function NewInvitationForm() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsPending(true)
+    const form = e.currentTarget
 
-    const formData = new FormData(e.currentTarget)
+    const formData = new FormData(form)
     formData.set('for_role', forRole)
 
     try {
@@ -27,7 +29,7 @@ export function NewInvitationForm() {
         toast.success(`¡Código ${result.code} generado! Cópialo y compártelo cuando quieras.`)
         // The action revalidates the path, so the list below will update if this was in the same page
         // But since we want to clear the form:
-        e.currentTarget.reset()
+        form.reset()
       } else {
         toast.error('No pudimos generar el código. Intenta de nuevo.')
       }
@@ -51,15 +53,15 @@ export function NewInvitationForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+        <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(240px,1fr)] lg:items-end">
           <FieldGroup>
             <Field>
               <FieldLabel>Tipo de invitación</FieldLabel>
-              <ToggleGroup 
-                type="single" 
-                value={forRole} 
-                onValueChange={(val) => val && setForRole(val)} 
-                className="justify-start"
+              <ToggleGroup
+                type="single"
+                value={forRole}
+                onValueChange={(val) => val && setForRole(val)}
+                className="grid w-full grid-cols-1 justify-start gap-2 sm:grid-cols-2 sm:gap-0"
               >
                 <ToggleGroupItem value="client" className="px-4">
                   Cliente (asesorado)
@@ -68,9 +70,9 @@ export function NewInvitationForm() {
                   Coach / Admin
                 </ToggleGroupItem>
               </ToggleGroup>
-              <p className="text-xs text-muted-foreground mt-2">
-                {forRole === 'admin' 
-                  ? 'El código de coach crea otro administrador con acceso completo al panel.' 
+              <p className="mt-2 text-xs text-muted-foreground">
+                {forRole === 'admin'
+                  ? 'El código de coach crea otro administrador con acceso completo al panel.'
                   : 'El código de cliente permite el registro de un nuevo asesorado.'}
               </p>
             </Field>
@@ -78,22 +80,22 @@ export function NewInvitationForm() {
             <div className="grid gap-4 md:grid-cols-2">
               <Field>
                 <FieldLabel htmlFor="email">Email (opcional)</FieldLabel>
-                <Input 
-                  id="email" 
-                  name="email" 
-                  type="email" 
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
                   placeholder="cliente@ejemplo.com"
                 />
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="mt-1 text-xs text-muted-foreground">
                   Opcional. Si lo pones, enviamos el enlace por correo.
                 </p>
               </Field>
               <Field>
                 <FieldLabel htmlFor="expires_in_days">Expira en (días)</FieldLabel>
-                <Input 
-                  id="expires_in_days" 
-                  name="expires_in_days" 
-                  type="number" 
+                <Input
+                  id="expires_in_days"
+                  name="expires_in_days"
+                  type="number"
                   defaultValue={30}
                   min={1}
                   max={365}
@@ -101,11 +103,20 @@ export function NewInvitationForm() {
               </Field>
             </div>
           </FieldGroup>
-          
-          <Button type="submit" disabled={isPending}>
-            <UserPlus className="size-4 mr-2" />
-            {isPending ? 'Generando...' : 'Generar código'}
-          </Button>
+
+          <div className="flex flex-col gap-4 rounded-lg border bg-muted/20 p-4">
+            <div className="flex flex-col gap-1">
+              <p className="text-sm font-medium">Acción rápida</p>
+              <p className="text-xs text-muted-foreground">
+                Revisa los datos y genera el código de invitación.
+              </p>
+            </div>
+            <Separator />
+            <Button type="submit" disabled={isPending} className="w-full lg:w-auto lg:min-w-44 lg:self-end">
+              <UserPlus className="mr-2 size-4" />
+              {isPending ? 'Generando...' : 'Generar código'}
+            </Button>
+          </div>
         </form>
       </CardContent>
     </Card>

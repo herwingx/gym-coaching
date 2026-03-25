@@ -9,5 +9,10 @@ export async function GET(request: NextRequest) {
     // Ignorar errores, redirigir de todos modos
   }
   const url = new URL('/auth/login', request.nextUrl.origin)
-  return NextResponse.redirect(url, 302)
+  const res = NextResponse.redirect(url, 302)
+  res.headers.set(
+    'Cache-Control',
+    'private, no-store, no-cache, must-revalidate, max-age=0',
+  )
+  return res
 }

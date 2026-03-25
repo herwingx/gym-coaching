@@ -104,10 +104,11 @@ export function OnboardingFlow({ userId, userEmail }: OnboardingFlowProps) {
         toast.success('¡Bienvenido a GymCoach! Tu perfil está listo.')
         window.location.href = '/client/dashboard'
       } else {
-        toast.error('No pudimos guardar tus datos. Intenta de nuevo.')
+        toast.error(result.error || 'No pudimos guardar tus datos. Intenta de nuevo.')
       }
-    } catch {
-      toast.error('Algo salió mal al guardar. Revisa los datos e intenta de nuevo.')
+    } catch (err) {
+      console.error('[Onboarding] Error:', err)
+      toast.error('Algo salió mal. Intenta de nuevo o recarga la página.')
     } finally {
       setIsSubmitting(false)
     }

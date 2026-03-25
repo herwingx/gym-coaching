@@ -103,8 +103,8 @@ export function AdminOnboardingFlow({ userId, gymName }: AdminOnboardingFlowProp
                   Revisa y ajusta los datos de tu marca o negocio
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
+              <CardContent className="flex flex-col gap-6">
+                <div className="flex flex-col gap-2">
                   <Label htmlFor="gym_name">Tu marca o negocio</Label>
                   <Input
                     id="gym_name"
@@ -113,7 +113,7 @@ export function AdminOnboardingFlow({ userId, gymName }: AdminOnboardingFlowProp
                     onChange={(e) => setGymNameLocal(e.target.value)}
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="flex flex-col gap-2">
                   <Label htmlFor="timezone">Zona Horaria</Label>
                   <Select value={timezone} onValueChange={setTimezone}>
                     <SelectTrigger id="timezone" className="w-full">
@@ -129,7 +129,7 @@ export function AdminOnboardingFlow({ userId, gymName }: AdminOnboardingFlowProp
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
+                <div className="flex flex-col gap-2">
                   <Label htmlFor="currency">Moneda</Label>
                   <Select value={currency} onValueChange={setCurrency}>
                     <SelectTrigger id="currency" className="w-full">

@@ -5,6 +5,7 @@ import { Slot } from '@radix-ui/react-slot'
 import { cva, VariantProps } from 'class-variance-authority'
 import { PanelLeftIcon } from 'lucide-react'
 
+import { useHydrated } from '@/hooks/use-hydrated'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -72,11 +73,7 @@ function SidebarProvider({
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
   const [_open, _setOpen] = React.useState(defaultOpen)
-  const [mounted, setMounted] = React.useState(false)
-
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
+  const hydrated = useHydrated()
 
   const open = openProp ?? _open
   const setOpen = React.useCallback(
@@ -124,12 +121,12 @@ function SidebarProvider({
       state,
       open,
       setOpen,
-      isMobile: mounted ? isMobile : false,
+      isMobile: hydrated ? isMobile : false,
       openMobile,
       setOpenMobile,
       toggleSidebar,
     }),
-    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar, mounted],
+    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar, hydrated],
   )
 
   return (
@@ -612,10 +609,8 @@ function SidebarMenuSkeleton({
 }: React.ComponentProps<'div'> & {
   showIcon?: boolean
 }) {
-  // Random width between 50 to 90%.
-  const width = React.useMemo(() => {
-    return `${Math.floor(Math.random() * 40) + 50}%`
-  }, [])
+  // Fixed width to avoid hydration mismatch (Math.random differs server vs client)
+  const width = '70%'
 
   return (
     <div

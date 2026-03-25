@@ -1,9 +1,19 @@
 import { getAuthUser } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { ChatView } from '@/components/chat/chat-view'
+import { ChatViewLazy } from '@/components/chat/chat-view-lazy'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, UserRoundSearch } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { SidebarTrigger } from '@/components/ui/sidebar'
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty'
 
 export default async function ClientMessagesPage() {
   const user = await getAuthUser()
@@ -56,6 +66,7 @@ export default async function ClientMessagesPage() {
       .from('profiles')
       .select('id, full_name, avatar_url')
       .eq('role', 'admin')
+      .order('created_at', { ascending: true, nullsFirst: false })
       .limit(1)
       .single()
     coachId = adminProfile?.id
@@ -63,16 +74,33 @@ export default async function ClientMessagesPage() {
 
   if (!coachId) {
     return (
-      <div id="main-content" role="main" className="min-h-dvh flex flex-col bg-background" tabIndex={-1}>
-        <header className="flex items-center gap-3 p-4 border-b bg-background shrink-0 safe-area-header-pt">
-          <Link href="/client/dashboard" className="p-2 -ml-2 rounded-full hover:bg-muted">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <h1 className="font-semibold">Mensajes</h1>
+      <div className="flex min-h-0 flex-1 flex-col bg-background">
+        <header className="safe-area-header-pt flex shrink-0 items-center gap-2 border-b bg-background/95 px-3 py-3 backdrop-blur supports-backdrop-filter:bg-background/80 sm:px-4">
+          <SidebarTrigger className="-ml-1 size-9 shrink-0 sm:size-8" aria-label="Abrir menú" />
+          <Button variant="ghost" size="icon" className="shrink-0" asChild>
+            <Link href="/client/dashboard" aria-label="Volver al inicio">
+              <ArrowLeft />
+            </Link>
+          </Button>
+          <h1 className="min-w-0 truncate text-base font-semibold tracking-tight">Mensajes</h1>
         </header>
-        <div className="flex-1 flex items-center justify-center">
-          <p className="text-muted-foreground">No hay coach disponible aún.</p>
-        </div>
+        <Empty className="flex-1 border-0 bg-transparent">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <UserRoundSearch />
+            </EmptyMedia>
+            <EmptyTitle>Sin coach asignado</EmptyTitle>
+            <EmptyDescription>
+              Cuando tu entrenador te vincule a su gimnasio o completes una invitación, podrás
+              chatear aquí en tiempo real.
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button asChild>
+              <Link href="/client/dashboard">Ir al panel</Link>
+            </Button>
+          </EmptyContent>
+        </Empty>
       </div>
     )
   }
@@ -90,21 +118,13 @@ export default async function ClientMessagesPage() {
   }
 
   return (
-    <div id="main-content" role="main" className="flex flex-col h-dvh bg-background" tabIndex={-1}>
-      <header className="flex items-center gap-3 p-4 border-b bg-background shrink-0 safe-area-header-pt">
-        <Link href="/client/dashboard" className="p-2 -ml-2 rounded-full hover:bg-muted">
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <h1 className="font-semibold">Mensajes</h1>
-      </header>
-      <div className="flex-1 overflow-hidden">
-        <ChatView
-          currentUserId={user.id}
-          role={role}
-          otherUser={otherUser}
-          conversations={[]}
-        />
-      </div>
+    <div className="flex min-h-0 flex-1 flex-col bg-background">
+      <ChatViewLazy
+        currentUserId={user.id}
+        role={role}
+        otherUser={otherUser}
+        conversations={[]}
+      />
     </div>
   )
 }

@@ -59,11 +59,11 @@ export default async function WorkoutStartPage() {
   // Get last session to determine current day
   const { data: lastSession } = await supabase
     .from('workout_sessions')
-    .select('routine_day_id')
+    .select('id, routine_day_id')
     .eq('client_id', client.id)
     .order('created_at', { ascending: false })
     .limit(1)
-    .single()
+    .maybeSingle()
 
   // Find next routine day
   const routineDays = routine.routine_days || []
@@ -76,12 +76,17 @@ export default async function WorkoutStartPage() {
 
   const currentDay = routineDays[currentDayIndex]
 
-  // Get previous logs for weight suggestions
-  const { data: previousLogs } = await supabase
+  // Get previous logs for weight suggestions (exercise_logs.workout_session_id = workout_sessions.id)
+  const { data: rawLogs } = await supabase
     .from('exercise_logs')
     .select('exercise_id, weight_kg, reps')
-    .eq('workout_session_id', lastSession?.routine_day_id || '')
+    .eq('workout_session_id', lastSession?.id || '')
     .order('created_at', { ascending: false })
+  const previousLogs = (rawLogs || []).map((l) => ({
+    exercise_id: l.exercise_id,
+    weight_kg: l.weight_kg ?? 0,
+    reps: l.reps ?? 0,
+  }))
 
   // Get PRs for comparison
   const { data: personalRecords } = await supabase
@@ -94,7 +99,7 @@ export default async function WorkoutStartPage() {
       clientId={client.id}
       routineDay={currentDay}
       routineName={routine.name}
-      previousLogs={previousLogs || []}
+      previousLogs={previousLogs}
       personalRecords={personalRecords || []}
     />
   )

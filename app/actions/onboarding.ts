@@ -5,6 +5,24 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { FitnessGoal, ExperienceLevel } from '@/lib/types'
 
+/** Mapea FitnessGoal (onboarding) a clients.goal (DB) */
+const GOAL_MAP: Record<FitnessGoal, string> = {
+  lose_weight: 'weight_loss',
+  gain_muscle: 'muscle_gain',
+  maintain: 'maintenance',
+  strength: 'toning',
+  endurance: 'endurance',
+}
+
+/** Mapea clients.goal (DB) a FitnessGoal (profiles) */
+const GOAL_REVERSE: Record<string, FitnessGoal> = {
+  weight_loss: 'lose_weight',
+  muscle_gain: 'gain_muscle',
+  maintenance: 'maintain',
+  toning: 'strength',
+  endurance: 'endurance',
+}
+
 interface OnboardingData {
   userId: string
   fullName: string
@@ -61,12 +79,56 @@ export async function completeOnboarding(data: OnboardingData) {
     return { success: false, error: 'Error al actualizar el perfil' }
   }
 
-  // Create client record if doesn't exist
-  const { data: existingClient } = await admin
+  const clientGoal = GOAL_MAP[data.fitnessGoal] ?? 'maintenance'
+
+  // Buscar cliente ya vinculado a este usuario
+  let { data: existingClient } = await admin
     .from('clients')
     .select('id')
     .eq('user_id', data.userId)
-    .single()
+    .maybeSingle()
+
+  if (!existingClient && user.email) {
+    // Fallback: cliente pre-creado por admin con mismo email pero sin user_id
+    // (useInvitationCode pudo fallar si no hubo sesión en signup)
+    const { data: clientByEmail } = await admin
+      .from('clients')
+      .select('id, coach_id')
+      .eq('email', user.email)
+      .is('user_id', null)
+      .limit(1)
+      .maybeSingle()
+
+    if (clientByEmail) {
+      const { data: clientData } = await admin
+        .from('clients')
+        .select('goal, experience_level, full_name')
+        .eq('id', clientByEmail.id)
+        .single()
+
+      const preserveAdminData = clientData?.goal && clientData?.experience_level
+      const updatePayload: Record<string, unknown> = {
+        user_id: data.userId,
+        full_name: data.fullName,
+        onboarding_completed: true,
+      }
+      if (!preserveAdminData) {
+        updatePayload.goal = clientGoal
+        updatePayload.experience_level = data.experienceLevel
+      }
+
+      const { error: linkError } = await admin
+        .from('clients')
+        .update(updatePayload)
+        .eq('id', clientByEmail.id)
+
+      if (linkError) {
+        console.error('[completeOnboarding] Error vinculando cliente por email:', linkError)
+      } else {
+        existingClient = { id: clientByEmail.id }
+      }
+    }
+  }
 
   if (!existingClient) {
     const { data: profile } = await admin
@@ -96,17 +158,79 @@ export async function completeOnboarding(data: OnboardingData) {
           full_name: data.fullName,
           phone: '',
           email: user.email || '',
-          goal: data.fitnessGoal,
+          goal: clientGoal,
           experience_level: data.experienceLevel,
           status: 'active',
+          onboarding_completed: true,
         })
 
       if (clientError) {
         console.error('Client creation error:', clientError)
-        // Don't fail the whole onboarding for this
       }
     }
   }
 
   return { success: true }
+}
+
+/**
+ * Si el cliente fue pre-creado por el admin con preferencias (goal, experience_level),
+ * marca onboarding como completado sin exigir el flujo. Retorna true si se omitió.
+ */
+export async function trySkipOnboardingForPreCreatedClient(userId: string): Promise<{
+  skipped: boolean
+  fitnessGoal?: FitnessGoal
+  experienceLevel?: ExperienceLevel
+  fullName?: string
+}> {
+  const admin = createAdminClient()
+
+  const { data: client } = await admin
+    .from('clients')
+    .select('id, full_name, goal, experience_level')
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  if (!client || !client.goal || !client.experience_level) {
+    return { skipped: false }
+  }
+
+  const fitnessGoal = GOAL_REVERSE[client.goal] ?? 'maintain'
+  const experienceLevel = (client.experience_level || 'beginner') as ExperienceLevel
+
+  const slug = (client.full_name || 'user').toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '')
+  const username = (slug || 'user') + '_' + Math.random().toString(36).slice(2, 6)
+
+  const profileUpdate: Record<string, unknown> = {
+    full_name: client.full_name || 'Usuario',
+    username,
+    fitness_goal: fitnessGoal,
+    experience_level: experienceLevel,
+    onboarding_completed: true,
+    xp_points: 0,
+    level: 1,
+    streak_days: 0,
+  }
+
+  const { error } = await admin
+    .from('profiles')
+    .update(profileUpdate)
+    .eq('id', userId)
+
+  if (error) {
+    console.error('[trySkipOnboarding] Error:', error)
+    return { skipped: false }
+  }
+
+  await admin
+    .from('clients')
+    .update({ onboarding_completed: true })
+    .eq('id', client.id)
+
+  return {
+    skipped: true,
+    fitnessGoal,
+    experienceLevel,
+    fullName: client.full_name || undefined,
+  }
 }

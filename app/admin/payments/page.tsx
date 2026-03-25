@@ -1,11 +1,38 @@
 import { getAuthUser } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
-import { Plus, CreditCard } from 'lucide-react'
+import { Plus, CreditCard, Hourglass, ClipboardList } from 'lucide-react'
+import { AdminKpiStatCard } from '@/components/admin/admin-kpi-stat-card'
 import { createClient } from '@/lib/supabase/server'
+import { PaymentCardsClient, type PaymentCardItem } from './payment-cards-client'
+
+type PaymentQueryRow = {
+  id: string
+  client_id: string
+  amount: number
+  paid_at: string | null
+  payment_method: string | null
+  clients:
+    | { full_name: string; email?: string | null }
+    | { full_name: string; email?: string | null }[]
+    | null
+}
+
+function toPaymentCardItem(row: PaymentQueryRow): PaymentCardItem {
+  const rel = row.clients
+  const clients =
+    rel == null ? null : Array.isArray(rel) ? rel[0] ?? null : rel
+  return {
+    id: row.id,
+    client_id: row.client_id,
+    amount: row.amount,
+    paid_at: row.paid_at,
+    payment_method: row.payment_method,
+    clients,
+  }
+}
 
 export default async function AdminPaymentsPage() {
   const user = await getAuthUser()
@@ -15,22 +42,40 @@ export default async function AdminPaymentsPage() {
   }
 
   const supabase = await createClient()
-  
-  // Get all payments with client info
-  const { data: payments } = await supabase
-    .from('payments')
-    .select(`
-      *,
-      clients (full_name, email)
-    `)
-    .order('created_at', { ascending: false })
+
+  const { data: coachClients } = await supabase
+    .from('clients')
+    .select('id')
+    .eq('coach_id', user.id)
+
+  const clientIds = (coachClients ?? []).map((c) => c.id).filter(Boolean)
+
+  let payments: PaymentCardItem[] = []
+  if (clientIds.length > 0) {
+    const { data } = await supabase
+      .from('payments')
+      .select(
+        `
+        id,
+        client_id,
+        amount,
+        paid_at,
+        payment_method,
+        clients (full_name, email)
+      `,
+      )
+      .in('client_id', clientIds)
+      .order('created_at', { ascending: false })
+
+    payments = (data ?? []).map((row) => toPaymentCardItem(row as PaymentQueryRow))
+  }
 
   // Calculate statistics
-  const totalRevenue = payments?.reduce((sum, p) => 
-    p.paid_at ? sum + (p.amount || 0) : sum, 0) || 0
-  
-  const pendingAmount = payments?.reduce((sum, p) => 
-    !p.paid_at ? sum + (p.amount || 0) : sum, 0) || 0
+  const totalRevenue = payments.reduce((sum, p) =>
+    p.paid_at ? sum + (p.amount || 0) : sum, 0)
+
+  const pendingAmount = payments.reduce((sum, p) =>
+    !p.paid_at ? sum + (p.amount || 0) : sum, 0)
 
   return (
     <div className="bg-background">
@@ -43,93 +88,50 @@ export default async function AdminPaymentsPage() {
       <main className="container py-8">
         <div className="grid gap-6">
           {/* Stats */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <CreditCard className="size-4" />
-                  Ingresos Totales
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold">${totalRevenue.toFixed(2)}</p>
-                <p className="text-xs text-muted-foreground">Pagos completados</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Pagos Pendientes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold">${pendingAmount.toFixed(2)}</p>
-                <p className="text-xs text-muted-foreground">Por cobrar</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Total de Pagos</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold">{payments?.length || 0}</p>
-                <p className="text-xs text-muted-foreground">Registrados</p>
-              </CardContent>
-            </Card>
+          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3">
+            <AdminKpiStatCard
+              icon={CreditCard}
+              value={`$${totalRevenue.toFixed(2)}`}
+              label="Ingresos Totales"
+              description="Pagos completados"
+            />
+            <AdminKpiStatCard
+              icon={Hourglass}
+              value={`$${pendingAmount.toFixed(2)}`}
+              label="Pagos Pendientes"
+              description="Por cobrar"
+            />
+            <AdminKpiStatCard
+              icon={ClipboardList}
+              value={payments.length}
+              label="Total de Pagos"
+              description="Registrados"
+            />
           </div>
 
           {/* Payments List */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-              <CardTitle>Historial de Pagos</CardTitle>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Historial de Pagos</h2>
               <Button asChild size="sm">
                 <Link href="/admin/payments/new">
                   <Plus className="size-4 mr-2" />
                   Nuevo Pago
                 </Link>
               </Button>
-            </CardHeader>
-            <CardContent>
-              {!payments || payments.length === 0 ? (
-                <p className="text-muted-foreground">
-                  No hay pagos registrados aún.
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {payments.map((payment) => (
-                    <div
-                      key={payment.id}
-                      className="flex items-center justify-between p-4 border rounded-lg"
-                    >
-                      <div className="space-y-1 flex-1">
-                        <p className="font-medium">
-                          {payment.clients?.full_name || 'Cliente desconocido'}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {payment.paid_at 
-                            ? new Date(payment.paid_at).toLocaleDateString()
-                            : 'Pendiente'
-                          } {payment.payment_method && `• ${payment.payment_method}`}
-                        </p>
-                      </div>
-                      <div className="text-right space-y-1">
-                        <p className="font-semibold">${payment.amount?.toFixed(2) || '0.00'}</p>
-                        <Badge 
-                          variant="secondary"
-                          className={payment.paid_at 
-                            ? 'bg-success/20 text-success hover:bg-success/20' 
-                            : 'bg-warning/20 text-warning-foreground hover:bg-warning/20'
-                          }
-                        >
-                          {payment.paid_at ? 'Pagado' : 'Pendiente'}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+            </div>
+            {payments.length === 0 ? (
+              <Card>
+                <CardContent className="py-12">
+                  <p className="text-muted-foreground text-center">
+                    No hay pagos registrados aún.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <PaymentCardsClient payments={payments} />
+            )}
+          </div>
         </div>
       </main>
     </div>

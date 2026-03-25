@@ -1,5 +1,6 @@
 import { getAuthUser, getUserRole } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
+import { ClientLayoutShell } from '@/components/client-layout-shell'
 
 export default async function ClientLayout({
   children,
@@ -17,5 +18,9 @@ export default async function ClientLayout({
     redirect('/auth/login')
   }
 
-  return children
+  return (
+    <div className="flex min-h-dvh flex-col">
+      <ClientLayoutShell>{children}</ClientLayoutShell>
+    </div>
+  )
 }

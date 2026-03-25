@@ -3,6 +3,18 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
+/** Unique violation or equivalent — row already present for this admin; onboarding puede continuar */
+function isBenignGymSettingsInsertError(err: { code?: string; message?: string } | null): boolean {
+  if (!err) return false
+  if (err.code === '23505') return true
+  const msg = (err.message ?? '').toLowerCase()
+  return (
+    msg.includes('duplicate key') ||
+    msg.includes('unique constraint') ||
+    msg.includes('already exists')
+  )
+}
+
 export async function validateAdminSetupCode(code: string): Promise<{ valid: boolean; error?: string }> {
   const setupCode = process.env.ADMIN_SETUP_CODE
   if (!setupCode) {
@@ -103,11 +115,15 @@ export async function createAdminAccount(formData: FormData) {
       }
 
       const displayName = (gymName && gymName.trim().length >= 2) ? gymName.trim() : coachName
-      await admin.from('gym_settings').insert({
+      const { error: gymInsertError } = await admin.from('gym_settings').insert({
         admin_id: existingUserId,
         gym_name: displayName,
         setup_completed: false,
-      }).catch(() => {})
+      })
+      if (gymInsertError && !isBenignGymSettingsInsertError(gymInsertError)) {
+        console.error('[admin-setup] gym_settings insert (cuenta existente):', gymInsertError.message)
+        // No bloqueamos: el admin puede completar datos en onboarding
+      }
     } catch {
       return { success: false, error: 'Error de configuración. Verifica SUPABASE_SERVICE_ROLE_KEY.' }
     }
@@ -139,9 +155,9 @@ export async function createAdminAccount(formData: FormData) {
     setup_completed: false,
   })
 
-  if (gymError) {
-    // No fallar si gym_settings falla (tabla puede no existir en migraciones previas)
-    // El admin puede configurarlo en onboarding
+  if (gymError && !isBenignGymSettingsInsertError(gymError)) {
+    console.error('[admin-setup] gym_settings insert (cuenta nueva):', gymError.message)
+    // No bloqueamos confirmación por email: el admin puede configurarlo en onboarding
   }
 
   if (data.session) {

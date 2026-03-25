@@ -1,11 +1,12 @@
 import { getAuthUser } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, CalendarDays } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { WorkoutCalendar } from '@/components/calendar/workout-calendar'
+import {
+  CLIENT_DATA_PAGE_SHELL,
+  ClientStackPageHeader,
+} from '@/components/client/client-app-page-parts'
 
 function pad2(n: number) {
   return n.toString().padStart(2, '0')
@@ -63,23 +64,18 @@ export default async function ClientCalendarPage() {
     sessionsByDate[key].lastSessionAt = s.started_at
   }
 
-  return (
-    <div className="min-h-dvh bg-background">
-      <header className="border-b">
-        <div className="container flex items-center gap-4 py-4">
-          <Button variant="ghost" size="icon" asChild aria-label="Volver al dashboard">
-            <Link href="/client/dashboard">
-              <ArrowLeft className="size-4" />
-            </Link>
-          </Button>
-          <div className="min-w-0">
-            <h1 className="text-2xl font-bold">Calendario</h1>
-            <p className="text-sm text-muted-foreground">Días con entrenamientos completados</p>
-          </div>
-        </div>
-      </header>
+  const list = sessions ?? []
+  const completedThisMonth = list.length
+  const monthCaption = now.toLocaleDateString('es', { month: 'long', year: 'numeric' })
+  const calendarSubtitle =
+    completedThisMonth === 0
+      ? `Sin sesiones completadas en ${monthCaption}`
+      : `${completedThisMonth} ${completedThisMonth === 1 ? 'sesión' : 'sesiones'} completadas en ${monthCaption}`
 
-      <main id="main-content" className="container py-8" tabIndex={-1}>
+  return (
+    <>
+      <ClientStackPageHeader title="Calendario" subtitle={calendarSubtitle} />
+      <div className={`${CLIENT_DATA_PAGE_SHELL} gap-6`}>
         {!sessions ? (
           <Card>
             <CardHeader>
@@ -92,8 +88,8 @@ export default async function ClientCalendarPage() {
         ) : (
           <WorkoutCalendar year={year} monthIndex={monthIndex} sessionsByDate={sessionsByDate} />
         )}
-      </main>
-    </div>
+      </div>
+    </>
   )
 }
 

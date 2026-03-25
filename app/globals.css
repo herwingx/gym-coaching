@@ -64,8 +64,9 @@
   --destructive-foreground: oklch(0.985 0 0);
   --success: oklch(0.7 0.18 145);
   --success-foreground: oklch(0.985 0 0);
-  --warning: oklch(0.78 0.17 85);
-  --warning-foreground: oklch(0.2 0.05 85);
+  /* Warning un poco más apagado en oscuro: mejor pareja con texto claro en badges/sólidos */
+  --warning: oklch(0.72 0.14 82);
+  --warning-foreground: oklch(0.98 0.02 92);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.421 0.095 57.708);
@@ -157,6 +158,14 @@ html {
 }
 @utility safe-area-pr {
   padding-right: env(safe-area-inset-right);
+}
+
+@utility no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @layer base {

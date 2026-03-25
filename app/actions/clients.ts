@@ -32,8 +32,14 @@ export async function createNewClient(formData: FormData) {
   const birthDate = formData.get('birthDate') as string
   const gender = formData.get('gender') as string
   const goalRaw = formData.get('goal') as string
-  const validGoals = ['lose_weight', 'gain_muscle', 'maintain', 'strength', 'endurance']
-  const goal = validGoals.includes(goalRaw) ? goalRaw : null
+  const GOAL_MAP: Record<string, string> = {
+    muscle_gain: 'muscle_gain',
+    fat_loss: 'weight_loss',
+    strength: 'toning',
+    endurance: 'endurance',
+    general_fitness: 'maintenance',
+  }
+  const goal = goalRaw && GOAL_MAP[goalRaw] ? GOAL_MAP[goalRaw] : null
 
   const experienceLevelRaw = formData.get('experienceLevel') as string
   const validExperienceLevels = ['beginner', 'intermediate', 'advanced']
@@ -76,6 +82,7 @@ export async function createNewClient(formData: FormData) {
     created_by: user.id,
     email: email || null,
     client_id: clientId,
+    for_role: 'client',
     expires_at: expiresAt.toISOString(),
     max_uses: 1,
     times_used: 0,
@@ -116,8 +123,17 @@ export async function updateClient(clientId: string, formData: FormData) {
   const gender = formData.get('gender') as string
   const status = formData.get('status') as string
   const goalRaw = formData.get('goal') as string
-  const validGoals = ['lose_weight', 'gain_muscle', 'maintain', 'strength', 'endurance']
-  const goal = validGoals.includes(goalRaw) ? goalRaw : null
+  const GOAL_MAP: Record<string, string> = {
+    muscle_gain: 'muscle_gain',
+    fat_loss: 'weight_loss',
+    weight_loss: 'weight_loss',
+    strength: 'toning',
+    toning: 'toning',
+    endurance: 'endurance',
+    general_fitness: 'maintenance',
+    maintenance: 'maintenance',
+  }
+  const goal = goalRaw && GOAL_MAP[goalRaw] ? GOAL_MAP[goalRaw] : null
 
   const experienceLevelRaw = formData.get('experienceLevel') as string
   const validExperienceLevels = ['beginner', 'intermediate', 'advanced']

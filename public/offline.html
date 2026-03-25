@@ -6,16 +6,16 @@
   <title>Sin Conexión - GymCoach</title>
   <style>
     :root {
-      /* Colores extraídos de globals.css (OKLCH convertidos a HEX/RGB para compatibilidad simple en HTML estático) */
-      --background: #0a0a0a;
-      --foreground: #fafafa;
-      --card: #141414;
-      --card-foreground: #fafafa;
-      --primary: #e8ff47; /* El amarillo lima característico */
-      --primary-foreground: #0a0a0a;
-      --muted: #27272a;
-      --muted-foreground: #a1a1aa;
-      --border: rgba(255, 255, 255, 0.1);
+      /* Colores actualizados para coincidir con la paleta dark (theme rojo/rosa/magenta) de globals.css */
+      --background: #23013d; /* oklch(0.141 0.005 285.823) aprox */
+      --foreground: #fb0000; /* oklch(0.985 0 0) aprox rojo puro / rosa muy claro en pantalla de alto contraste */
+      --card: #34015c; /* oklch(0.21 0.006 285.885) aprox */
+      --card-foreground: #fb0000;
+      --primary: #f02d41; /* oklch(0.795 0.184 86.047) aprox */
+      --primary-foreground: #6b1836; /* oklch(0.421 0.095 57.708) aprox */
+      --muted: #44017a; /* oklch(0.274 0.006 286.033) aprox */
+      --muted-foreground: #b204c3; /* oklch(0.705 0.015 286.067) aprox */
+      --border: rgba(251, 0, 0, 0.1);
       --radius: 0.65rem;
     }
 
@@ -57,7 +57,7 @@
     .icon-box {
       width: 4.5rem;
       height: 4.5rem;
-      background-color: rgba(232, 255, 71, 0.1);
+      background-color: rgba(240, 45, 65, 0.1);
       border-radius: 1.25rem;
       display: flex;
       align-items: center;
@@ -81,8 +81,8 @@
     }
 
     .status-badge {
-      background-color: rgba(232, 255, 71, 0.05);
-      border: 1px solid rgba(232, 255, 71, 0.2);
+      background-color: rgba(240, 45, 65, 0.05);
+      border: 1px solid rgba(240, 45, 65, 0.2);
       border-radius: 0.5rem;
       padding: 1rem;
       margin-bottom: 2rem;

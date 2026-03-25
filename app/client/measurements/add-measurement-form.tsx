@@ -75,8 +75,8 @@ export function AddMeasurementForm() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="gap-1">
-          <Plus className="w-4 h-4" />
+        <Button size="sm" className="min-h-11 gap-2 sm:min-h-9">
+          <Plus data-icon="inline-start" />
           Registrar medida
         </Button>
       </DialogTrigger>
@@ -87,9 +87,9 @@ export function AddMeasurementForm() {
             Ingresa las medidas que quieras registrar. Solo son obligatorias las que completes.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               <Label htmlFor="weight">Peso (kg)</Label>
               <Input
                 id="weight"
@@ -101,7 +101,7 @@ export function AddMeasurementForm() {
                 onChange={(e) => setWeight(e.target.value)}
               />
             </div>
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               <Label htmlFor="body_fat">% Grasa</Label>
               <Input
                 id="body_fat"
@@ -114,7 +114,7 @@ export function AddMeasurementForm() {
                 onChange={(e) => setBodyFat(e.target.value)}
               />
             </div>
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               <Label htmlFor="waist">Cintura (cm)</Label>
               <Input
                 id="waist"
@@ -126,7 +126,7 @@ export function AddMeasurementForm() {
                 onChange={(e) => setWaist(e.target.value)}
               />
             </div>
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               <Label htmlFor="hip">Cadera (cm)</Label>
               <Input
                 id="hip"
@@ -138,7 +138,7 @@ export function AddMeasurementForm() {
                 onChange={(e) => setHip(e.target.value)}
               />
             </div>
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               <Label htmlFor="chest">Pecho (cm)</Label>
               <Input
                 id="chest"
@@ -150,7 +150,7 @@ export function AddMeasurementForm() {
                 onChange={(e) => setChest(e.target.value)}
               />
             </div>
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               <Label htmlFor="arm">Brazo (cm)</Label>
               <Input
                 id="arm"
@@ -162,7 +162,7 @@ export function AddMeasurementForm() {
                 onChange={(e) => setArm(e.target.value)}
               />
             </div>
-            <div className="space-y-2 col-span-2">
+            <div className="col-span-2 flex flex-col gap-2">
               <Label htmlFor="thigh">Muslo (cm)</Label>
               <Input
                 id="thigh"

@@ -2,6 +2,61 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
+/** Evita que F5 sirva HTML/RSC viejo con cookies nuevas (mezcla admin/cliente hasta un hard refresh). */
+const NO_STORE_SHELL =
+  'private, no-store, no-cache, must-revalidate, max-age=0'
+
+function isSessionSensitivePath(pathname: string) {
+  return (
+    pathname.startsWith('/client') ||
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/receptionist') ||
+    pathname.startsWith('/onboarding') ||
+    pathname.startsWith('/suspended') ||
+    pathname.startsWith('/auth') ||
+    pathname.startsWith('/welcome')
+  )
+}
+
+function applyNoStoreForSensitiveRoutes(
+  request: NextRequest,
+  response: NextResponse,
+) {
+  if (!isSessionSensitivePath(request.nextUrl.pathname)) {
+    return response
+  }
+  response.headers.set('Cache-Control', NO_STORE_SHELL)
+  const vary = response.headers.get('Vary')
+  if (!vary) {
+    response.headers.set('Vary', 'Cookie')
+  } else if (
+    !vary
+      .split(',')
+      .map((s) => s.trim().toLowerCase())
+      .includes('cookie')
+  ) {
+    response.headers.append('Vary', 'Cookie')
+  }
+  return response
+}
+
+/** Supabase escribe cookies de refresco en `supabaseResponse` durante `getUser()`. Los redirects deben copiarlas o la sesión se corrompe al recargar. */
+function redirectPreservingSupabaseCookies(
+  request: NextRequest,
+  pathname: string,
+  supabaseResponse: NextResponse,
+) {
+  const url = request.nextUrl.clone()
+  url.pathname = pathname
+  const redirect = NextResponse.redirect(url)
+  // Copiar el objeto cookie completo (httpOnly, secure, maxAge, path…) — solo name/value rompe el refresh de Supabase.
+  for (const cookie of supabaseResponse.cookies.getAll()) {
+    redirect.cookies.set(cookie)
+  }
+  redirect.headers.set('Cache-Control', NO_STORE_SHELL)
+  return redirect
+}
+
 export async function proxy(request: NextRequest) {
   // API de validación de invitaciones: pasar directo para evitar latencia
   if (request.nextUrl.pathname === '/api/invitations/validate') {
@@ -45,14 +100,12 @@ export async function proxy(request: NextRequest) {
 
   // If no user and trying to access protected route
   if (!user && !isPublicPath && request.nextUrl.pathname !== '/') {
-    const url = request.nextUrl.clone()
-    url.pathname = '/auth/login'
-    return NextResponse.redirect(url)
+    return redirectPreservingSupabaseCookies(request, '/auth/login', supabaseResponse)
   }
 
   // Si no hay usuario, pasar directo (ya manejamos redirect arriba)
   if (!user) {
-    return supabaseResponse
+    return applyNoStoreForSensitiveRoutes(request, supabaseResponse)
   }
 
   // Get user profile for role and subscription check (solo cuando hay user)
@@ -76,9 +129,7 @@ export async function proxy(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/auth')
 
   if (isBlockedStatus && !isSuspendedAllowedPath) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/suspended'
-    return NextResponse.redirect(url)
+    return redirectPreservingSupabaseCookies(request, '/suspended', supabaseResponse)
   }
 
   // Redirect to onboarding if not completed
@@ -87,35 +138,28 @@ export async function proxy(request: NextRequest) {
     !request.nextUrl.pathname.startsWith('/auth') &&
     !request.nextUrl.pathname.startsWith('/suspended')
   ) {
-    const url = request.nextUrl.clone()
     if (role === 'admin') {
       if (!request.nextUrl.pathname.startsWith('/admin/onboarding')) {
-        url.pathname = '/admin/onboarding'
-        return NextResponse.redirect(url)
+        return redirectPreservingSupabaseCookies(request, '/admin/onboarding', supabaseResponse)
       }
     } else if (role === 'client') {
       if (!request.nextUrl.pathname.startsWith('/onboarding')) {
-        url.pathname = '/onboarding'
-        return NextResponse.redirect(url)
+        return redirectPreservingSupabaseCookies(request, '/onboarding', supabaseResponse)
       }
     }
   }
 
   // Protect admin routes - only admins can access
   if (request.nextUrl.pathname.startsWith('/admin') && role !== 'admin') {
-    const url = request.nextUrl.clone()
-    url.pathname = '/client/dashboard'
-    return NextResponse.redirect(url)
+    return redirectPreservingSupabaseCookies(request, '/client/dashboard', supabaseResponse)
   }
 
   // Protect receptionist routes
   if (request.nextUrl.pathname.startsWith('/receptionist') && role !== 'receptionist' && role !== 'admin') {
-    const url = request.nextUrl.clone()
-    url.pathname = '/client/dashboard'
-    return NextResponse.redirect(url)
+    return redirectPreservingSupabaseCookies(request, '/client/dashboard', supabaseResponse)
   }
 
-  return supabaseResponse
+  return applyNoStoreForSensitiveRoutes(request, supabaseResponse)
 }
 
 export const config = {

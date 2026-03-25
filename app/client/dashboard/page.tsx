@@ -2,6 +2,7 @@ import { getAuthUser } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { calculateLevel } from '@/lib/types'
+import { CLIENT_DASHBOARD_SESSIONS_CAP } from '@/lib/performance-limits'
 import { ClientDashboardContent } from './client-dashboard-content'
 
 export default async function ClientDashboard() {
@@ -39,7 +40,8 @@ export default async function ClientDashboard() {
         .from('workout_sessions')
         .select('*')
         .eq('client_id', client.id)
-        .order('created_at', { ascending: false }),
+        .order('created_at', { ascending: false })
+        .limit(CLIENT_DASHBOARD_SESSIONS_CAP),
       supabase
         .from('personal_records')
         .select('*', { count: 'exact', head: true })

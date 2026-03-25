@@ -1,22 +1,32 @@
 import { Skeleton } from '@/components/ui/skeleton'
 
+/**
+ * Generic admin route placeholder (settings, fallback admin segments).
+ * Dashboard and other major screens use dedicated skeletons + route loading.tsx.
+ */
 export function AdminPageSkeleton() {
   return (
-    <div className="bg-background min-h-full">
-      <header className="border-b bg-background">
+    <div className="min-h-dvh bg-background">
+      <header className="sticky top-0 z-40 border-b bg-background safe-area-header-pt">
         <div className="container py-4 sm:py-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <Skeleton className="h-8 w-40" />
-              <Skeleton className="h-4 w-56 mt-1" />
+            <div className="min-w-0 space-y-2">
+              <Skeleton className="h-8 w-48 sm:w-56" />
+              <Skeleton className="h-4 w-full max-w-md" />
             </div>
+            <Skeleton className="hidden h-10 w-36 rounded-xl sm:block" />
           </div>
         </div>
       </header>
 
       <main className="container py-6 sm:py-8">
         <div className="space-y-6">
-          <Skeleton className="h-[400px] w-full rounded-lg" />
+          <Skeleton className="h-12 w-full max-w-xl rounded-lg" />
+          <div className="grid gap-4 md:grid-cols-2">
+            <Skeleton className="min-h-48 w-full rounded-xl" />
+            <Skeleton className="min-h-48 w-full rounded-xl" />
+          </div>
+          <Skeleton className="h-32 w-full rounded-xl" />
         </div>
       </main>
     </div>

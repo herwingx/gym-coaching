@@ -7,7 +7,8 @@ import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getBodyMeasurements, getWorkoutSessions } from '@/lib/workouts'
 import { getRoutineById } from '@/lib/routines'
-import { ClientProfileHub } from './client-profile-hub'
+import { ClientProfileHub, type ClientHubClient, type HubWorkoutSession } from './client-profile-hub'
+import type { Routine } from '@/lib/types'
 import { AccessCodeBanner } from './access-code-banner'
 
 interface Props {
@@ -28,6 +29,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
+/** Medidas recientes suficientes para la ficha (evita traer miles de filas). */
+const HUB_MEASUREMENTS_LIMIT = 150
+
 export default async function ClientProfilePage({ params, searchParams }: Props) {
   const user = await getAuthUser()
   const role = await getUserRole()
@@ -43,52 +47,61 @@ export default async function ClientProfilePage({ params, searchParams }: Props)
     .from('clients')
     .select('*')
     .eq('id', clientId)
-    .eq('coach_id', user.id) // Seguridad: solo sus propios asesorados
+    .eq('coach_id', user.id)
     .single()
 
   if (error || !client) redirect('/admin/clients')
 
-  // Resolver nombre del plan si existe
-  let planName: string | null = null
-  if (client.current_plan_id) {
-    const { data: plan } = await supabase
-      .from('membership_plans')
-      .select('name')
-      .eq('id', client.current_plan_id)
-      .single()
-    planName = plan?.name ?? null
-  }
-
-  const profile = client.user_id
-    ? (
-        await supabase
-          .from('profiles')
-          .select('role, streak_days, last_workout_at, xp_points, level, onboarding_completed')
-          .eq('id', client.user_id)
+  const planPromise =
+    client.current_plan_id != null
+      ? supabase
+          .from('membership_plans')
+          .select('name')
+          .eq('id', client.current_plan_id)
           .single()
-      ).data ?? null
-    : null
+      : Promise.resolve({ data: null as { name: string } | null })
 
-  const workoutSessions = await getWorkoutSessions(clientId, 12)
-  const bodyMeasurements = await getBodyMeasurements(clientId)
+  const profilePromise = client.user_id
+    ? supabase
+        .from('profiles')
+        .select('role, streak_days, last_workout_at, xp_points, level, onboarding_completed')
+        .eq('id', client.user_id)
+        .single()
+    : Promise.resolve({ data: null })
 
-  const { data: progressPhotos } = await supabase
-    .from('progress_photos')
-    .select('id, photo_url, view_type, weight_kg, taken_at, notes')
-    .eq('client_id', clientId)
-    .order('taken_at', { ascending: false })
-    .limit(30)
+  const [
+    planRes,
+    profileRes,
+    workoutSessions,
+    bodyMeasurements,
+    photosRes,
+    activeClientRoutineRes,
+  ] = await Promise.all([
+    planPromise,
+    profilePromise,
+    getWorkoutSessions(clientId, 12),
+    getBodyMeasurements(clientId, HUB_MEASUREMENTS_LIMIT),
+    supabase
+      .from('progress_photos')
+      .select('id, photo_url, view_type, weight_kg, taken_at, notes')
+      .eq('client_id', clientId)
+      .order('taken_at', { ascending: false })
+      .limit(30),
+    supabase
+      .from('client_routines')
+      .select('routine_id')
+      .eq('client_id', clientId)
+      .eq('is_active', true)
+      .limit(1)
+      .maybeSingle(),
+  ])
 
-  const { data: activeClientRoutine } = await supabase
-    .from('client_routines')
-    .select('routine_id')
-    .eq('client_id', clientId)
-    .eq('is_active', true)
-    .limit(1)
-    .maybeSingle()
+  const planName = planRes.data?.name ?? null
+  const profile = profileRes.data ?? null
+  const progressPhotos = photosRes.data ?? []
 
-  const routine = activeClientRoutine?.routine_id
-    ? await getRoutineById(activeClientRoutine.routine_id)
+  const routine = activeClientRoutineRes.data?.routine_id
+    ? await getRoutineById(activeClientRoutineRes.data.routine_id)
     : null
 
   const daysUntilExpiry = client.membership_end
@@ -120,7 +133,7 @@ export default async function ClientProfilePage({ params, searchParams }: Props)
         </div>
       </header>
 
-      <main className="container py-8 space-y-6">
+      <main className="container flex flex-col gap-8 py-8">
         {accessCode && (
           <AccessCodeBanner
             code={accessCode}
@@ -130,12 +143,12 @@ export default async function ClientProfilePage({ params, searchParams }: Props)
           />
         )}
         <ClientProfileHub
-          client={clientWithExtras}
+          client={clientWithExtras as ClientHubClient}
           profile={profile}
-          routine={routine}
-          workoutSessions={workoutSessions}
+          routine={routine as Routine | null}
+          workoutSessions={workoutSessions as HubWorkoutSession[]}
           bodyMeasurements={bodyMeasurements}
-          progressPhotos={progressPhotos || []}
+          progressPhotos={progressPhotos ?? []}
           clientId={clientId}
         />
       </main>

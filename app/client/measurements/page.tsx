@@ -1,26 +1,44 @@
 import { getAuthUser } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, Ruler } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { MeasurementsChart } from '@/components/charts/measurements-chart'
+import { Ruler, Scale } from 'lucide-react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { MeasurementsChartLazy } from '@/components/charts/measurements-chart-lazy'
 import { AddMeasurementForm } from './add-measurement-form'
+import {
+  CLIENT_DATA_PAGE_SHELL,
+  ClientIncompleteProfileCard,
+  ClientStackPageHeader,
+} from '@/components/client/client-app-page-parts'
+
+type MeasurementRow = {
+  id: string
+  recorded_at: string
+  weight: number | null
+  waist_cm: number | null
+  body_fat_pct: number | null
+}
 
 export default async function ClientMeasurementsPage() {
   const user = await getAuthUser()
   if (!user) redirect('/auth/login')
 
   const supabase = await createClient()
+  const { data: clientRecord } = await supabase.from('clients').select('id').eq('user_id', user.id).single()
 
-  const { data: clientRecord } = await supabase
-    .from('clients')
-    .select('id')
-    .eq('user_id', user.id)
-    .single()
-
-  if (!clientRecord) redirect('/client/dashboard')
+  if (!clientRecord) {
+    return (
+      <>
+        <ClientStackPageHeader
+          title="Medidas"
+          subtitle="Completa tu perfil para registrar peso, cintura y composición."
+        />
+        <div className={CLIENT_DATA_PAGE_SHELL}>
+          <ClientIncompleteProfileCard />
+        </div>
+      </>
+    )
+  }
 
   const measurementsRes = await supabase
     .from('body_measurements')
@@ -29,75 +47,95 @@ export default async function ClientMeasurementsPage() {
     .order('recorded_at', { ascending: true })
     .limit(120)
 
-  const measurements = measurementsRes.data || []
-  const latest = measurements.length ? (measurements[measurements.length - 1] as any) : null
+  const measurements = (measurementsRes.data || []) as MeasurementRow[]
+  const latest = measurements.length > 0 ? measurements[measurements.length - 1] : null
+  const n = measurements.length
+  const measurementsSubtitle =
+    n === 0
+      ? 'Sin registros · añade la primera medida para ver la evolución.'
+      : `${n} ${n === 1 ? 'registro' : 'registros'} · peso, cintura y composición.`
 
   return (
-    <div className="min-h-dvh bg-background">
-      <header className="border-b">
-        <div className="container flex items-center gap-4 py-4">
-          <Button variant="ghost" size="icon" asChild aria-label="Volver al dashboard">
-            <Link href="/client/dashboard">
-              <ArrowLeft className="size-4" />
-            </Link>
-          </Button>
-          <div className="min-w-0">
-            <h1 className="text-2xl font-bold">Medidas</h1>
-            <p className="text-sm text-muted-foreground">Peso, cintura y grasa corporal</p>
+    <>
+      <ClientStackPageHeader title="Medidas" subtitle={measurementsSubtitle} />
+
+      <div className={CLIENT_DATA_PAGE_SHELL}>
+      <Card className="overflow-hidden border-border/80 shadow-sm ring-1 ring-primary/5">
+        <CardHeader className="flex flex-col gap-4 pb-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+          <div className="flex items-start gap-3 text-center sm:min-w-0 sm:flex-1 sm:text-left">
+            <div className="mx-auto flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted sm:mx-0">
+              <Scale className="size-4 text-primary" aria-hidden />
+            </div>
+            <div className="min-w-0 flex-1">
+              <CardTitle className="text-base sm:text-lg">Resumen</CardTitle>
+              <CardDescription className="mt-1">Último registro y acceso rápido para anotar nuevas medidas</CardDescription>
+            </div>
           </div>
-        </div>
-      </header>
-
-      <main id="main-content" className="container py-8 space-y-6" tabIndex={-1}>
-        <Card>
-          <CardHeader className="pb-3 flex flex-row items-center justify-between">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Ruler className="w-4 h-4" />
-              Resumen
-            </CardTitle>
+          <div className="flex justify-center sm:shrink-0 sm:justify-end">
             <AddMeasurementForm />
-          </CardHeader>
-          <CardContent>
-            {!latest ? (
-              <p className="text-muted-foreground">Aún no tienes medidas registradas. Usa el botón arriba para registrar tu primera medida.</p>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-3">
-                <div>
-                  <p className="text-sm text-muted-foreground">Peso</p>
-                  <p className="text-2xl font-bold">{latest.weight ?? '-' } kg</p>
-                  <p className="text-xs text-muted-foreground">{new Date(latest.recorded_at).toLocaleDateString()}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Cintura</p>
-                  <p className="text-2xl font-bold">{latest.waist_cm ?? '-' } cm</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">% Grasa</p>
-                  <p className="text-2xl font-bold">{latest.body_fat_pct ?? '-' }%</p>
-                </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {!latest ? (
+            <div className="rounded-xl border border-border/60 bg-muted/15 px-4 py-8 text-center sm:px-6">
+              <p className="text-sm font-medium text-foreground">Aún no tienes medidas registradas</p>
+              <p className="mt-2 text-sm text-muted-foreground text-pretty">
+                Usa <span className="font-medium">Registrar medida</span> para guardar tu primera toma. Podrás ver
+                gráficos cuando tengas al menos dos fechas.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 border-t border-border/60 pt-6 text-center sm:grid-cols-3 sm:text-left">
+              <div className="flex flex-col gap-1">
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Peso</p>
+                <p className="text-2xl font-bold tabular-nums sm:text-3xl">{latest.weight ?? '—'} kg</p>
+                <p className="text-xs text-muted-foreground tabular-nums">
+                  {new Date(latest.recorded_at).toLocaleDateString('es', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                  })}
+                </p>
               </div>
-            )}
-          </CardContent>
-        </Card>
+              <div className="flex flex-col gap-1">
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Cintura</p>
+                <p className="text-2xl font-bold tabular-nums sm:text-3xl">{latest.waist_cm ?? '—'} cm</p>
+              </div>
+              <div className="flex flex-col gap-1">
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Grasa corporal</p>
+                <p className="text-2xl font-bold tabular-nums sm:text-3xl">
+                  {latest.body_fat_pct != null ? `${latest.body_fat_pct}%` : '—'}
+                </p>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Evolución</CardTitle>
-            <div className="text-xs text-muted-foreground">Selecciona la métrica para ver la tendencia</div>
-          </CardHeader>
-          <CardContent>
-            <MeasurementsChart
-              measurements={measurements.map((m: any) => ({
-                recorded_at: m.recorded_at,
-                weight: m.weight,
-                waist_cm: m.waist_cm,
-                body_fat_pct: m.body_fat_pct,
-              }))}
-            />
-          </CardContent>
-        </Card>
-      </main>
-    </div>
+      <Card className="overflow-hidden border-border/80 shadow-sm ring-1 ring-primary/5">
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
+              <Ruler className="size-4 text-primary" aria-hidden />
+            </div>
+            <div>
+              <CardTitle className="text-base sm:text-lg">Evolución</CardTitle>
+              <CardDescription>Elige la métrica para ver la tendencia en el tiempo</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <MeasurementsChartLazy
+            measurements={measurements.map((m) => ({
+              recorded_at: m.recorded_at,
+              weight: m.weight,
+              waist_cm: m.waist_cm,
+              body_fat_pct: m.body_fat_pct,
+            }))}
+          />
+        </CardContent>
+      </Card>
+      </div>
+    </>
   )
 }
-

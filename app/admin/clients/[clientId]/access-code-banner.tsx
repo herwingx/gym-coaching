@@ -49,7 +49,7 @@ export function AccessCodeBanner({ code, clientEmail, emailSent, emailFailed }: 
           )}
         </p>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2 rounded-lg border bg-background px-4 py-3">
             <span className="font-mono text-xl font-bold tracking-widest">{code}</span>

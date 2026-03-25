@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { DatePicker } from '@/components/ui/date-picker'
 import Link from 'next/link'
 import {
@@ -28,10 +29,10 @@ const STATUS_OPTIONS = [
 
 const GOALS = [
   { value: 'muscle_gain', label: 'Ganar masa muscular' },
-  { value: 'fat_loss', label: 'Pérdida de grasa' },
-  { value: 'strength', label: 'Fuerza' },
+  { value: 'weight_loss', label: 'Pérdida de grasa' },
+  { value: 'toning', label: 'Fuerza' },
   { value: 'endurance', label: 'Resistencia' },
-  { value: 'general_fitness', label: 'Bienestar general' },
+  { value: 'maintenance', label: 'Bienestar general' },
 ]
 
 const EXPERIENCE_LEVELS = [

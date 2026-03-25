@@ -1,5 +1,6 @@
 import { getAuthUser, getUserRole } from '@/lib/auth-utils'
 import { createClient } from '@/lib/supabase/server'
+import { COACH_OVERVIEW_SESSIONS_CAP } from '@/lib/performance-limits'
 import { CoachOverviewClient } from './coach-overview-client'
 
 export type CoachOverviewMetrics = {
@@ -11,6 +12,9 @@ export type CoachOverviewMetrics = {
   attentionClientName: string | null
   attentionReason: string | null
   trainingsLastWeek: number
+  totalClients: number
+  attentionCount: number
+  activeThisWeekCount: number
   chartData: { date: string; sessions: number }[]
 }
 
@@ -28,6 +32,24 @@ export type CoachClientCard = {
   trend?: 'up' | 'down' | 'flat'
   needsAttention?: boolean
   attentionReason?: string | null
+}
+
+type ClientDbRow = {
+  id: string
+  user_id: string | null
+  full_name: string | null
+  avatar_url: string | null
+  status: string | null
+  last_session_at: string | null
+  current_plan_id: string | null
+}
+
+type CompletedSessionRow = {
+  id: string
+  client_id: string
+  started_at: string | null
+  total_volume_kg: number | null
+  status: string | null
 }
 
 function safeDiffDays(fromIso?: string | null): number | null {
@@ -54,7 +76,7 @@ export async function CoachOverview() {
     .eq('coach_id', user.id)
 
   if (clientsError) throw clientsError
-  const clientsList = (clientsData || []) as any[]
+  const clientsList: ClientDbRow[] = clientsData ?? []
 
   const clientIds = clientsList.map((c) => c.id).filter(Boolean)
 
@@ -94,7 +116,7 @@ export async function CoachOverview() {
   }))
   if (clientsSummary.length === 0) {
     return (
-      <div className="space-y-4">
+      <div className="flex flex-col gap-4">
         <div className="text-lg font-semibold">No tienes asesorados todavía</div>
         <div className="text-sm text-muted-foreground">
           Crea asesorados en Asesorados para que aparezcan aquí.
@@ -156,14 +178,17 @@ export async function CoachOverview() {
     .in('client_id', clientIds)
     .eq('status', 'completed')
     .order('started_at', { ascending: false })
+    .limit(COACH_OVERVIEW_SESSIONS_CAP)
+
+  const sessionsList: CompletedSessionRow[] = completedSessions ?? []
 
   const sessionsByClientId = new Map<
     string,
     { started_at?: string; total_volume_kg?: number | null }[]
   >()
-  for (const s of completedSessions || []) {
+  for (const s of sessionsList) {
     const arr = sessionsByClientId.get(s.client_id) || []
-    arr.push({ started_at: s.started_at, total_volume_kg: s.total_volume_kg })
+    arr.push({ started_at: s.started_at ?? undefined, total_volume_kg: s.total_volume_kg })
     sessionsByClientId.set(s.client_id, arr)
   }
 
@@ -174,14 +199,16 @@ export async function CoachOverview() {
     .in('client_id', clientIds)
     .gte('achieved_at', startOfMonth.toISOString())
 
-  const totalTrainingsThisWeek = (completedSessions || []).filter((s: any) => {
+  const totalTrainingsThisWeek = sessionsList.filter((s) => {
+    if (!s.started_at) return false
     const d = new Date(s.started_at)
-    return d >= startOfWeek
+    return !Number.isNaN(d.getTime()) && d >= startOfWeek
   }).length
 
-  const trainingsLastWeek = (completedSessions || []).filter((s: any) => {
+  const trainingsLastWeek = sessionsList.filter((s) => {
+    if (!s.started_at) return false
     const d = new Date(s.started_at)
-    return d >= startOfLastWeek && d < startOfWeek
+    return !Number.isNaN(d.getTime()) && d >= startOfLastWeek && d < startOfWeek
   }).length
 
   const prsThisMonth = (prs || []).length
@@ -195,7 +222,7 @@ export async function CoachOverview() {
     d.setHours(0, 0, 0, 0)
     chartDataMap.set(d.toISOString().slice(0, 10), 0)
   }
-  for (const s of completedSessions || []) {
+  for (const s of sessionsList) {
     const dateStr = (s.started_at || '').slice(0, 10)
     if (chartDataMap.has(dateStr)) {
       chartDataMap.set(dateStr, (chartDataMap.get(dateStr) || 0) + 1)
@@ -206,9 +233,10 @@ export async function CoachOverview() {
     .map(([date, sessions]) => ({ date, sessions }))
 
   // Most active client in last 30 days
-  const last30 = (completedSessions || []).filter((s: any) => {
+  const last30 = sessionsList.filter((s) => {
+    if (!s.started_at) return false
     const d = new Date(s.started_at)
-    return d >= startOfLast30Days
+    return !Number.isNaN(d.getTime()) && d >= startOfLast30Days
   })
   const countByClient = new Map<string, number>()
   for (const s of last30) countByClient.set(s.client_id, (countByClient.get(s.client_id) || 0) + 1)
@@ -219,12 +247,12 @@ export async function CoachOverview() {
     if (!mostActiveClientId || count > (countByClient.get(mostActiveClientId) || 0)) {
       const found = clientsSummary.find((c) => c.id === id)
       mostActiveClientId = id
-      mostActiveClientName = found?.full_name || found?.fullName || null
+      mostActiveClientName = found?.full_name ?? null
     }
   }
 
   const cards: CoachClientCard[] = clientsSummary.map((c) => {
-    const streak = profilesByUserId.get(c.user_id)
+    const streak = c.user_id ? profilesByUserId.get(c.user_id) : undefined
     const last = (sessionsByClientId.get(c.id) || [])[0]
     const prev = (sessionsByClientId.get(c.id) || [])[1]
 
@@ -259,7 +287,7 @@ export async function CoachOverview() {
 
     return {
       id: c.id,
-      fullName: c.full_name,
+      fullName: c.full_name ?? 'Cliente',
       avatarUrl: c.avatar_url,
       planName: c.plan_name ?? null,
       assignedRoutineId: c.assigned_routine_id ?? null,
@@ -286,7 +314,7 @@ export async function CoachOverview() {
       const getScore = (c: CoachClientCard) => {
         if (c.status === 'expired') return 4
         if (c.status === 'active' && !c.assignedRoutineId) return 3
-        if (c.status === 'active' && c.daysSinceLastSession !== null && c.daysSinceLastSession >= 7) return 2
+        if (c.status === 'active' && c.daysSinceLastSession != null && c.daysSinceLastSession >= 7) return 2
         if (c.status === 'pending') return 1
         return 0
       }
@@ -296,6 +324,11 @@ export async function CoachOverview() {
     attentionClientName = sorted[0]?.fullName ?? null
   }
 
+  const activeThisWeekCount = cards.filter(
+    (c) =>
+      c.status === 'active' && c.daysSinceLastSession != null && c.daysSinceLastSession <= 6,
+  ).length
+
   const metrics: CoachOverviewMetrics = {
     totalTrainingsThisWeek,
     prsThisMonth,
@@ -303,8 +336,14 @@ export async function CoachOverview() {
     mostActiveClientName,
     attentionClientId,
     attentionClientName,
-    attentionReason: attentionCandidates.length > 0 ? (cards.find(c => c.id === attentionClientId)?.attentionReason ?? null) : null,
+    attentionReason:
+      attentionCandidates.length > 0
+        ? cards.find((c) => c.id === attentionClientId)?.attentionReason ?? null
+        : null,
     trainingsLastWeek,
+    totalClients: cards.length,
+    attentionCount: attentionCandidates.length,
+    activeThisWeekCount,
     chartData,
   }
 

@@ -1,111 +1,112 @@
-"use client"
+'use client'
 
-import { cn } from "@/lib/utils"
-import { Trophy, Flame, Target, Dumbbell, Award, Star, Medal, Crown } from "lucide-react"
-import type { Achievement } from "@/lib/types"
-
-import { cn } from "@/lib/utils"
-import { Trophy, Flame, Target, Dumbbell, Award, Star, Medal, Crown, Lock } from "lucide-react"
-import type { Achievement } from "@/lib/types"
-import { Progress } from "@/components/ui/progress"
+import { cn } from '@/lib/utils'
+import { Lock } from 'lucide-react'
+import type { Achievement } from '@/lib/types'
+import { Progress } from '@/components/ui/progress'
+import { Badge } from '@/components/ui/badge'
+import {
+  achievementLucideIcon,
+  achievementMilestoneBadgeLabel,
+  formatAchievementProgress,
+} from '@/lib/achievements-ui'
 
 interface AchievementBadgeProps {
   achievement: Achievement
   unlocked?: boolean
-  size?: "sm" | "md" | "lg" | "xl"
+  size?: 'sm' | 'md' | 'lg' | 'xl'
   showDetails?: boolean
-  progress?: number // Current value
+  progress?: number
   showProgress?: boolean
+  showMilestoneBadge?: boolean
 }
 
-export function AchievementBadge({ 
-  achievement, 
+const sizeClasses = {
+  sm: 'size-10',
+  md: 'size-14',
+  lg: 'size-20',
+  xl: 'size-28',
+}
+
+const iconGlyphSize = {
+  sm: 'size-5',
+  md: 'size-7',
+  lg: 'size-10',
+  xl: 'size-14',
+}
+
+export function AchievementBadge({
+  achievement,
   unlocked = false,
-  size = "md",
+  size = 'md',
   showDetails = false,
   progress = 0,
-  showProgress = false
+  showProgress = false,
+  showMilestoneBadge = false,
 }: AchievementBadgeProps) {
-  const sizeClasses = {
-    sm: "size-10",
-    md: "size-14",
-    lg: "size-20",
-    xl: "size-28",
-  }
-  
-  const iconSizes = {
-    sm: "size-5",
-    md: "size-7",
-    lg: "size-10",
-    xl: "size-14",
-  }
-
-  const rarityColors = {
-    common: "from-slate-400 to-slate-500",
-    rare: "from-blue-400 to-blue-600",
-    epic: "from-purple-500 to-purple-700",
-    legendary: "from-amber-400 to-amber-600",
-  }
-
-  const percent = Math.min(Math.round((progress / (achievement.requirement_value || 1)) * 100), 100)
+  const Icon = achievementLucideIcon(achievement)
+  const { percent } = formatAchievementProgress(achievement, progress, unlocked)
+  const tierLabel = achievementMilestoneBadgeLabel(achievement.rarity)
 
   return (
-    <div className={cn(
-      "flex flex-col items-center gap-3 transition-all duration-300",
-      !unlocked && "opacity-60 grayscale-[0.5]"
-    )}>
-      <div className="relative group">
-        {/* Glow effect for unlocked high rarity */}
-        {unlocked && (achievement.rarity === 'legendary' || achievement.rarity === 'epic') && (
-          <div className={cn(
-            "absolute inset-0 rounded-full blur-xl opacity-30 group-hover:opacity-50 transition-opacity",
-            rarityColors[achievement.rarity as keyof typeof rarityColors]
-          )} />
+    <div
+      className={cn(
+        'flex flex-col items-center transition-colors duration-200',
+        !unlocked && 'opacity-70',
+      )}
+    >
+      <div className="relative flex flex-col items-center gap-2">
+        {showMilestoneBadge && unlocked && (
+          <Badge
+            variant="outline"
+            className="absolute -top-2 z-10 max-w-28 truncate border-muted-foreground/25 bg-background/95 px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground"
+          >
+            {tierLabel}
+          </Badge>
         )}
 
-        <div className={cn(
-          "relative rounded-full flex items-center justify-center transition-all duration-500 transform group-hover:scale-110",
-          sizeClasses[size],
-          unlocked 
-            ? cn("bg-gradient-to-br shadow-lg", rarityColors[achievement.rarity as keyof typeof rarityColors] || "bg-primary") 
-            : "bg-muted border-2 border-dashed border-muted-foreground/30"
-        )}>
-          {!unlocked && <Lock className="absolute -top-1 -right-1 size-4 text-muted-foreground" />}
-          
-          <span className={cn(
-            "select-none drop-shadow-md",
-            size === "sm" ? "text-lg" : size === "md" ? "text-2xl" : size === "lg" ? "text-4xl" : "text-5xl"
-          )}>
-            {achievement.icon || '🏆'}
-          </span>
+        <div
+          className={cn(
+            'relative flex items-center justify-center rounded-2xl border shadow-sm transition-transform duration-200',
+            sizeClasses[size],
+            unlocked
+              ? 'border-primary/25 bg-primary/10 text-primary'
+              : 'border-dashed border-muted-foreground/35 bg-muted/40 text-muted-foreground',
+          )}
+          aria-hidden={!showDetails}
+        >
+          {!unlocked && (
+            <Lock
+              className="absolute -right-1 -top-1 size-3.5 rounded-full bg-background text-muted-foreground ring-1 ring-border"
+              aria-hidden
+            />
+          )}
+          <Icon className={cn('shrink-0', iconGlyphSize[size])} />
         </div>
-
-        {/* Progress Ring or Indicator could go here if we wanted something more fancy */}
       </div>
 
       {showDetails && (
-        <div className="text-center max-w-[120px]">
-          <p className={cn(
-            "font-bold leading-tight line-clamp-2",
-            size === "sm" ? "text-[10px]" : "text-sm"
-          )}>
+        <div className="mt-2 flex max-w-[140px] flex-col items-center gap-1.5 text-center">
+          <p
+            className={cn(
+              'line-clamp-2 font-semibold leading-snug',
+              size === 'sm' ? 'text-[10px]' : 'text-xs',
+            )}
+          >
             {achievement.name}
           </p>
-          
+
           {showProgress && !unlocked && (
-            <div className="mt-2 space-y-1">
-              <Progress value={percent} className="h-1.5 w-full bg-muted" />
-              <p className="text-[10px] text-muted-foreground font-medium">
-                {percent}%
-              </p>
+            <div className="flex w-full flex-col gap-1">
+              <Progress value={percent} className="h-1.5 bg-muted" />
+              <p className="text-[10px] font-medium tabular-nums text-muted-foreground">{percent}%</p>
             </div>
           )}
 
           {unlocked && (
-            <div className="mt-1 flex items-center justify-center gap-1">
-              <Star className="size-3 text-amber-500 fill-amber-500" />
-              <span className="text-[10px] font-bold text-primary">+{achievement.xp_reward} XP</span>
-            </div>
+            <p className="text-[10px] font-semibold text-primary tabular-nums">
+              +{achievement.xp_reward} XP
+            </p>
           )}
         </div>
       )}
@@ -113,7 +114,6 @@ export function AchievementBadge({
   )
 }
 
-// Grid of achievements
 interface AchievementsGridProps {
   achievements: Achievement[]
   unlockedIds: Set<string>

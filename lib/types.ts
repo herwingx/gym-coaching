@@ -62,6 +62,12 @@ export interface Exercise {
   demo_video_url?: string
   technique_notes?: string
   image_url?: string
+  gif_url?: string
+  target_muscles?: string[]
+  body_parts?: string[]
+  equipments?: string[]
+  secondary_muscles?: string[]
+  instructions?: string[]
   created_at: string
   updated_at: string
 }
@@ -155,9 +161,23 @@ export interface Achievement {
   icon: string // DB name: icon_emoji
   xp_reward: number
   category: 'strength' | 'consistency' | 'volume' | 'milestone' | 'special'
-  requirement_type: 'sessions' | 'streak' | 'pr' | 'volume' | 'level'
+  requirement_type:
+    | 'sessions'
+    | 'streak'
+    | 'pr'
+    | 'volume'
+    | 'level'
+    | 'messages'
+    | 'early_workouts'
+    | 'measurement_months'
+    | 'lifetime_volume'
+    | 'lift_bench_bw'
+    | 'lift_squat_bw15'
+    | 'lift_deadlift_bw2'
   requirement_value: number
   created_at: string
+  /** Optional: DB column when present; UI defaults to common */
+  rarity?: 'common' | 'rare' | 'epic' | 'legendary'
 }
 
 export interface UserAchievement {
@@ -230,13 +250,16 @@ export function calculateLevel(xp: number): LevelInfo {
   }
 }
 
+/** Etapas de progreso enfocadas en hábito y entrenamiento (no “rangos” de videojuego). */
 export function getLevelName(level: number): string {
-  if (level < 10) return 'Novato'
-  if (level < 20) return 'Guerrero'
-  if (level < 30) return 'Atleta'
-  if (level < 40) return 'Elite'
-  if (level < 50) return 'Legendario'
-  return 'Dios del Gimnasio'
+  if (level < 5) return 'Iniciante'
+  if (level < 10) return 'En construcción'
+  if (level < 15) return 'Constante'
+  if (level < 20) return 'Comprometido'
+  if (level < 30) return 'Avanzado'
+  if (level < 40) return 'Experimentado'
+  if (level < 50) return 'Alto rendimiento'
+  return 'Referente'
 }
 
 export function calculate1RM(weight: number, reps: number): number {
