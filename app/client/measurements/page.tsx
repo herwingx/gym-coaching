@@ -1,9 +1,10 @@
 import { getAuthUser } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { Ruler, Scale } from 'lucide-react'
+import { Ruler, Scale, Sparkles } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { MeasurementsChartLazy } from '@/components/charts/measurements-chart-lazy'
+import { MeasurementsRadarChartLazy } from '@/components/charts/measurements-radar-chart-lazy'
 import { AddMeasurementForm } from './add-measurement-form'
 import {
   CLIENT_DATA_PAGE_SHELL,
@@ -59,82 +60,120 @@ export default async function ClientMeasurementsPage() {
     <>
       <ClientStackPageHeader title="Medidas" subtitle={measurementsSubtitle} />
 
-      <div className={CLIENT_DATA_PAGE_SHELL}>
-      <Card className="overflow-hidden border-border/80 shadow-sm ring-1 ring-primary/5">
-        <CardHeader className="flex flex-col gap-4 pb-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-          <div className="flex items-start gap-3 text-center sm:min-w-0 sm:flex-1 sm:text-left">
-            <div className="mx-auto flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted sm:mx-0">
-              <Scale className="size-4 text-primary" aria-hidden />
-            </div>
-            <div className="min-w-0 flex-1">
-              <CardTitle className="text-base sm:text-lg">Resumen</CardTitle>
-              <CardDescription className="mt-1">Último registro y acceso rápido para anotar nuevas medidas</CardDescription>
-            </div>
-          </div>
-          <div className="flex justify-center sm:shrink-0 sm:justify-end">
-            <AddMeasurementForm />
-          </div>
-        </CardHeader>
-        <CardContent>
-          {!latest ? (
-            <div className="rounded-xl border border-border/60 bg-muted/15 px-4 py-8 text-center sm:px-6">
-              <p className="text-sm font-medium text-foreground">Aún no tienes medidas registradas</p>
-              <p className="mt-2 text-sm text-muted-foreground text-pretty">
-                Usa <span className="font-medium">Registrar medida</span> para guardar tu primera toma. Podrás ver
-                gráficos cuando tengas al menos dos fechas.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-6 border-t border-border/60 pt-6 text-center sm:grid-cols-3 sm:text-left">
-              <div className="flex flex-col gap-1">
-                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Peso</p>
-                <p className="text-2xl font-bold tabular-nums sm:text-3xl">{latest.weight ?? '—'} kg</p>
-                <p className="text-xs text-muted-foreground tabular-nums">
-                  {new Date(latest.recorded_at).toLocaleDateString('es', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric',
-                  })}
-                </p>
+      <div className={`${CLIENT_DATA_PAGE_SHELL} grid gap-6 lg:grid-cols-12 lg:items-start`}>
+        <aside className="flex flex-col gap-6 lg:col-span-4 lg:sticky lg:top-[max(1rem,env(safe-area-inset-top))] lg:self-start">
+          <Card className="overflow-hidden border-border/80 shadow-sm ring-1 ring-primary/5">
+            <CardHeader className="flex flex-col gap-4 pb-4">
+              <div className="flex items-start gap-3 text-center sm:min-w-0 sm:flex-1 sm:text-left">
+                <div className="mx-auto flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted sm:mx-0">
+                  <Scale className="size-4 text-primary" aria-hidden />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <CardTitle className="text-base sm:text-lg">Resumen</CardTitle>
+                  <CardDescription className="mt-1">
+                    Último registro y acceso rápido para anotar nuevas medidas
+                  </CardDescription>
+                </div>
               </div>
-              <div className="flex flex-col gap-1">
-                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Cintura</p>
-                <p className="text-2xl font-bold tabular-nums sm:text-3xl">{latest.waist_cm ?? '—'} cm</p>
+              <div className="flex justify-center sm:justify-start">
+                <AddMeasurementForm />
               </div>
-              <div className="flex flex-col gap-1">
-                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Grasa corporal</p>
-                <p className="text-2xl font-bold tabular-nums sm:text-3xl">
-                  {latest.body_fat_pct != null ? `${latest.body_fat_pct}%` : '—'}
-                </p>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            </CardHeader>
+            <CardContent>
+              {!latest ? (
+                <div className="rounded-xl border border-border/60 bg-muted/15 px-4 py-8 text-center sm:px-6 sm:text-left">
+                  <p className="text-sm font-medium text-foreground">Aún no tienes medidas registradas</p>
+                  <p className="mt-2 text-sm text-muted-foreground text-pretty">
+                    Usa <span className="font-medium">Registrar medida</span> para guardar tu primera toma. Podrás
+                    ver gráficos cuando tengas al menos dos fechas.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-6 border-t border-border/60 pt-6 text-center sm:grid-cols-1 sm:text-left">
+                  <div className="flex flex-col gap-1">
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Peso</p>
+                    <p className="text-2xl font-bold tabular-nums sm:text-3xl">{latest.weight ?? '—'} kg</p>
+                    <p className="text-xs text-muted-foreground tabular-nums">
+                      {new Date(latest.recorded_at).toLocaleDateString('es', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                    </p>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Cintura</p>
+                    <p className="text-2xl font-bold tabular-nums sm:text-3xl">{latest.waist_cm ?? '—'} cm</p>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      Grasa corporal
+                    </p>
+                    <p className="text-2xl font-bold tabular-nums sm:text-3xl">
+                      {latest.body_fat_pct != null ? `${latest.body_fat_pct}%` : '—'}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </aside>
 
-      <Card className="overflow-hidden border-border/80 shadow-sm ring-1 ring-primary/5">
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
-              <Ruler className="size-4 text-primary" aria-hidden />
-            </div>
-            <div>
-              <CardTitle className="text-base sm:text-lg">Evolución</CardTitle>
-              <CardDescription>Elige la métrica para ver la tendencia en el tiempo</CardDescription>
-            </div>
+        <section className="min-w-0 lg:col-span-8">
+          <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+            <Card className="overflow-hidden border-border/80 shadow-sm ring-1 ring-primary/5">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
+                    <Ruler className="size-4 text-primary" aria-hidden />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base sm:text-lg">Evolución</CardTitle>
+                    <CardDescription>
+                      Elige la métrica para ver la tendencia en el tiempo
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <MeasurementsChartLazy
+                  measurements={measurements.map((m) => ({
+                    recorded_at: m.recorded_at,
+                    weight: m.weight,
+                    waist_cm: m.waist_cm,
+                    body_fat_pct: m.body_fat_pct,
+                  }))}
+                />
+              </CardContent>
+            </Card>
+
+            <Card className="overflow-hidden border-border/80 shadow-sm ring-1 ring-primary/5">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
+                    <Sparkles className="size-4 text-primary" aria-hidden />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base sm:text-lg">Radar</CardTitle>
+                    <CardDescription>
+                      Últimos registros para ver cambios de un vistazo
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <MeasurementsRadarChartLazy
+                  measurements={measurements.map((m) => ({
+                    recorded_at: m.recorded_at,
+                    weight: m.weight,
+                    waist_cm: m.waist_cm,
+                    body_fat_pct: m.body_fat_pct,
+                  }))}
+                />
+              </CardContent>
+            </Card>
           </div>
-        </CardHeader>
-        <CardContent>
-          <MeasurementsChartLazy
-            measurements={measurements.map((m) => ({
-              recorded_at: m.recorded_at,
-              weight: m.weight,
-              waist_cm: m.waist_cm,
-              body_fat_pct: m.body_fat_pct,
-            }))}
-          />
-        </CardContent>
-      </Card>
+        </section>
       </div>
     </>
   )

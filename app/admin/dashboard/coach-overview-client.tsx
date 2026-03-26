@@ -1,7 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -42,10 +42,12 @@ import {
   AlertTriangle,
   Eye,
   Edit2,
+  Info,
   UserCheck,
   UserX,
   Sparkles,
 } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import { updateClientStatus } from '@/app/actions/clients'
 import { toast } from 'sonner'
@@ -54,6 +56,25 @@ function formatRelativeDays(days: number) {
   if (days === 0) return 'hoy'
   if (days === 1) return 'ayer'
   return `hace ${days} días`
+}
+
+function MetricHint({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          className="-m-1 inline-flex size-7 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label={label}
+        >
+          <Info className="size-3.5 opacity-70" aria-hidden />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-[min(100vw-1rem,17rem)] text-pretty">
+        {children}
+      </TooltipContent>
+    </Tooltip>
+  )
 }
 
 function scheduleScrollToElement(el: HTMLElement | null) {
@@ -166,6 +187,7 @@ export function CoachOverviewClient({
         <AdminDashboardCards
           totalTrainingsThisWeek={metrics.totalTrainingsThisWeek}
           prsThisMonth={metrics.prsThisMonth}
+          prsLastMonth={metrics.prsLastMonth}
           mostActiveClientId={metrics.mostActiveClientId}
           mostActiveClientName={metrics.mostActiveClientName}
           attentionClientId={metrics.attentionClientId}
@@ -355,49 +377,102 @@ export function CoachOverviewClient({
                       <AlertTriangle className="size-3.5 shrink-0" aria-hidden />
                       <span className="truncate">{c.attentionReason || 'Atención'}</span>
                     </Badge>
-                  ) : (
-                    <Badge variant="secondary" className="shrink-0 ml-auto">
-                      {c.streakDays != null ? `${c.streakDays}d racha` : 'Sin racha'}
+                  ) : c.streakDays != null && c.streakDays > 0 ? (
+                    <Badge variant="outline" className="ml-auto shrink-0 tabular-nums border-primary/25 bg-primary/8">
+                      {c.streakDays}d racha
                     </Badge>
+                  ) : (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="ml-auto shrink-0 cursor-help text-[11px] font-medium tabular-nums text-muted-foreground underline decoration-dotted decoration-muted-foreground/50 underline-offset-2">
+                          Racha {c.streakDays ?? '—'}d
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-xs text-pretty">
+                        Viene del perfil (gamificación): días seguidos con entreno. Si es 0 o «—», el usuario puede haber
+                        entrenado hoy igualmente; la racha se reinicia si pasó un día sin completar sesión.
+                      </TooltipContent>
+                    </Tooltip>
                   )}
                 </div>
               </AdminCardHeaderWithActions>
-              <CardContent className="flex flex-col gap-3">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="text-sm text-muted-foreground">Última sesión</div>
-                  <div className="text-sm font-semibold tabular-nums">
+              <CardContent className="flex flex-col gap-2.5 pt-2">
+                <div className="flex items-baseline justify-between gap-2 border-b border-border/40 pb-2">
+                  <span className="text-xs text-muted-foreground">Última sesión</span>
+                  <span className="text-sm font-semibold tabular-nums">
                     {c.daysSinceLastSession != null ? formatRelativeDays(c.daysSinceLastSession) : '—'}
-                  </div>
+                  </span>
                 </div>
 
-                <div className="flex items-center justify-between gap-3">
-                  <div className="text-sm text-muted-foreground">Tendencia</div>
-                  <div className="flex min-w-0 items-center justify-end gap-2 text-sm font-semibold">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
+                    Objetivo semanal
+                    <MetricHint label="Cómo se calcula el objetivo semanal">
+                      Porcentaje según la rutina (días/semana esperados). La ventana son los últimos 7 días naturales, no
+                      “7 entrenos”. Ejemplo: rutina 5×/sem → meta 5 sesiones en ese lapso.
+                    </MetricHint>
+                  </span>
+                  <span className="text-right text-sm font-semibold tabular-nums">
+                    {c.compliance7dPct != null ? (
+                      <>
+                        {Math.round(c.compliance7dPct * 100)}%
+                        {c.complianceSessionsDone7d != null && c.complianceSessionsTarget != null ? (
+                          <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+                            ({c.complianceSessionsDone7d}/{c.complianceSessionsTarget})
+                          </span>
+                        ) : null}
+                      </>
+                    ) : (
+                      '—'
+                    )}
+                  </span>
+                </div>
+
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
+                    Volumen sesión
+                    <MetricHint label="Qué significa la tendencia de volumen">
+                      Compara el volumen total (kg) de la última sesión completada frente a la anterior. No es un PR ni
+                      mide un solo ejercicio.
+                    </MetricHint>
+                  </span>
+                  <span className="flex min-w-0 items-center justify-end gap-1.5 text-sm font-semibold">
                     {c.trend === 'up' ? (
-                      <span className="text-primary flex items-center gap-1">
-                        <ArrowUp className="size-4 text-primary" />
+                      <span className="flex items-center gap-1 text-primary">
+                        <ArrowUp className="size-3.5 shrink-0" aria-hidden />
                         Subiendo
                       </span>
                     ) : c.trend === 'down' ? (
-                      <span className="text-destructive flex items-center gap-1">
-                        <ArrowDown className="size-4 text-destructive" />
+                      <span className="flex items-center gap-1 text-destructive">
+                        <ArrowDown className="size-3.5 shrink-0" aria-hidden />
                         Bajando
                       </span>
                     ) : (
-                      <span className="text-foreground/75">Estancado</span>
+                      <span className="text-foreground/70">Sin cambio</span>
                     )}
-                  </div>
+                  </span>
                 </div>
 
-                <div className="flex items-center justify-between gap-3">
-                  <div className="text-sm text-muted-foreground">Rutina</div>
-                  <div className="min-w-0 text-right text-sm font-semibold">
-                    {c.assignedRoutineName ? (
-                      <span className="truncate">{c.assignedRoutineName}</span>
-                    ) : (
-                      <span className="text-muted-foreground font-normal">Sin asignar</span>
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
+                    Series PR · 30d
+                    <MetricHint label="Conteo de series PR">
+                      Suma series con marca PR en entrenos completados últimos 30 días y eventos en historial PR. Debería
+                      acercarse a lo que el asesorado ve en Progreso.
+                    </MetricHint>
+                  </span>
+                  <span className="tabular-nums text-sm font-semibold">
+                    {typeof c.prEvents30d === 'number' ? c.prEvents30d : '—'}
+                  </span>
+                </div>
+
+                <div className="flex items-baseline justify-between gap-2 border-t border-border/40 pt-2">
+                  <span className="text-xs text-muted-foreground">Rutina</span>
+                  <span className="max-w-[60%] truncate text-right text-sm font-semibold">
+                    {c.assignedRoutineName ? c.assignedRoutineName : (
+                      <span className="font-normal text-muted-foreground">Sin asignar</span>
                     )}
-                  </div>
+                  </span>
                 </div>
               </CardContent>
           </AdminCardWithActions>

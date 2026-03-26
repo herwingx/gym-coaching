@@ -3,9 +3,8 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { ChatViewLazy } from '@/components/chat/chat-view-lazy'
 import Link from 'next/link'
-import { ArrowLeft, UserRoundSearch } from 'lucide-react'
+import { UserRoundSearch } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { SidebarTrigger } from '@/components/ui/sidebar'
 import {
   Empty,
   EmptyContent,
@@ -14,6 +13,10 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@/components/ui/empty'
+import {
+  CLIENT_DATA_PAGE_SHELL,
+  ClientStackPageHeader,
+} from '@/components/client/client-app-page-parts'
 
 export default async function ClientMessagesPage() {
   const user = await getAuthUser()
@@ -74,34 +77,35 @@ export default async function ClientMessagesPage() {
 
   if (!coachId) {
     return (
-      <div className="flex min-h-0 flex-1 flex-col bg-background">
-        <header className="safe-area-header-pt flex shrink-0 items-center gap-2 border-b bg-background/95 px-3 py-3 backdrop-blur supports-backdrop-filter:bg-background/80 sm:px-4">
-          <SidebarTrigger className="-ml-1 size-9 shrink-0 sm:size-8" aria-label="Abrir menú" />
-          <Button variant="ghost" size="icon" className="shrink-0" asChild>
-            <Link href="/client/dashboard" aria-label="Volver al inicio">
-              <ArrowLeft />
-            </Link>
-          </Button>
-          <h1 className="min-w-0 truncate text-base font-semibold tracking-tight">Mensajes</h1>
-        </header>
-        <Empty className="flex-1 border-0 bg-transparent">
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <UserRoundSearch />
-            </EmptyMedia>
-            <EmptyTitle>Sin coach asignado</EmptyTitle>
-            <EmptyDescription>
-              Cuando tu entrenador te vincule a su gimnasio o completes una invitación, podrás
-              chatear aquí en tiempo real.
-            </EmptyDescription>
-          </EmptyHeader>
-          <EmptyContent>
-            <Button asChild>
-              <Link href="/client/dashboard">Ir al panel</Link>
-            </Button>
-          </EmptyContent>
-        </Empty>
-      </div>
+      <>
+        <ClientStackPageHeader
+          title="Mensajes"
+          subtitle="Tu chat directo con el coach · avisos, dudas y seguimiento."
+        />
+        <div className={CLIENT_DATA_PAGE_SHELL}>
+          <Empty className="border-border/80 shadow-sm ring-1 ring-primary/5">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <UserRoundSearch />
+              </EmptyMedia>
+              <EmptyTitle>Sin coach asignado</EmptyTitle>
+              <EmptyDescription>
+                Cuando tu entrenador te vincule o completes una invitación, podrás chatear aquí en tiempo real.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Button asChild>
+                  <Link href="/client/dashboard">Ir al panel</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link href="/client/profile">Revisar mi perfil</Link>
+                </Button>
+              </div>
+            </EmptyContent>
+          </Empty>
+        </div>
+      </>
     )
   }
 

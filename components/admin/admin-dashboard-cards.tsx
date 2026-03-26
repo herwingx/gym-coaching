@@ -21,6 +21,7 @@ import { AdminKpiStatCard } from '@/components/admin/admin-kpi-stat-card'
 export type AdminDashboardMetrics = {
   totalTrainingsThisWeek: number
   prsThisMonth: number
+  prsLastMonth?: number
   mostActiveClientId: string | null
   mostActiveClientName: string | null
   attentionClientId: string | null
@@ -32,14 +33,52 @@ export type AdminDashboardMetrics = {
   trainingsLastWeek?: number
 }
 
-function computeTrend(current: number, previous: number): number | null {
-  if (previous === 0) return current > 0 ? 100 : null
-  return Math.round(((current - previous) / previous) * 100)
+/** Tendencia entre dos periodos. Si el periodo anterior es 0, no se inventa un "+100%" (sería engañoso). */
+type PeriodTrend =
+  | { kind: 'none' }
+  | { kind: 'no_baseline' }
+  | { kind: 'pct'; value: number }
+
+function periodTrend(current: number, previous: number): PeriodTrend {
+  if (previous === 0) {
+    if (current === 0) return { kind: 'none' }
+    return { kind: 'no_baseline' }
+  }
+  return { kind: 'pct', value: Math.round(((current - previous) / previous) * 100) }
+}
+
+function TrendPctBadge({ trend }: { trend: Exclude<PeriodTrend, { kind: 'none' }> }) {
+  if (trend.kind === 'no_baseline') {
+    return (
+      <Badge
+        variant="outline"
+        title="El periodo anterior tenía 0; no hay porcentaje de cambio significativo."
+        className="max-w-[11rem] truncate border-muted-foreground/30 text-[10px] font-medium text-muted-foreground tabular-nums"
+      >
+        Sin base previa
+      </Badge>
+    )
+  }
+  const pct = trend.value
+  return (
+    <Badge
+      variant="outline"
+      className={cn(
+        'tabular-nums text-[10px] font-semibold uppercase tracking-wide border-none',
+        pct >= 0 ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive',
+      )}
+    >
+      {pct >= 0 ? <TrendingUp className="mr-1 inline size-3 align-middle" /> : <TrendingDown className="mr-1 inline size-3 align-middle" />}
+      {pct >= 0 ? '+' : ''}
+      {pct}%
+    </Badge>
+  )
 }
 
 export function AdminDashboardCards({
   totalTrainingsThisWeek,
   prsThisMonth,
+  prsLastMonth = 0,
   mostActiveClientId,
   mostActiveClientName,
   attentionClientId,
@@ -50,7 +89,8 @@ export function AdminDashboardCards({
   attentionCount,
   trainingsLastWeek = 0,
 }: AdminDashboardMetrics) {
-  const weekTrend = computeTrend(totalTrainingsThisWeek, trainingsLastWeek)
+  const weekTrend = periodTrend(totalTrainingsThisWeek, trainingsLastWeek)
+  const prMonthTrend = periodTrend(prsThisMonth, prsLastMonth)
   const activePct =
     totalClients > 0 ? Math.round((activeThisWeekCount / totalClients) * 100) : 0
 
@@ -72,30 +112,16 @@ export function AdminDashboardCards({
           icon={Activity}
           value={totalTrainingsThisWeek}
           label="Sesiones esta semana"
-          badge={
-            weekTrend != null ? (
-              <Badge
-                variant="outline"
-                className={cn(
-                  'tabular-nums text-[10px] font-semibold uppercase tracking-wide border-none',
-                  weekTrend >= 0
-                    ? 'bg-primary/10 text-primary'
-                    : 'bg-destructive/10 text-destructive',
-                )}
-              >
-                {weekTrend >= 0 ? (
-                  <TrendingUp className="mr-1 inline size-3 align-middle" />
-                ) : (
-                  <TrendingDown className="mr-1 inline size-3 align-middle" />
-                )}
-                {weekTrend >= 0 ? '+' : ''}
-                {weekTrend}%
-              </Badge>
-            ) : null
-          }
+          badge={weekTrend.kind !== 'none' ? <TrendPctBadge trend={weekTrend} /> : null}
         />
 
-        <AdminKpiStatCard icon={Trophy} value={prsThisMonth} label="PRs este mes" />
+        <AdminKpiStatCard
+          icon={Trophy}
+          value={prsThisMonth}
+          label="PRs este mes"
+          description="Tu cartera: eventos PR + series marcadas en entrenos"
+          badge={prMonthTrend.kind !== 'none' ? <TrendPctBadge trend={prMonthTrend} /> : null}
+        />
 
         <AdminKpiStatCard
           icon={LayoutGrid}

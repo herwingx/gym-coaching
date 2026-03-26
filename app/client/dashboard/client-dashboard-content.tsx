@@ -21,62 +21,67 @@ const ClientWorkoutChart = dynamic(
 import { NextWorkoutCard } from '@/components/client/next-workout-card'
 import { AchievementBadge } from '@/components/client/achievement-badge'
 import { Award, ChevronRight } from 'lucide-react'
-import type { Profile, Client, Routine, LevelInfo, UserAchievement } from '@/lib/types'
+import type { Profile, Routine, RoutineDay, LevelInfo, UserAchievement } from '@/lib/types'
+import { ClientStackPageHeader, CLIENT_DATA_PAGE_SHELL } from '@/components/client/client-app-page-parts'
 
 interface ClientDashboardContentProps {
   profile: Profile | null
-  client: Client | null
   levelInfo: LevelInfo
   totalWorkouts: number
   totalVolume: number
   prsThisMonth: number
   assignedRoutine: Routine | null
+  /** Mismo criterio que /client/workout/start (última sesión completada + orden day_number). */
+  nextWorkoutRoutineDay: RoutineDay | null
   userAchievements: UserAchievement[]
   chartData: { date: string; sessions: number }[]
 }
 
 export function ClientDashboardContent({
   profile,
-  client,
   levelInfo,
   totalWorkouts,
   totalVolume,
   prsThisMonth,
   assignedRoutine,
+  nextWorkoutRoutineDay,
   userAchievements,
   chartData,
 }: ClientDashboardContentProps) {
-  // Get first routine day for next workout
-  const nextWorkoutDay = assignedRoutine?.routine_days?.[0]
+  const userLabel = profile?.full_name?.split(/\s+/).filter(Boolean)[0] || 'Asesorado'
 
   return (
-    <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
-      {/* Level Progress */}
-        <LevelProgress 
+    <>
+    <ClientStackPageHeader
+      title={`Hola, ${userLabel}`}
+      subtitle="Tu resumen: nivel, entrenos, progreso y la próxima sesión."
+      backHref={null}
+    />
+    <div
+      className={`${CLIENT_DATA_PAGE_SHELL} grid gap-6 lg:grid-cols-12`}
+    >
+      <aside className="flex flex-col gap-6 lg:col-span-4 lg:sticky lg:top-[max(1rem,env(safe-area-inset-top))] lg:self-start">
+        <LevelProgress
           levelInfo={levelInfo}
           username={profile?.username || profile?.full_name}
           avatarUrl={profile?.avatar_url}
         />
-
-        {/* Stats Cards */}
         <ClientDashboardCards
-            streakDays={profile?.streak_days || 0}
-            totalWorkouts={totalWorkouts}
-            totalVolume={totalVolume}
-            prsThisMonth={prsThisMonth}
-          />
-
-        {/* Workout Chart */}
-        <ClientWorkoutChart data={chartData} />
-
-        {/* Next Workout */}
-        <NextWorkoutCard 
-          routineDay={nextWorkoutDay as any}
-          routineName={assignedRoutine?.name}
+          streakDays={profile?.streak_days || 0}
+          totalWorkouts={totalWorkouts}
+          totalVolume={totalVolume}
+          prsThisMonth={prsThisMonth}
         />
+      </aside>
 
-        {/* Recent Achievements */}
-        {userAchievements.length > 0 && (
+      <section className="flex min-w-0 flex-col gap-6 lg:col-span-8">
+        <ClientWorkoutChart data={chartData} />
+        <NextWorkoutCard
+          routineDay={nextWorkoutRoutineDay as any}
+          routineName={assignedRoutine?.name}
+          hasAssignedRoutine={!!assignedRoutine}
+        />
+        {userAchievements.length > 0 ? (
           <Card className="overflow-hidden border-muted/70 shadow-none bg-linear-to-br from-background to-muted/15">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between gap-3">
@@ -120,8 +125,9 @@ export function ClientDashboardContent({
               </div>
             </CardContent>
           </Card>
-        )}
-
+        ) : null}
+      </section>
     </div>
+    </>
   )
 }

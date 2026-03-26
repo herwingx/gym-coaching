@@ -8,6 +8,7 @@ import {
   normalizeRequirementValue,
   normalizeUserAchievementsRows,
 } from '@/lib/achievements-normalize'
+import { exerciseUsesExternalLoad } from '@/lib/exercise-tracking'
 import { calculateLevel, calculate1RM } from './types'
 import type { Achievement, UserAchievement, LevelInfo } from './types'
 
@@ -39,6 +40,43 @@ type SessionRollups = {
   lifetime_volume_kg: number
   early_workout_count: number
   max_session_volume_kg: number
+}
+
+/** Count completed sessions from DB (source of truth for gamification). */
+async function countCompletedWorkoutSessions(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  clientId: string,
+): Promise<number | null> {
+  const { count, error } = await supabase
+    .from('workout_sessions')
+    .select('*', { count: 'exact', head: true })
+    .eq('client_id', clientId)
+    .eq('status', 'completed')
+
+  if (error) {
+    console.warn('[gamification] countCompletedWorkoutSessions', error.message)
+    return null
+  }
+  return count ?? 0
+}
+
+/** Prefer live count so achievements stay in sync if denormalized total_sessions lags. */
+export async function resolveClientTotalSessions(userId: string): Promise<number> {
+  const supabase = await createClient()
+  const { data: client } = await supabase
+    .from('clients')
+    .select('id, total_sessions')
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  let totalSessions = client?.total_sessions ?? 0
+  if (client?.id) {
+    const counted = await countCompletedWorkoutSessions(supabase, client.id)
+    if (counted !== null) {
+      totalSessions = Math.max(totalSessions, counted)
+    }
+  }
+  return totalSessions
 }
 
 function monthKeyInTz(iso: string, timeZone: string): string {
@@ -90,14 +128,12 @@ async function fetchClientAchievementMetrics(
 
   const tz = getAchievementsEarlyWorkoutTimezone()
 
-  const [prHead, prRows, msgHead, rollupsRes, measurements, clientRow] = await Promise.all([
+  const [prRows, msgHead, rollupsRes, measurements, clientRow] = await Promise.all([
     supabase
       .from('personal_records')
-      .select('*', { count: 'exact', head: true })
-      .eq('client_id', clientId),
-    supabase
-      .from('personal_records')
-      .select('exercise_id, exercise_name, estimated_1rm, exercises(name)')
+      .select(
+        'exercise_id, exercise_name, estimated_1rm, exercises(name, exercise_type, uses_external_load, equipment)',
+      )
       .eq('client_id', clientId),
     supabase
       .from('messages')
@@ -150,7 +186,19 @@ async function fetchClientAchievementMetrics(
     }
   }
 
-  const prCount = prHead.count ?? 0
+  const loadAwarePrRows = (prRows.data ?? []).filter((row) => {
+    const ex =
+      row.exercises && !Array.isArray(row.exercises)
+        ? (row.exercises as {
+            exercise_type?: string | null
+            uses_external_load?: boolean | null
+            equipment?: string | null
+          })
+        : null
+    return exerciseUsesExternalLoad(ex?.exercise_type, ex?.uses_external_load, ex?.equipment)
+  })
+
+  const prCount = loadAwarePrRows.length
   const messagesSent = msgHead.count ?? 0
 
   const monthKeys = (measurements.data ?? [])
@@ -173,7 +221,7 @@ async function fetchClientAchievementMetrics(
   let maxBench = 0
   let maxSquat = 0
   let maxDl = 0
-  for (const row of prRows.data ?? []) {
+  for (const row of loadAwarePrRows) {
     const ex = row.exercises as { name?: string } | null
     const joinedName = ex && typeof ex === 'object' && !Array.isArray(ex) ? ex.name : undefined
     const name =
@@ -294,23 +342,27 @@ export async function awardXP(
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('xp_points, level')
+    .select('xp_points')
     .eq('id', userId)
     .single()
 
   const currentXP = profile?.xp_points || 0
-  const currentLevel = profile?.level || 1
+  const currentLevel = calculateLevel(currentXP).level
   const newXP = currentXP + amount
   const newLevelInfo = calculateLevel(newXP)
   const leveledUp = newLevelInfo.level > currentLevel
 
-  await supabase
+  const { error: profileUpdateError } = await supabase
     .from('profiles')
     .update({
       xp_points: newXP,
       level: newLevelInfo.level,
     })
     .eq('id', userId)
+
+  if (profileUpdateError) {
+    console.error('[awardXP] profile update', profileUpdateError)
+  }
 
   return {
     newXP,
@@ -364,16 +416,24 @@ async function buildAchievementMetrics(userId: string): Promise<ClientAchievemen
   const supabase = await createClient()
 
   const [{ data: profile }, { data: client }] = await Promise.all([
-    supabase.from('profiles').select('level, streak_days').eq('id', userId).single(),
+    supabase.from('profiles').select('streak_days, xp_points').eq('id', userId).single(),
     supabase.from('clients').select('id, total_sessions').eq('user_id', userId).single(),
   ])
+
+  let totalSessions = client?.total_sessions ?? 0
+  if (client?.id) {
+    const counted = await countCompletedWorkoutSessions(supabase, client.id)
+    if (counted !== null) {
+      totalSessions = Math.max(totalSessions, counted)
+    }
+  }
 
   const extended = await fetchClientAchievementMetrics(supabase, client?.id, userId)
 
   return {
-    totalSessions: client?.total_sessions || 0,
-    streakDays: profile?.streak_days || 0,
-    level: profile?.level || 1,
+    totalSessions,
+    streakDays: profile?.streak_days ?? 0,
+    level: calculateLevel(profile?.xp_points ?? 0).level,
     ...extended,
   }
 }
@@ -384,7 +444,7 @@ export async function checkAchievements(userId: string): Promise<Achievement[]> 
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('level, streak_days')
+    .select('streak_days, xp_points')
     .eq('id', userId)
     .single()
 
@@ -406,11 +466,19 @@ export async function checkAchievements(userId: string): Promise<Achievement[]> 
 
   const allAchievements = normalizeAchievementList(rawAchievements)
 
+  let totalSessions = client?.total_sessions ?? 0
+  if (client?.id) {
+    const counted = await countCompletedWorkoutSessions(supabase, client.id)
+    if (counted !== null) {
+      totalSessions = Math.max(totalSessions, counted)
+    }
+  }
+
   const extra = await fetchClientAchievementMetrics(supabase, client?.id, userId)
   const metrics: ClientAchievementMetrics = {
-    totalSessions: client?.total_sessions || 0,
-    streakDays: profile?.streak_days || 0,
-    level: profile?.level || 1,
+    totalSessions,
+    streakDays: profile?.streak_days ?? 0,
+    level: calculateLevel(profile?.xp_points ?? 0).level,
     ...extra,
   }
 

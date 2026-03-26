@@ -29,33 +29,55 @@ export function AddMeasurementForm() {
   const [arm, setArm] = useState('')
   const [thigh, setThigh] = useState('')
 
+  const parseFiniteNumberOrUndefined = (raw: string) => {
+    if (!raw) return undefined
+    const n = Number.parseFloat(raw)
+    return Number.isFinite(n) ? n : undefined
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const w = weight ? parseFloat(weight) : undefined
-    const bf = bodyFat ? parseFloat(bodyFat) : undefined
-    const wc = waist ? parseFloat(waist) : undefined
-    const h = hip ? parseFloat(hip) : undefined
-    const c = chest ? parseFloat(chest) : undefined
-    const a = arm ? parseFloat(arm) : undefined
-    const t = thigh ? parseFloat(thigh) : undefined
+    const w = parseFiniteNumberOrUndefined(weight)
+    const bf = parseFiniteNumberOrUndefined(bodyFat)
+    const wc = parseFiniteNumberOrUndefined(waist)
+    const h = parseFiniteNumberOrUndefined(hip)
+    const c = parseFiniteNumberOrUndefined(chest)
+    const a = parseFiniteNumberOrUndefined(arm)
+    const t = parseFiniteNumberOrUndefined(thigh)
 
-    if (!w && !bf && !wc && !h && !c && !a && !t) {
+    if (
+      w == null &&
+      bf == null &&
+      wc == null &&
+      h == null &&
+      c == null &&
+      a == null &&
+      t == null
+    ) {
       toast.error('Ingresa al menos una medida (peso, grasa, cintura, etc.)')
       return
     }
 
     setLoading(true)
-    const result = await addMeasurement({
-      weight: w,
-      body_fat_pct: bf,
-      waist_cm: wc,
-      hip_cm: h,
-      chest_cm: c,
-      arm_cm: a,
-      thigh_cm: t,
-    })
+    let result: Awaited<ReturnType<typeof addMeasurement>>
+    try {
+      result = await addMeasurement({
+        weight: w,
+        body_fat_pct: bf,
+        waist_cm: wc,
+        hip_cm: h,
+        chest_cm: c,
+        arm_cm: a,
+        thigh_cm: t,
+      })
+    } catch (e) {
+      console.error(e)
+      toast.error('Error inesperado al guardar. Intenta de nuevo.')
+      return
+    } finally {
+      setLoading(false)
+    }
 
-    setLoading(false)
     if (result.success) {
       toast.success('¡Medida registrada correctamente!')
       setOpen(false)
@@ -68,7 +90,7 @@ export function AddMeasurementForm() {
       setThigh('')
       router.refresh()
     } else {
-      toast.error('No pudimos registrar la medida. Intenta de nuevo.')
+      toast.error(result.error || 'No pudimos registrar la medida. Intenta de nuevo.')
     }
   }
 

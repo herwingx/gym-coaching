@@ -1,9 +1,7 @@
 /**
- * Auto-generated from Supabase (project schema). Regenerate via MCP `generate_typescript_types` or:
- * `pnpm exec supabase gen types typescript --project-id <ref>`.
+ * Auto-generated from Supabase (project schema).
  *
- * Los clientes en `lib/supabase/*` siguen sin genérico `Database` hasta alinear inserts/selects con estas filas;
- * usa `import type { Database, Tables } from '@/lib/database.types'` donde quieras tipar a mano.
+ * Regenerate via Supabase MCP `generate_typescript_types`.
  */
 
 export type Json =
@@ -320,11 +318,52 @@ export type Database = {
           },
         ]
       }
+      client_pain_reports: {
+        Row: {
+          body_region: string
+          client_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          notes: string | null
+          reported_at: string
+          severity: number
+        }
+        Insert: {
+          body_region: string
+          client_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          reported_at?: string
+          severity: number
+        }
+        Update: {
+          body_region?: string
+          client_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          reported_at?: string
+          severity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_pain_reports_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercise_logs: {
         Row: {
           created_at: string | null
           duration_seconds: number | null
-          exercise_id: string | null
+          exercise_id: string
           exercise_name: string
           id: string
           is_pr: boolean | null
@@ -332,35 +371,18 @@ export type Database = {
           notes: string | null
           performed_at: string | null
           reps: number | null
+          routine_exercise_id: number | null
           rpe: number | null
           set_number: number
           updated_at: string | null
           user_id: string
           weight_kg: number | null
-          workout_session_id: string | null
+          workout_session_id: string
         }
         Insert: {
           created_at?: string | null
           duration_seconds?: number | null
-          exercise_id?: string | null
-          exercise_name: string
-          id?: string
-          is_pr?: boolean | null
-          is_warmup?: boolean | null
-          notes?: string | null
-          performed_at?: string | null
-          reps?: number | null
-          rpe?: number | null
-          set_number: number
-          updated_at?: string | null
-          user_id: string
-          weight_kg?: number | null
-          workout_session_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          duration_seconds?: number | null
-          exercise_id?: string | null
+          exercise_id: string
           exercise_name?: string
           id?: string
           is_pr?: boolean | null
@@ -368,14 +390,56 @@ export type Database = {
           notes?: string | null
           performed_at?: string | null
           reps?: number | null
+          routine_exercise_id?: number | null
+          rpe?: number | null
+          set_number: number
+          updated_at?: string | null
+          user_id: string
+          weight_kg?: number | null
+          workout_session_id: string
+        }
+        Update: {
+          created_at?: string | null
+          duration_seconds?: number | null
+          exercise_id?: string
+          exercise_name?: string
+          id?: string
+          is_pr?: boolean | null
+          is_warmup?: boolean | null
+          notes?: string | null
+          performed_at?: string | null
+          reps?: number | null
+          routine_exercise_id?: number | null
           rpe?: number | null
           set_number?: number
           updated_at?: string | null
           user_id?: string
           weight_kg?: number | null
-          workout_session_id?: string | null
+          workout_session_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "exercise_logs_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_logs_routine_exercise_id_fkey"
+            columns: ["routine_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "routine_exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_logs_workout_session_id_fkey"
+            columns: ["workout_session_id"]
+            isOneToOne: false
+            referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       exercises: {
         Row: {
@@ -698,7 +762,79 @@ export type Database = {
           updated_at?: string | null
           weight_kg?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "personal_records_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pr_events: {
+        Row: {
+          achieved_at: string
+          client_id: string
+          created_at: string
+          estimated_1rm: number | null
+          exercise_id: string
+          id: string
+          kind: string
+          meta: Json | null
+          reps: number | null
+          weight_kg: number | null
+          workout_session_id: string | null
+        }
+        Insert: {
+          achieved_at?: string
+          client_id: string
+          created_at?: string
+          estimated_1rm?: number | null
+          exercise_id: string
+          id?: string
+          kind: string
+          meta?: Json | null
+          reps?: number | null
+          weight_kg?: number | null
+          workout_session_id?: string | null
+        }
+        Update: {
+          achieved_at?: string
+          client_id?: string
+          created_at?: string
+          estimated_1rm?: number | null
+          exercise_id?: string
+          id?: string
+          kind?: string
+          meta?: Json | null
+          reps?: number | null
+          weight_kg?: number | null
+          workout_session_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pr_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pr_events_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pr_events_workout_session_id_fkey"
+            columns: ["workout_session_id"]
+            isOneToOne: false
+            referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -1043,7 +1179,7 @@ export type Database = {
           feeling_note?: string | null
           feeling_score?: number | null
           finished_at?: string | null
-          id: string
+          id?: string
           routine_day_id?: string | null
           started_at?: string | null
           status: string
@@ -1136,6 +1272,10 @@ export type Database = {
         }[]
       }
       has_active_subscription: { Args: { p_user_id: string }; Returns: boolean }
+      latest_completed_session_by_clients: {
+        Args: { client_ids: string[] }
+        Returns: { client_id: string; started_at: string }[]
+      }
       is_admin: { Args: never; Returns: boolean }
       is_admin_or_receptionist: { Args: never; Returns: boolean }
       register_first_admin: {
@@ -1278,3 +1418,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+

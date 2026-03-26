@@ -1,6 +1,7 @@
 import { getAuthUser } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { calculateLevel } from '@/lib/types'
 import {
   CLIENT_DATA_PAGE_SHELL,
   ClientStackPageHeader,
@@ -20,11 +21,17 @@ export default async function ClientProfilePage() {
     supabase.from('clients').select('id, phone, birth_date, gender').eq('user_id', user.id).maybeSingle(),
   ])
 
+  const levelFromXp = calculateLevel(profile?.xp_points ?? 0).level
+  if (profile?.id != null && profile.level !== levelFromXp) {
+    await supabase.from('profiles').update({ level: levelFromXp }).eq('id', profile.id)
+  }
+
   const mergedProfile = {
     ...(profile || {}),
     phone: profile?.phone || client?.phone || undefined,
     birth_date: profile?.birth_date || client?.birth_date || undefined,
     gender: profile?.gender || client?.gender || undefined,
+    level: levelFromXp,
   }
 
   return (
@@ -33,7 +40,7 @@ export default async function ClientProfilePage() {
         title="Mi perfil"
         subtitle="Datos personales, avatar y preferencias de entreno."
       />
-      <div className={`${CLIENT_DATA_PAGE_SHELL} max-w-2xl sm:max-w-2xl lg:max-w-2xl`}>
+      <div className={CLIENT_DATA_PAGE_SHELL}>
         <UserProfileContent
           initialProfile={mergedProfile}
           userId={user.id}

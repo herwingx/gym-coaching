@@ -13,6 +13,7 @@ import {
   Layers,
   Ticket,
   MessageCircle,
+  Library,
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
 import {
@@ -33,6 +34,7 @@ const menuItems = [
   { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
   { label: 'Gestionar Asesorados', href: '/admin/clients', icon: Users },
   { label: 'Rutinas', href: '/admin/routines', icon: Dumbbell },
+  { label: 'Ejercicios', href: '/admin/exercises', icon: Library },
   { label: 'Builder', href: '/admin/routines/builder', icon: Layers },
   { label: 'Pagos / Asesorías', href: '/admin/payments', icon: CreditCard },
   { label: 'Mensajes', href: '/admin/messages', icon: MessageCircle },

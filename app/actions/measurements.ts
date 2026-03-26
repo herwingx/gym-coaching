@@ -1,7 +1,9 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth-utils'
+import { randomUUID } from 'crypto'
 
 export async function addMeasurement(data: {
   weight?: number
@@ -26,9 +28,13 @@ export async function addMeasurement(data: {
 
   if (!client) return { success: false, error: 'Cliente no encontrado' }
 
-  const recordedAt = data.recorded_at || new Date().toISOString().slice(0, 10)
+  const recordedAtRaw = data.recorded_at
+  const recordedAt = recordedAtRaw
+    ? recordedAtRaw.slice(0, 10)
+    : new Date().toISOString().slice(0, 10)
 
   const { error } = await supabase.from('body_measurements').insert({
+    id: randomUUID(),
     client_id: client.id,
     recorded_at: recordedAt,
     weight: data.weight ?? null,
@@ -41,5 +47,9 @@ export async function addMeasurement(data: {
   })
 
   if (error) return { success: false, error: error.message }
+
+  revalidatePath('/client/measurements')
+  revalidatePath('/client/dashboard')
+
   return { success: true }
 }

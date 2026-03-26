@@ -1,0 +1,38 @@
+import { getAuthUser } from '@/lib/auth-utils'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import { AdminPageHeader } from '@/components/admin/admin-page-header'
+import { NewExerciseForm } from './new-exercise-form'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+
+export default async function NewExercisePage() {
+  const user = await getAuthUser()
+  if (!user) redirect('/auth/login')
+
+  const supabase = await createClient()
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin') redirect('/client/dashboard')
+
+  return (
+    <div className="min-h-dvh bg-background">
+      <AdminPageHeader
+        title="Nuevo ejercicio"
+        description="Se guardará en el catálogo y estará disponible en el constructor de rutinas."
+        backHref="/admin/exercises"
+        backLabel="Catálogo"
+      />
+
+      <main className="container max-w-2xl py-6 sm:py-8">
+        <Card className="border-muted/70">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg">Datos del movimiento</CardTitle>
+            <CardDescription>Mínimo: nombre y grupo muscular. URLs de media son opcionales.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <NewExerciseForm />
+          </CardContent>
+        </Card>
+      </main>
+    </div>
+  )
+}

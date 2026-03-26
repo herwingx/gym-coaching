@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { NewInvitationForm } from './new-invitation-form'
 import { InvitationCardsClient, type InvitationCodeItem } from './invitation-cards-client'
+import { AdminPageHeader } from '@/components/admin/admin-page-header'
 
 function normalizeInvitationRow(row: {
   id: string
@@ -56,14 +57,11 @@ export default async function AdminInvitationsPage() {
 
   return (
     <div className="min-h-full bg-background">
-      <header className="sticky top-0 z-40 border-b bg-background safe-area-pt">
-        <div className="container py-4 sm:py-5">
-          <h1 className="text-xl font-bold sm:text-2xl">Códigos de invitación</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Genera códigos para que tus asesorados puedan registrarse
-          </p>
-        </div>
-      </header>
+      <AdminPageHeader
+        sticky
+        title="Códigos de invitación"
+        description="Genera códigos para que tus asesorados puedan registrarse"
+      />
       <main className="container flex flex-col gap-6 py-6 sm:py-8">
       {/* Create New Code */}
       <NewInvitationForm />

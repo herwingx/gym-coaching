@@ -1,13 +1,14 @@
 'use client'
 
-import { useState } from 'react'
-import Image from 'next/image'
+import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
-import { Upload, Camera } from 'lucide-react'
+import { Activity, ShieldAlert } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { calculateLevel } from '@/lib/types'
+import { Textarea } from '@/components/ui/textarea'
 
 import {
   Select,
@@ -17,6 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { DatePicker } from '@/components/ui/date-picker'
+import { ProfileAvatarSection } from '@/components/profile/profile-avatar-section'
 
 interface Profile {
   id: string
@@ -46,46 +48,38 @@ export function UserProfileContent({
   clientId?: string
 }) {
   const [profile, setProfile] = useState<Profile>(initialProfile || {})
-  const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const supabase = createClient()
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+  const levelFromXp = calculateLevel(profile.xp_points ?? 0).level
 
-    setUploading(true)
-    try {
-      const fileName = `${userId}/${Date.now()}.jpg`
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(fileName, file, { upsert: true })
+  const [painRegion, setPainRegion] = useState<string>('none')
+  const [painSeverity, setPainSeverity] = useState<number>(0)
+  const [painNotes, setPainNotes] = useState<string>('')
+  const [painSaving, setPainSaving] = useState(false)
+  const [activePainReports, setActivePainReports] = useState<
+    { id: string; body_region: string; severity: number; notes: string | null; reported_at: string }[]
+  >([])
 
-      if (uploadError) {
-        toast.error('No pudimos subir la foto. Intenta con otra imagen.')
-        return
-      }
+  useEffect(() => {
+    if (!clientId) return
+    let cancelled = false
+    ;(async () => {
+      const { data, error } = await supabase
+        .from('client_pain_reports')
+        .select('id, body_region, severity, notes, reported_at')
+        .eq('client_id', clientId)
+        .eq('is_active', true)
+        .order('reported_at', { ascending: false })
 
-      const { data } = supabase.storage.from('avatars').getPublicUrl(fileName)
-
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ avatar_url: data.publicUrl })
-        .eq('id', userId)
-
-      if (updateError) {
-        toast.error('No pudimos actualizar el perfil. Intenta de nuevo.')
-        return
-      }
-
-      setProfile({ ...profile, avatar_url: data.publicUrl })
-      toast.success('¡Foto de perfil actualizada!')
-    } catch (err) {
-      toast.error('No pudimos procesar la foto. Usa una imagen más pequeña.')
-    } finally {
-      setUploading(false)
+      if (cancelled) return
+      if (error) return
+      setActivePainReports((data ?? []) as any)
+    })()
+    return () => {
+      cancelled = true
     }
-  }
+  }, [clientId])
 
   const handleSaveProfile = async () => {
     setSaving(true)
@@ -121,102 +115,165 @@ export function UserProfileContent({
       }
 
       toast.success('¡Perfil actualizado!')
-    } catch (err) {
+    } catch {
       toast.error('No pudimos guardar el perfil. Intenta de nuevo.')
     } finally {
       setSaving(false)
     }
   }
 
+  const handleSavePainReport = async () => {
+    if (!clientId) return
+    if (painRegion === 'none') {
+      toast.error('Selecciona una zona')
+      return
+    }
+
+    setPainSaving(true)
+    try {
+      const { data, error } = await supabase
+        .from('client_pain_reports')
+        .insert({
+          client_id: clientId,
+          body_region: painRegion,
+          severity: painSeverity,
+          notes: painNotes || null,
+          is_active: true,
+        })
+        .select('id, body_region, severity, notes, reported_at')
+        .single()
+
+      if (error) {
+        toast.error('No pudimos guardar tu reporte. Intenta de nuevo.')
+        return
+      }
+
+      setActivePainReports((prev) => [data as any, ...prev])
+      setPainRegion('none')
+      setPainSeverity(0)
+      setPainNotes('')
+      toast.success('Reporte guardado')
+    } finally {
+      setPainSaving(false)
+    }
+  }
+
+  const handleResolvePainReport = async (id: string) => {
+    if (!clientId) return
+    const { error } = await supabase
+      .from('client_pain_reports')
+      .update({ is_active: false })
+      .eq('id', id)
+      .eq('client_id', clientId)
+
+    if (error) {
+      toast.error('No pudimos actualizar el reporte.')
+      return
+    }
+
+    setActivePainReports((prev) => prev.filter((r) => r.id !== id))
+    toast.success('Reporte marcado como resuelto')
+  }
+
   return (
-    <div className="space-y-6">
-      {/* Avatar Section */}
-      <Card>
+    <div className="grid gap-6 lg:grid-cols-12">
+      <aside className="flex flex-col gap-6 lg:col-span-4 lg:sticky lg:top-[max(1rem,env(safe-area-inset-top))] lg:self-start">
+      <ProfileAvatarSection
+        userId={userId}
+        initialUrl={profile.avatar_url}
+        onAvatarUrlChange={(avatar_url) => setProfile((p) => ({ ...p, avatar_url }))}
+        description="Recomendado: foto cuadrada y buena luz. JPG, PNG o WebP · máx. 2 MB."
+      />
+
+      {/* Stats */}
+      {profile.xp_points !== undefined && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Estadísticas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">Nivel</p>
+                <p className="text-3xl font-bold text-primary">{levelFromXp}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">Experiencia</p>
+                <p className="text-3xl font-bold text-primary">{profile.xp_points || 0}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">Racha</p>
+                <p className="text-3xl font-bold text-primary">{profile.streak_days || 0} días</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card className="border-border/80 ring-1 ring-primary/5">
         <CardHeader>
-          <CardTitle>Foto de Perfil</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="size-4 text-primary" aria-hidden />
+            Acceso rápido
+          </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-6">
-            <div className="relative size-24 rounded-full overflow-hidden bg-muted border-2 border-primary/20">
-              {profile.avatar_url ? (
-                <Image
-                  src={profile.avatar_url}
-                  alt="Avatar"
-                  fill
-                  className="object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                  <Camera className="w-8 h-8" />
-                </div>
-              )}
-            </div>
-            <div>
-              <label htmlFor="avatar-upload">
-                <Button asChild variant="outline" disabled={uploading}>
-                  <span>
-                    <Upload className="w-4 h-4 mr-2" />
-                    {uploading ? 'Subiendo...' : 'Cambiar Foto'}
-                  </span>
-                </Button>
-              </label>
-              <input
-                id="avatar-upload"
-                type="file"
-                accept="image/*"
-                onChange={handleAvatarUpload}
-                disabled={uploading}
-                className="hidden"
-              />
-            </div>
-          </div>
+        <CardContent className="flex flex-col gap-3">
+          <Button onClick={handleSaveProfile} size="lg" className="w-full" disabled={saving}>
+            {saving ? 'Guardando…' : 'Guardar cambios'}
+          </Button>
+          <p className="text-xs text-muted-foreground text-pretty">
+            Tip: completa tu perfil para que las recomendaciones y el coach sean más precisos.
+          </p>
         </CardContent>
       </Card>
+      </aside>
 
+      <section className="flex flex-col gap-6 lg:col-span-8">
       {/* Profile Information */}
       <Card>
         <CardHeader>
-          <CardTitle>Información Personal</CardTitle>
+          <CardTitle>Información personal</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="flex flex-col gap-4">
           <div>
             <label className="text-sm font-medium">Email</label>
             <Input value={userEmail} disabled className="mt-2 bg-muted" />
           </div>
 
-          <div>
-            <label className="text-sm font-medium">Nombre de Usuario</label>
-            <Input
-              value={profile.username || ''}
-              onChange={(e) => setProfile({ ...profile, username: e.target.value })}
-              placeholder="Tu nombre de usuario único"
-              className="mt-2"
-            />
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="text-sm font-medium">Usuario</label>
+              <Input
+                value={profile.username || ''}
+                onChange={(e) => setProfile({ ...profile, username: e.target.value })}
+                placeholder="Tu usuario"
+                className="mt-2"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Nombre completo</label>
+              <Input
+                value={profile.full_name || ''}
+                onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
+                placeholder="Tu nombre"
+                className="mt-2"
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="text-sm font-medium">Nombre Completo</label>
-            <Input
-              value={profile.full_name || ''}
-              onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
-              placeholder="Tu nombre completo"
-              className="mt-2"
-            />
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="text-sm font-medium">Teléfono</label>
               <Input
                 value={profile.phone || ''}
                 onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                placeholder="Tu número de teléfono"
+                placeholder="Tu número"
                 className="mt-2"
               />
             </div>
 
             <div>
-              <label className="text-sm font-medium">Fecha de Nacimiento</label>
+              <label className="text-sm font-medium">Fecha de nacimiento</label>
               <div className="mt-2">
                 <DatePicker
                   date={profile.birth_date ? new Date(profile.birth_date) : undefined}
@@ -226,7 +283,7 @@ export function UserProfileContent({
                       birth_date: date ? date.toISOString().split('T')[0] : undefined,
                     })
                   }
-                  placeholder="Tu fecha de nacimiento"
+                  placeholder="Tu fecha"
                 />
               </div>
             </div>
@@ -243,7 +300,9 @@ export function UserProfileContent({
                   <SelectValue placeholder="Seleccionar género" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none" disabled className="hidden">Seleccionar</SelectItem>
+                  <SelectItem value="none" disabled className="hidden">
+                    Seleccionar
+                  </SelectItem>
                   <SelectItem value="male">Masculino</SelectItem>
                   <SelectItem value="female">Femenino</SelectItem>
                   <SelectItem value="other">Otro</SelectItem>
@@ -257,80 +316,154 @@ export function UserProfileContent({
       {/* Fitness Profile */}
       <Card>
         <CardHeader>
-          <CardTitle>Perfil de Fitness</CardTitle>
+          <CardTitle>Perfil de fitness</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <label className="text-sm font-medium">Objetivo Fitness</label>
-            <div className="mt-2">
-              <Select
-                value={profile.fitness_goal || ''}
-                onValueChange={(value) => setProfile({ ...profile, fitness_goal: value })}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Seleccionar objetivo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="lose_weight">Perder Peso</SelectItem>
-                  <SelectItem value="gain_muscle">Ganar Músculo</SelectItem>
-                  <SelectItem value="maintain">Mantener</SelectItem>
-                  <SelectItem value="strength">Fuerza</SelectItem>
-                  <SelectItem value="endurance">Resistencia</SelectItem>
-                </SelectContent>
-              </Select>
+        <CardContent className="flex flex-col gap-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="text-sm font-medium">Objetivo</label>
+              <div className="mt-2">
+                <Select
+                  value={profile.fitness_goal || ''}
+                  onValueChange={(value) => setProfile({ ...profile, fitness_goal: value })}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Seleccionar objetivo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="lose_weight">Perder peso</SelectItem>
+                    <SelectItem value="gain_muscle">Ganar músculo</SelectItem>
+                    <SelectItem value="maintain">Mantener</SelectItem>
+                    <SelectItem value="strength">Fuerza</SelectItem>
+                    <SelectItem value="endurance">Resistencia</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label className="text-sm font-medium">Nivel de Experiencia</label>
-            <div className="mt-2">
-              <Select
-                value={profile.experience_level || ''}
-                onValueChange={(value) => setProfile({ ...profile, experience_level: value })}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Seleccionar nivel" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="beginner">Principiante</SelectItem>
-                  <SelectItem value="intermediate">Intermedio</SelectItem>
-                  <SelectItem value="advanced">Avanzado</SelectItem>
-                </SelectContent>
-              </Select>
+            <div>
+              <label className="text-sm font-medium">Experiencia</label>
+              <div className="mt-2">
+                <Select
+                  value={profile.experience_level || ''}
+                  onValueChange={(value) => setProfile({ ...profile, experience_level: value })}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Seleccionar nivel" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="beginner">Principiante</SelectItem>
+                    <SelectItem value="intermediate">Intermedio</SelectItem>
+                    <SelectItem value="advanced">Avanzado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Stats */}
-      {profile.xp_points !== undefined && (
+      {/* Pain / Injury Intake */}
+      {clientId ? (
         <Card>
           <CardHeader>
-            <CardTitle>Estadísticas</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <ShieldAlert className="size-4 text-primary" aria-hidden />
+              Dolor / lesión
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-3 gap-4">
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">Nivel</p>
-                <p className="text-3xl font-bold text-primary">{profile.level || 1}</p>
+          <CardContent className="flex flex-col gap-4">
+            <div className="rounded-xl border border-border/60 bg-muted/15 p-4 text-sm text-muted-foreground">
+              Sirve para que tu coach y la app ajusten la progresión: si hay dolor activo, evitamos subidas
+              agresivas de carga y priorizamos continuidad y seguridad.
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="text-sm font-medium">Zona</label>
+                <div className="mt-2">
+                  <Select value={painRegion} onValueChange={setPainRegion}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecciona una zona" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Selecciona…</SelectItem>
+                      <SelectItem value="hombro">Hombro</SelectItem>
+                      <SelectItem value="codo">Codo</SelectItem>
+                      <SelectItem value="muñeca">Muñeca</SelectItem>
+                      <SelectItem value="espalda_baja">Espalda baja</SelectItem>
+                      <SelectItem value="rodilla">Rodilla</SelectItem>
+                      <SelectItem value="cadera">Cadera</SelectItem>
+                      <SelectItem value="tobillo">Tobillo</SelectItem>
+                      <SelectItem value="cuello">Cuello</SelectItem>
+                      <SelectItem value="otro">Otro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">Experiencia</p>
-                <p className="text-3xl font-bold text-primary">{profile.xp_points || 0}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">Racha</p>
-                <p className="text-3xl font-bold text-primary">{profile.streak_days || 0} días</p>
+              <div>
+                <label className="text-sm font-medium">Severidad (0-10)</label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={10}
+                  value={painSeverity}
+                  onChange={(e) => setPainSeverity(Math.max(0, Math.min(10, Number(e.target.value) || 0)))}
+                  className="mt-2"
+                />
               </div>
             </div>
+
+            <div>
+              <label className="text-sm font-medium">Notas</label>
+              <Textarea
+                value={painNotes}
+                onChange={(e) => setPainNotes(e.target.value)}
+                placeholder="¿Qué sientes? ¿Cuándo aparece? ¿Qué lo empeora/mejora?"
+                className="mt-2"
+              />
+            </div>
+
+            <Button onClick={handleSavePainReport} disabled={painSaving} className="w-full">
+              {painSaving ? 'Guardando…' : 'Guardar reporte'}
+            </Button>
+
+            {activePainReports.length > 0 ? (
+              <div className="flex flex-col gap-2">
+                <div className="text-sm font-medium">Reportes activos</div>
+                <div className="flex flex-col gap-2">
+                  {activePainReports.map((r) => (
+                    <div
+                      key={r.id}
+                      className="flex items-start justify-between gap-3 rounded-lg border bg-muted/20 p-3 text-sm"
+                    >
+                      <div className="min-w-0">
+                        <div className="font-medium">
+                          {r.body_region} · {r.severity}/10
+                        </div>
+                        {r.notes ? (
+                          <div className="text-muted-foreground mt-1 text-pretty">{r.notes}</div>
+                        ) : null}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleResolvePainReport(r.id)}
+                      >
+                        Resuelto
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="text-sm text-muted-foreground">
+                Sin reportes activos. Si sientes dolor, regístralo aquí para que tu coach lo tome en cuenta.
+              </div>
+            )}
           </CardContent>
         </Card>
-      )}
-
-      {/* Save Button */}
-      <Button onClick={handleSaveProfile} size="lg" className="w-full" disabled={saving}>
-        {saving ? 'Guardando...' : 'Guardar Cambios'}
-      </Button>
+      ) : null}
+      </section>
     </div>
   )
 }

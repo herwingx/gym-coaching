@@ -28,6 +28,7 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from '@/components/ui/toggle-group'
+import { ChartAreaShadowFilter, useChartShadowFilterId } from '@/components/charts/chart-visual-utils'
 
 export type ChartDataPoint = { date: string; sessions: number }
 
@@ -41,6 +42,7 @@ const chartConfig = {
 export function AdminWorkoutChart({ data }: { data: ChartDataPoint[] }) {
   const isMobile = useIsMobile()
   const [timeRange, setTimeRange] = React.useState('90d')
+  const shadowFilterId = useChartShadowFilterId('admin-sessions')
 
   React.useEffect(() => {
     if (isMobile) setTimeRange('7d')
@@ -65,7 +67,7 @@ export function AdminWorkoutChart({ data }: { data: ChartDataPoint[] }) {
   )
 
   return (
-    <Card className="@container/card overflow-hidden border-muted/70 shadow-none">
+    <Card className="@container/card overflow-hidden border-border/60 shadow-md ring-1 ring-border/40">
       <CardHeader>
         <CardTitle>Sesiones completadas</CardTitle>
         <CardDescription>
@@ -115,22 +117,15 @@ export function AdminWorkoutChart({ data }: { data: ChartDataPoint[] }) {
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         <ChartContainer
           config={chartConfig}
-          className="aspect-auto h-[250px] w-full"
+          className="aspect-auto h-[min(280px,50vw)] w-full min-h-[220px]"
         >
-          <AreaChart data={filteredData}>
+          <AreaChart
+            accessibilityLayer
+            data={filteredData}
+            margin={{ left: 12, right: 12, top: 8, bottom: 0 }}
+          >
             <defs>
-              <linearGradient id="fillSessions" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-sessions)"
-                  stopOpacity={1.0}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-sessions)"
-                  stopOpacity={0.1}
-                />
-              </linearGradient>
+              <ChartAreaShadowFilter id={shadowFilterId} />
             </defs>
             <CartesianGrid vertical={false} />
             <XAxis
@@ -157,15 +152,29 @@ export function AdminWorkoutChart({ data }: { data: ChartDataPoint[] }) {
                     })
                   }
                   indicator="dot"
-                  formatter={(value) => [`${value} sesiones`, 'Sesiones']}
+                  formatter={(value) => {
+                    const n = typeof value === 'number' ? value : Number(value)
+                    const safe = Number.isFinite(n) ? n : 0
+                    const text =
+                      safe === 1 ? '1 sesión' : `${safe} sesiones`
+                    return (
+                      <span className="text-foreground font-mono font-medium tabular-nums">
+                        {text}
+                      </span>
+                    )
+                  }}
                 />
               }
             />
             <Area
+              name={chartConfig.sessions.label}
               dataKey="sessions"
-              type="natural"
-              fill="url(#fillSessions)"
+              type="linear"
+              fill="var(--color-sessions)"
+              fillOpacity={0.4}
               stroke="var(--color-sessions)"
+              strokeWidth={2}
+              style={{ filter: `url(#${shadowFilterId})` }}
             />
           </AreaChart>
         </ChartContainer>

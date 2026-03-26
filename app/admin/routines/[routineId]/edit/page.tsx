@@ -2,9 +2,7 @@ import { getAuthUser } from '@/lib/auth-utils'
 import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { Button } from '@/components/ui/button'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { AdminPageHeader } from '@/components/admin/admin-page-header'
 import { RoutineBuilderClient } from '../../builder/routine-builder-client'
 
 type RoutineExerciseRow = {
@@ -121,21 +119,13 @@ export default async function EditRoutinePage({ params }: Props) {
 
   return (
     <div className="min-h-dvh bg-background">
-      <header className="sticky top-0 z-40 border-b bg-background safe-area-header-pt">
-        <div className="container flex items-center gap-4 py-4 sm:py-5">
-          <Button variant="ghost" size="icon" asChild className="size-9 sm:size-10">
-            <Link href={`/admin/routines/${routineId}`}>
-              <ArrowLeft className="size-4" />
-            </Link>
-          </Button>
-          <div className="min-w-0 flex-1">
-            <h1 className="text-xl font-bold truncate tracking-tight sm:text-2xl">
-              Editar rutina
-            </h1>
-            <p className="text-sm text-muted-foreground truncate">{routine.name}</p>
-          </div>
-        </div>
-      </header>
+      <AdminPageHeader
+        sticky
+        title="Editar rutina"
+        description={routine.name}
+        backHref={`/admin/routines/${routineId}`}
+        backLabel="Volver a la rutina"
+      />
 
       <main className="container py-8">
         <RoutineBuilderClient

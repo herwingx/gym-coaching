@@ -12,6 +12,14 @@ import {
 } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty'
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -76,10 +84,19 @@ export function PhotoGallery({
       </CardHeader>
       <CardContent>
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-            <ImageIcon className="w-16 h-16 mb-4 opacity-50" />
-            <p>No hay fotos aún. Sube la primera en la pestaña &quot;Subir&quot;.</p>
-          </div>
+          <Empty className="border-0 bg-transparent">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <ImageIcon />
+              </EmptyMedia>
+              <EmptyTitle>Sin fotos todavía</EmptyTitle>
+              <EmptyDescription>
+                Sube la primera desde la pestaña <span className="font-medium">Subir</span> para empezar tu
+                comparativa.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent />
+          </Empty>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((p) => (
@@ -140,7 +157,7 @@ function PhotoCard({
 
   return (
     <div className="group relative rounded-lg border overflow-hidden bg-muted">
-      <div className="aspect-[4/3] relative">
+      <div className="aspect-4/3 relative">
         <img
           src={photo.photo_url}
           alt={VIEW_LABELS[photo.view_type || ''] || 'Foto'}

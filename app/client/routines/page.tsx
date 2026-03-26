@@ -18,12 +18,23 @@ import {
   ClientStackPageHeader,
 } from '@/components/client/client-app-page-parts'
 import { Exercise } from '@/lib/types'
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty'
+import { Dumbbell } from 'lucide-react'
 
 interface RoutineSummary {
   id: string
   name: string
   duration_weeks: number
   days_per_week: number
+  /** Días con trabajo (excluye `is_rest_day`), para no confundir con slots totales del microciclo */
+  training_days_per_week: number
   description: string | null
 }
 
@@ -36,17 +47,35 @@ interface ClientRoutine {
   routines: RoutineSummary
 }
 
+function countTrainingDaysPerWeek(
+  routineDays: { is_rest_day: boolean | null }[] | undefined | null,
+  fallback: number,
+): number {
+  if (!routineDays?.length) return fallback
+  const n = routineDays.filter((d) => !d.is_rest_day).length
+  return n > 0 ? n : fallback
+}
+
+type RoutineRowFromDb = Omit<RoutineSummary, 'training_days_per_week'> & {
+  routine_days?: { is_rest_day: boolean | null }[] | null
+}
+
 function normalizeClientRoutineRow(row: {
   id: string
   routine_id: string
   current_week: number
   current_day_index: number
   is_active: boolean
-  routines: RoutineSummary | RoutineSummary[] | null
+  routines: RoutineRowFromDb | RoutineRowFromDb[] | null
 }): ClientRoutine | null {
   const r = row.routines
-  const routine = Array.isArray(r) ? r[0] : r
-  if (!routine) return null
+  const routineRaw = Array.isArray(r) ? r[0] : r
+  if (!routineRaw) return null
+  const { routine_days: routineDays, ...routine } = routineRaw
+  const training_days_per_week = countTrainingDaysPerWeek(
+    routineDays,
+    routine.days_per_week ?? 0,
+  )
   return {
     id: row.id,
     routine_id: row.routine_id,
@@ -55,6 +84,7 @@ function normalizeClientRoutineRow(row: {
     is_active: row.is_active,
     routines: {
       ...routine,
+      training_days_per_week,
       description: routine.description ?? '',
     },
   }
@@ -64,7 +94,13 @@ export default function ClientRoutinesPage() {
   const [routines, setRoutines] = useState<ClientRoutine[]>([])
   const [nextWorkout, setNextWorkout] = useState<Record<string, unknown> | null>(null)
   const [suggestions, setSuggestions] = useState<
-    { exercise: string; suggestedWeight?: number; suggestedReps?: number; reason: string }[]
+    {
+      exerciseId: string
+      exercise: string
+      suggestedWeight?: number
+      suggestedReps?: number
+      reason: string
+    }[]
   >([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null)
@@ -106,7 +142,8 @@ export default function ClientRoutinesPage() {
               name,
               duration_weeks,
               days_per_week,
-              description
+              description,
+              routine_days ( is_rest_day )
             )
           `)
           .eq('client_id', clients.id)
@@ -146,9 +183,24 @@ export default function ClientRoutinesPage() {
           title="Mis rutinas"
           subtitle="Sin rutinas asignadas · tu coach te asignará una pronto."
         />
-        <div className={`${CLIENT_DATA_PAGE_SHELL} items-center text-center`}>
-          <p className="mb-4 text-muted-foreground">Aún no tienes rutinas asignadas</p>
-          <p className="text-sm text-muted-foreground">Tu coach te asignará una rutina pronto</p>
+        <div className={CLIENT_DATA_PAGE_SHELL}>
+          <Empty className="border-border/80 shadow-sm ring-1 ring-primary/5">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <Dumbbell />
+              </EmptyMedia>
+              <EmptyTitle>Aún no tienes rutinas asignadas</EmptyTitle>
+              <EmptyDescription>
+                Cuando tu coach te asigne una rutina, verás aquí el plan semanal y el botón para iniciar tu
+                siguiente sesión.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <Button asChild variant="outline">
+                <Link href="/client/messages">Pedir rutina a mi coach</Link>
+              </Button>
+            </EmptyContent>
+          </Empty>
         </div>
       </>
     )
@@ -160,8 +212,11 @@ export default function ClientRoutinesPage() {
   return (
     <>
       <ClientStackPageHeader title="Mis rutinas" subtitle={routinesSubtitle} />
-      <div className={CLIENT_DATA_PAGE_SHELL}>
-      {routines.map((routine) => {
+      <div
+        className={`${CLIENT_DATA_PAGE_SHELL} flex flex-col gap-6 lg:grid lg:grid-cols-12 lg:items-start`}
+      >
+        <section className="order-1 flex min-w-0 flex-col gap-6 lg:order-2 lg:col-span-8">
+          {routines.map((routine) => {
         const progress = (routine.current_week / routine.routines.duration_weeks) * 100
         const nw = nextWorkout as {
           isComplete?: boolean
@@ -297,44 +352,19 @@ export default function ClientRoutinesPage() {
                 </div>
               ) : null}
 
-              {suggestions.length > 0 ? (
-                <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
-                  <div className="mb-3 flex items-center justify-center gap-2 sm:justify-start">
-                    <TrendingUp className="size-4 text-primary" aria-hidden />
-                    <p className="text-sm font-medium">Sugerencias de progresión</p>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    {suggestions.map((suggestion, idx) => (
-                      <div
-                        key={idx}
-                        className="rounded-lg border border-border/50 bg-background/90 p-3 text-center sm:text-left"
-                      >
-                        <p className="font-medium">{suggestion.exercise}</p>
-                        {suggestion.suggestedWeight != null ? (
-                          <p className="text-xs text-muted-foreground">
-                            Aumenta a {suggestion.suggestedWeight} kg
-                          </p>
-                        ) : null}
-                        {suggestion.suggestedReps != null ? (
-                          <p className="text-xs text-muted-foreground">
-                            Intenta {suggestion.suggestedReps} repeticiones
-                          </p>
-                        ) : null}
-                        <p className="text-xs italic text-muted-foreground">{suggestion.reason}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
               <div className="grid grid-cols-2 gap-6 border-t border-border/60 pt-6 text-center sm:text-left">
                 <div className="flex flex-col gap-1">
                   <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    Días por semana
+                    Días de entreno
                   </p>
                   <p className="text-2xl font-bold tabular-nums sm:text-3xl">
-                    {routine.routines.days_per_week}
+                    {routine.routines.training_days_per_week}
                   </p>
+                  {routine.routines.training_days_per_week !== routine.routines.days_per_week ? (
+                    <p className="text-[11px] leading-snug text-muted-foreground">
+                      {routine.routines.days_per_week} bloques en el ciclo (incl. descansos)
+                    </p>
+                  ) : null}
                 </div>
                 <div className="flex flex-col gap-1">
                   <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -350,12 +380,75 @@ export default function ClientRoutinesPage() {
           </Card>
         )
       })}
+        </section>
+
+        <aside className="order-2 flex flex-col gap-6 lg:order-1 lg:col-span-4 lg:sticky lg:top-[max(1rem,env(safe-area-inset-top))] lg:self-start">
+          {suggestions.length > 0 ? (
+            <Card className="overflow-hidden border-primary/25 bg-primary/5 shadow-sm ring-1 ring-primary/10">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center justify-center gap-2 text-base sm:justify-start">
+                  <TrendingUp className="size-4 shrink-0 text-primary" aria-hidden />
+                  Sugerencias de progresión
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col gap-2">
+                  {suggestions.map((suggestion) => (
+                    <div
+                      key={suggestion.exerciseId}
+                      className="rounded-lg border border-border/50 bg-background/90 p-3 text-center sm:text-left"
+                    >
+                      <p className="font-medium capitalize">{suggestion.exercise}</p>
+                      {suggestion.suggestedWeight != null ? (
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Siguiente carga sugerida:{' '}
+                          <span className="font-semibold tabular-nums text-foreground">
+                            {suggestion.suggestedWeight} kg
+                          </span>
+                        </p>
+                      ) : null}
+                      {suggestion.suggestedReps != null ? (
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Objetivo de reps:{' '}
+                          <span className="font-semibold tabular-nums text-foreground">
+                            {suggestion.suggestedReps}
+                          </span>
+                        </p>
+                      ) : null}
+                      <p className="mt-2 text-xs leading-snug italic text-muted-foreground">
+                        {suggestion.reason}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="overflow-hidden border-border/80 shadow-sm ring-1 ring-primary/5">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center justify-center gap-2 text-base sm:justify-start">
+                  <TrendingUp className="size-4 shrink-0 text-primary" aria-hidden />
+                  Progresión
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-3 text-center sm:text-left">
+                <p className="text-sm text-muted-foreground text-pretty">
+                  Cuando tengas historial suficiente, aquí verás sugerencias para subir peso o repeticiones de forma
+                  ordenada.
+                </p>
+                <Button asChild variant="outline" className="w-full sm:w-auto">
+                  <Link href="/client/progress">Ver gráficos de progreso</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </aside>
+      </div>
       <ExerciseDetailDrawer
         open={isDrawerOpen}
         onOpenChange={setIsDrawerOpen}
         exercise={selectedExercise}
       />
-      </div>
     </>
   )
 }

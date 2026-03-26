@@ -1,15 +1,17 @@
 import type { Metadata } from 'next'
 import { getAuthUser, getUserRole } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import { getBodyMeasurements, getWorkoutSessions } from '@/lib/workouts'
+import {
+  getBodyMeasurements,
+  getExerciseLogsForSessions,
+  getWorkoutSessions,
+} from '@/lib/workouts'
 import { getRoutineById } from '@/lib/routines'
 import { ClientProfileHub, type ClientHubClient, type HubWorkoutSession } from './client-profile-hub'
 import type { Routine } from '@/lib/types'
 import { AccessCodeBanner } from './access-code-banner'
+import { AdminPageHeader } from '@/components/admin/admin-page-header'
 
 interface Props {
   params: Promise<{ clientId: string }>
@@ -96,13 +98,19 @@ export default async function ClientProfilePage({ params, searchParams }: Props)
       .maybeSingle(),
   ])
 
+  const sessionExerciseLogs = await getExerciseLogsForSessions(
+    workoutSessions.map((s) => s.id),
+  )
+
   const planName = planRes.data?.name ?? null
   const profile = profileRes.data ?? null
   const progressPhotos = photosRes.data ?? []
 
-  const routine = activeClientRoutineRes.data?.routine_id
-    ? await getRoutineById(activeClientRoutineRes.data.routine_id)
-    : null
+  const routineIdFromClient =
+    (client as { assigned_routine_id?: string | null }).assigned_routine_id ??
+    activeClientRoutineRes.data?.routine_id ??
+    null
+  const routine = routineIdFromClient ? await getRoutineById(routineIdFromClient) : null
 
   const daysUntilExpiry = client.membership_end
     ? Math.ceil((new Date(client.membership_end).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
@@ -116,22 +124,14 @@ export default async function ClientProfilePage({ params, searchParams }: Props)
 
   return (
     <div className="min-h-dvh bg-background">
-      <header className="border-b bg-background">
-        <div className="container flex items-center gap-4 py-4 sm:py-5">
-          <Button variant="ghost" size="icon" asChild className="size-9 sm:size-10">
-            <Link href="/admin/clients">
-              <ArrowLeft className="size-4" />
-            </Link>
-          </Button>
-          <div className="min-w-0 flex-1">
-            <h1 className="text-xl font-bold truncate tracking-tight sm:text-2xl">{client.full_name}</h1>
-            <p className="text-sm text-muted-foreground truncate">
-              {planName ? `Plan de asesoría: ${planName}` : 'Sin plan de asesoría'}
-              {profile?.streak_days != null ? ` · ${profile.streak_days} días racha` : ''}
-            </p>
-          </div>
-        </div>
-      </header>
+      <AdminPageHeader
+        title={client.full_name}
+        backHref="/admin/clients"
+        backLabel="Volver a asesorados"
+        description={`${planName ? `Plan de asesoría: ${planName}` : 'Sin plan de asesoría'}${
+          profile?.streak_days != null ? ` · ${profile.streak_days} días racha` : ''
+        }`}
+      />
 
       <main className="container flex flex-col gap-8 py-8">
         {accessCode && (
@@ -147,6 +147,7 @@ export default async function ClientProfilePage({ params, searchParams }: Props)
           profile={profile}
           routine={routine as Routine | null}
           workoutSessions={workoutSessions as HubWorkoutSession[]}
+          sessionExerciseLogs={sessionExerciseLogs}
           bodyMeasurements={bodyMeasurements}
           progressPhotos={progressPhotos ?? []}
           clientId={clientId}

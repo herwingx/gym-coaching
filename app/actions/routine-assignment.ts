@@ -2,6 +2,14 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth-utils'
+import {
+  buildWeeklyProgressionSuggestions,
+  type WeeklyLogRow,
+} from '@/lib/weekly-progression-suggestions'
+import {
+  getNextRoutineDayIndex,
+  sortRoutineDaysByDayNumber,
+} from '@/lib/next-routine-day'
 
 export async function assignRoutineToClient(
   clientId: string,
@@ -132,13 +140,12 @@ export async function updateClientRoutineProgress(
 export async function getNextWorkoutDay(clientRoutineId: string) {
   const supabase = await createClient()
 
-  // Get current client routine
   const { data: clientRoutine, error: routineError } = await supabase
     .from('client_routines')
     .select(`
       id,
+      client_id,
       current_week,
-      current_day_index,
       routine_id,
       routines (
         duration_weeks,
@@ -151,37 +158,22 @@ export async function getNextWorkoutDay(clientRoutineId: string) {
   if (routineError) throw routineError
 
   const raw = clientRoutine.routines as
-    | { duration_weeks: number; days_per_week: number }
-    | { duration_weeks: number; days_per_week: number }[]
+    | { duration_weeks: number | null; days_per_week: number }
+    | { duration_weeks: number | null; days_per_week: number }[]
     | null
   const routine = Array.isArray(raw) ? raw[0] : raw
   if (!routine) throw new Error('Rutina no encontrada para esta asignación')
 
-  const currentWeek = clientRoutine.current_week
-  const currentDay = clientRoutine.current_day_index
-  const daysPerWeek = routine.days_per_week
-  const totalWeeks = routine.duration_weeks
-
-  // Calculate next day
-  let nextDay = currentDay + 1
-  let nextWeek = currentWeek
-
-  if (nextDay >= daysPerWeek) {
-    nextDay = 0
-    nextWeek += 1
-
-    // Check if routine is complete
-    if (nextWeek > totalWeeks) {
-      return {
-        isComplete: true,
-        message: 'Rutina completada! Felicidades!',
-        suggestedAction: 'Puedes repetir la rutina o asignar una nueva',
-      }
+  const totalWeeks = routine.duration_weeks ?? 0
+  if (totalWeeks > 0 && clientRoutine.current_week > totalWeeks) {
+    return {
+      isComplete: true,
+      message: 'Rutina completada! Felicidades!',
+      suggestedAction: 'Puedes repetir la rutina o asignar una nueva',
     }
   }
 
-  // Get next workout day details (nextDay is 0-based index; routine_days.day_number is 1-based)
-  const { data: routineDays, error: daysError } = await supabase
+  const { data: routineDaysRaw, error: daysError } = await supabase
     .from('routine_days')
     .select(`
       id,
@@ -210,41 +202,89 @@ export async function getNextWorkoutDay(clientRoutineId: string) {
       )
     `)
     .eq('routine_id', clientRoutine.routine_id)
-    .order('day_number', { ascending: true })
 
-  const routineDay = routineDays?.[nextDay]
+  if (daysError) throw daysError
 
-  if (daysError || !routineDay) {
+  const sortedDays = sortRoutineDaysByDayNumber(routineDaysRaw ?? [])
+  if (!sortedDays.length) {
     return {
       isComplete: false,
-      week: nextWeek,
-      day: nextDay,
+      week: clientRoutine.current_week,
+      day: 0,
+      isRestDay: true,
+      message: 'No hay días configurados en esta rutina.',
+    }
+  }
+
+  const planDayIdSet = new Set(sortedDays.map((d) => d.id))
+
+  const { data: recentSessions } = await supabase
+    .from('workout_sessions')
+    .select('routine_day_id')
+    .eq('client_id', clientRoutine.client_id)
+    .eq('status', 'completed')
+    .not('routine_day_id', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(50)
+
+  let lastRoutineDayId: string | null = null
+  for (const row of recentSessions ?? []) {
+    const rid = row.routine_day_id as string | null
+    if (rid && planDayIdSet.has(rid)) {
+      lastRoutineDayId = rid
+      break
+    }
+  }
+
+  const nextIdx = getNextRoutineDayIndex(sortedDays, lastRoutineDayId)
+  const routineDay = nextIdx === null ? null : sortedDays[nextIdx]
+
+  if (!routineDay) {
+    return {
+      isComplete: false,
+      week: clientRoutine.current_week,
+      day: 0,
       isRestDay: true,
       message: 'Día de descanso. Recuperate bien.',
     }
   }
 
+  const blockLabel = routineDay.day_name
+    ? `Día ${routineDay.day_number} · ${routineDay.day_name}`
+    : `Día ${routineDay.day_number}`
+
   return {
     isComplete: false,
-    week: nextWeek,
-    day: nextDay,
+    week: clientRoutine.current_week,
+    day: nextIdx,
     dayName: routineDay.day_name,
     isRestDay: routineDay.is_rest_day,
     exercises: routineDay.routine_exercises || [],
-    message: `Semana ${nextWeek}, Dia ${nextDay + 1}: ${routineDay.day_name}`,
+    message: `Próximo bloque: ${blockLabel}`,
   }
 }
 
 export async function suggestProgressionWeekly(clientRoutineId: string) {
+  const user = await getAuthUser()
+  if (!user) return []
+
   const supabase = await createClient()
 
-  const { data: clientRoutine } = await supabase
+  const { data: clientRoutine, error: crErr } = await supabase
     .from('client_routines')
     .select('client_id')
     .eq('id', clientRoutineId)
     .single()
 
-  if (!clientRoutine?.client_id) return []
+  if (crErr || !clientRoutine?.client_id) return []
+
+  const { data: clientRow } = await supabase
+    .from('clients')
+    .select('user_id')
+    .eq('id', clientRoutine.client_id)
+    .single()
+
+  if (clientRow?.user_id !== user.id) return []
 
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
@@ -259,41 +299,11 @@ export async function suggestProgressionWeekly(clientRoutineId: string) {
 
   const { data: logs } = await supabase
     .from('exercise_logs')
-    .select(`id, weight_kg, reps, set_number, is_pr, exercise_id, exercises(name)`)
+    .select(
+      `exercise_id, weight_kg, reps, is_warmup, created_at, workout_session_id, exercises(name, exercise_type, uses_external_load, equipment)`,
+    )
     .in('workout_session_id', sessionIds)
-    .order('created_at', { ascending: false })
+    .order('created_at', { ascending: true })
 
-  const progressionSuggestions: { exercise: string; currentWeight?: number; suggestedWeight?: number; currentReps?: number; suggestedReps?: number; reason: string }[] = []
-
-  const groupedByExercise = (logs ?? []).reduce<Record<string, typeof logs>>((acc, log) => {
-    const name = (log.exercises as { name?: string })?.name ?? log.exercise_id
-    if (!acc[name]) acc[name] = []
-    acc[name].push(log)
-    return acc
-  }, {})
-
-  for (const [exercise, logList] of Object.entries(groupedByExercise)) {
-    if (!logList?.length) continue
-    const lastLog = logList[0]
-    const avgWeight = logList.reduce((sum, l) => sum + (l.weight_kg || 0), 0) / logList.length
-
-    if (lastLog.weight_kg && avgWeight > lastLog.weight_kg * 0.9) {
-      progressionSuggestions.push({
-        exercise,
-        currentWeight: lastLog.weight_kg,
-        suggestedWeight: Math.round(lastLog.weight_kg * 1.05 * 10) / 10,
-        reason: 'Has sido consistente, intenta subir un poco',
-      })
-    }
-    if (lastLog.reps != null && lastLog.reps >= 12) {
-      progressionSuggestions.push({
-        exercise,
-        currentReps: lastLog.reps,
-        suggestedReps: lastLog.reps + 2,
-        reason: 'Puedes aumentar reps para sobrecarga',
-      })
-    }
-  }
-
-  return progressionSuggestions
+  return buildWeeklyProgressionSuggestions((logs ?? []) as WeeklyLogRow[])
 }

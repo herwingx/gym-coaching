@@ -1,8 +1,9 @@
 import { getAuthUser } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { calculateLevel } from '@/lib/types'
+import { calculateLevel, type RoutineDay } from '@/lib/types'
 import { CLIENT_DASHBOARD_SESSIONS_CAP } from '@/lib/performance-limits'
+import { getNextRoutineDay } from '@/lib/next-routine-day'
 import { ClientDashboardContent } from './client-dashboard-content'
 
 export default async function ClientDashboard() {
@@ -30,12 +31,18 @@ export default async function ClientDashboard() {
   const userAchievements = userAchievementsRes.data || []
 
   // Batch 2: workoutSessions, prsThisMonth, client_routines (need client.id)
-  let workoutSessions: { total_volume_kg?: number | null; status?: string; started_at?: string }[] | null = null
+  let workoutSessions: {
+    total_volume_kg?: number | null
+    status?: string
+    started_at?: string
+    routine_day_id?: string | null
+  }[] | null = null
   let prsThisMonth = 0
   let routineId = (client as { assigned_routine_id?: string } | null)?.assigned_routine_id ?? null
+  let latestCompletedRoutineDayId: string | null = null
 
   if (client?.id) {
-    const [sessionsRes, prsRes, crRes] = await Promise.all([
+    const [sessionsRes, prsRes, crRes, lastCompletedDayRes] = await Promise.all([
       supabase
         .from('workout_sessions')
         .select('*')
@@ -43,7 +50,7 @@ export default async function ClientDashboard() {
         .order('created_at', { ascending: false })
         .limit(CLIENT_DASHBOARD_SESSIONS_CAP),
       supabase
-        .from('personal_records')
+        .from('pr_events')
         .select('*', { count: 'exact', head: true })
         .eq('client_id', client.id)
         .gte('achieved_at', startOfMonth.toISOString()),
@@ -54,10 +61,20 @@ export default async function ClientDashboard() {
         .eq('is_active', true)
         .limit(1)
         .maybeSingle(),
+      supabase
+        .from('workout_sessions')
+        .select('routine_day_id')
+        .eq('client_id', client.id)
+        .eq('status', 'completed')
+        .not('routine_day_id', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ])
     workoutSessions = sessionsRes.data
     prsThisMonth = prsRes.count ?? 0
     if (!routineId) routineId = crRes.data?.routine_id ?? null
+    latestCompletedRoutineDayId = lastCompletedDayRes.data?.routine_day_id ?? null
   }
 
   // Batch 3: routine with full details (need routineId)
@@ -109,15 +126,24 @@ export default async function ClientDashboard() {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([date, sessions]) => ({ date, sessions }))
 
+  const lastCompletedWithDayId =
+    latestCompletedRoutineDayId ??
+    (workoutSessions || []).find((s) => s.status === 'completed' && s.routine_day_id)?.routine_day_id ??
+    null
+  const nextWorkoutRoutineDay = getNextRoutineDay(
+    (assignedRoutine?.routine_days ?? []) as RoutineDay[],
+    lastCompletedWithDayId,
+  )
+
   return (
     <ClientDashboardContent
       profile={profile}
-      client={client}
       levelInfo={levelInfo}
       totalWorkouts={totalWorkoutsCompleted}
       totalVolume={totalVolume}
       prsThisMonth={prsThisMonth || 0}
       assignedRoutine={assignedRoutine}
+      nextWorkoutRoutineDay={nextWorkoutRoutineDay}
       userAchievements={userAchievements || []}
       chartData={chartData}
     />

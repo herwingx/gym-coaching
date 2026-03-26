@@ -1,8 +1,13 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { useSelectedLayoutSegments } from 'next/navigation'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
-import { ClientSidebar } from '@/components/client-sidebar'
+
+const ClientSidebar = dynamic(
+  () => import('@/components/client-sidebar').then((m) => m.ClientSidebar),
+  { ssr: false },
+)
 
 export function ClientLayoutShell({ children }: { children: React.ReactNode }) {
   const segments = useSelectedLayoutSegments()

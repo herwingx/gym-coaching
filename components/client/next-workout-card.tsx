@@ -1,6 +1,12 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Play, Dumbbell, Clock, ChevronRight } from "lucide-react"
 import Link from "next/link"
@@ -9,10 +15,32 @@ import type { RoutineDay, RoutineExercise } from "@/lib/types"
 interface NextWorkoutCardProps {
   routineDay?: RoutineDay & { routine_exercises?: RoutineExercise[] }
   routineName?: string
+  /** True cuando hay rutina activa pero aún no hay `routineDay` (no confundir con “sin rutina”). */
+  hasAssignedRoutine?: boolean
 }
 
-export function NextWorkoutCard({ routineDay, routineName }: NextWorkoutCardProps) {
+export function NextWorkoutCard({
+  routineDay,
+  routineName,
+  hasAssignedRoutine,
+}: NextWorkoutCardProps) {
   if (!routineDay) {
+    if (hasAssignedRoutine) {
+      return (
+        <Card className="overflow-hidden border-muted/70 bg-muted/20">
+          <CardContent className="p-6 sm:p-8 text-center">
+            <div className="size-14 rounded-2xl bg-muted mx-auto mb-4 flex items-center justify-center">
+              <Clock className="size-7 text-muted-foreground" />
+            </div>
+            <h3 className="font-bold mb-1">Sin bloque de entrenamiento siguiente</h3>
+            <p className="text-sm text-muted-foreground">
+              La rutina no tiene días cargados para entrenar, o solo bloques de descanso.
+              Si tu plan debería tener entrenos, avisá a tu entrenador.
+            </p>
+          </CardContent>
+        </Card>
+      )
+    }
     return (
       <Card className="overflow-hidden border-dashed bg-muted/30">
         <CardContent className="p-6 sm:p-8 text-center">
@@ -35,13 +63,22 @@ export function NextWorkoutCard({ routineDay, routineName }: NextWorkoutCardProp
     <Card className="overflow-hidden border-none shadow-sm bg-gradient-to-br from-primary/5 via-background to-background">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <div>
+          <div className="min-w-0 space-y-1">
             <p className="text-xs text-muted-foreground uppercase tracking-wider">
               Próximo entrenamiento
             </p>
             <CardTitle className="text-xl mt-1">
-              {routineDay.day_name || `Dia ${routineDay.day_number}`}
+              Día {routineDay.day_number}
+              {routineDay.day_name ? (
+                <span className="mt-1 block text-base font-semibold text-foreground">
+                  {routineDay.day_name}
+                </span>
+              ) : null}
             </CardTitle>
+            <CardDescription className="text-xs leading-snug pt-0.5">
+              Siguiente bloque del ciclo tras tu última sesión. No se alinea al calendario
+              si falta un día en la semana.
+            </CardDescription>
           </div>
           <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
             {routineName}

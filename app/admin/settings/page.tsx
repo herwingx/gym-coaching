@@ -3,9 +3,12 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { GymSettingsForm } from './gym-settings-form'
-import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Building2, Dumbbell, Globe2 } from 'lucide-react'
+import { Building2, Dumbbell, Globe2, Library } from 'lucide-react'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { AdminPageHeader } from '@/components/admin/admin-page-header'
+import { CoachProfileSettings } from '@/components/admin/coach-profile-settings'
 
 export default async function AdminSettingsPage() {
   const user = await getAuthUser()
@@ -16,7 +19,7 @@ export default async function AdminSettingsPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('role, full_name, avatar_url')
     .eq('id', user.id)
     .single()
 
@@ -30,19 +33,11 @@ export default async function AdminSettingsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-10 border-b bg-background">
-        <div className="container py-5">
-          <div className="flex flex-col gap-2">
-            <Badge variant="secondary" className="w-fit">
-              Ajustes del panel
-            </Badge>
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Configuración</h1>
-            <p className="text-sm text-muted-foreground">
-              Administra los datos de tu negocio y la experiencia de tus asesorados.
-            </p>
-          </div>
-        </div>
-      </header>
+      <AdminPageHeader
+        sticky
+        title="Configuración"
+        description="Administra los datos de tu negocio y la experiencia de tus asesorados."
+      />
 
       <main className="container py-6 sm:py-8">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
@@ -82,11 +77,19 @@ export default async function AdminSettingsPage() {
             </Card>
           </div>
 
-          <Tabs defaultValue="general" className="flex flex-col gap-4">
-            <TabsList className="grid w-full grid-cols-2 sm:w-fit">
+          <Tabs defaultValue="profile" className="flex flex-col gap-4">
+            <TabsList className="grid w-full grid-cols-3 sm:w-fit">
+              <TabsTrigger value="profile">Mi perfil</TabsTrigger>
               <TabsTrigger value="general">General</TabsTrigger>
               <TabsTrigger value="biblioteca">Biblioteca</TabsTrigger>
             </TabsList>
+            <TabsContent value="profile" className="mt-0">
+              <CoachProfileSettings
+                userId={user.id}
+                initialFullName={profile?.full_name}
+                initialAvatarUrl={profile?.avatar_url}
+              />
+            </TabsContent>
             <TabsContent value="general" className="mt-0">
               <GymSettingsForm
                 initialData={gymSettings ? {
@@ -103,19 +106,22 @@ export default async function AdminSettingsPage() {
               <Card className="overflow-hidden border-dashed bg-muted/30">
                 <CardHeader className="flex flex-row items-center justify-between gap-4 pb-3">
                   <div className="flex flex-col gap-1">
-                    <CardTitle className="text-lg">Biblioteca de Ejercicios</CardTitle>
-                    <CardDescription>Catálogo de movimientos personalizados para tus rutinas</CardDescription>
+                    <CardTitle className="text-lg">Biblioteca de ejercicios</CardTitle>
+                    <CardDescription>Catálogo con GIF, técnica y altas nuevas — mismo listado que en el menú lateral.</CardDescription>
                   </div>
-                  <Badge variant="secondary" className="border-primary/20 bg-primary/10 px-2.5 py-0.5 font-semibold text-primary">
-                    Próximamente
-                  </Badge>
+                  <Button asChild variant="secondary" size="sm" className="shrink-0">
+                    <Link href="/admin/exercises">
+                      <Library data-icon="inline-start" />
+                      Abrir catálogo
+                    </Link>
+                  </Button>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-muted-foreground/20 bg-background/50 px-4 py-6 text-center">
                     <div className="flex flex-col gap-1">
-                      <p className="text-sm font-medium text-foreground">Personaliza tus propios ejercicios</p>
-                      <p className="mx-auto max-w-xs text-xs text-muted-foreground">
-                        Podrás subir videos, descripciones y categorías para mejorar la experiencia visual de tus asesorados.
+                      <p className="text-sm font-medium text-foreground">Añade movimientos y revisa demostraciones</p>
+                      <p className="mx-auto max-w-sm text-xs text-muted-foreground">
+                        Desde el catálogo puedes abrir la ficha completa (como la ve el asesorado) y crear ejercicios con URL de GIF o imagen.
                       </p>
                     </div>
                   </div>

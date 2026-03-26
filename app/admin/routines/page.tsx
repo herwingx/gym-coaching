@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Plus, Dumbbell, CalendarDays, Sigma } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { AdminKpiStatCard } from '@/components/admin/admin-kpi-stat-card'
+import { AdminPageHeader } from '@/components/admin/admin-page-header'
 import RoutineCardsClient, { type RoutineCardItem } from './routine-cards-client'
 
 type RoutineDayRow = { id: string; is_rest_day: boolean | null }
@@ -79,22 +80,22 @@ export default async function AdminRoutinesPage() {
 
   return (
     <div className="bg-background">
-      <header className="border-b">
-        <div className="container flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-col gap-1">
-            <h1 className="text-2xl font-bold tracking-tight">Rutinas de Entrenamiento</h1>
-            <p className="text-sm text-muted-foreground">
-              {totalRoutines} rutina{totalRoutines !== 1 ? 's' : ''} activas
-            </p>
-          </div>
+      <AdminPageHeader
+        title="Rutinas de Entrenamiento"
+        description={
+          <>
+            {totalRoutines} rutina{totalRoutines !== 1 ? 's' : ''} activas
+          </>
+        }
+        actions={
           <Button asChild className="w-full sm:w-auto">
             <Link href="/admin/routines/builder">
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="mr-2 size-4" />
               Nueva Rutina (Builder)
             </Link>
           </Button>
-        </div>
-      </header>
+        }
+      />
 
       <main className="container min-w-0 py-8">
         {totalRoutines > 0 && (

@@ -436,9 +436,9 @@ export function ChatView({
                     className="-ml-1 size-9 shrink-0 sm:size-8 md:hidden"
                     aria-label="Abrir menú"
                   />
-                  <Button variant="ghost" size="icon" className="hidden shrink-0 md:flex" asChild>
+                  <Button variant="ghost" size="icon" className="shrink-0 sm:hidden" asChild>
                     <Link href="/client/dashboard" aria-label="Volver al panel">
-                      <ArrowLeft />
+                      <ArrowLeft className="size-4" />
                     </Link>
                   </Button>
                 </>

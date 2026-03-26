@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { AdminClientStatusBadge } from '@/components/admin/admin-client-status-badge'
 import { toast } from 'sonner'
 import { CheckCircle, XCircle, Calendar, Mail } from 'lucide-react'
 import { getGoalLabel } from '@/lib/constants'
+import { AdminPageHeader } from '@/components/admin/admin-page-header'
 
 interface PendingClient {
   id: string
@@ -112,72 +113,76 @@ export default function PendingClientsPage() {
   }
 
   return (
-    <div className="container py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Clientes Pendientes</h1>
-        <p className="text-muted-foreground">Aprueba o rechaza nuevas solicitudes</p>
-      </div>
+    <div className="min-h-dvh bg-background">
+      <AdminPageHeader
+        title="Clientes pendientes"
+        description="Aprueba o rechaza nuevas solicitudes"
+        backHref="/admin/clients"
+        backLabel="Volver a asesorados"
+      />
+      <main className="container py-8">
 
-      {clients.length === 0 ? (
-        <Card>
-          <CardContent className="pt-6 text-center">
-            <p className="text-muted-foreground">No hay clientes pendientes</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4">
-          {clients.map((client) => (
-            <Card key={client.id} className="overflow-hidden">
-              <CardContent className="pt-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="font-semibold text-lg">{client.full_name}</h3>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                      <Mail className="w-4 h-4" />
-                      {client.email}
+        {clients.length === 0 ? (
+          <Card>
+            <CardContent className="pt-6 text-center">
+              <p className="text-muted-foreground">No hay clientes pendientes</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4">
+            {clients.map((client) => (
+              <Card key={client.id} className="overflow-hidden">
+                <CardContent className="pt-6">
+                  <div className="mb-4 flex items-start justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold">{client.full_name}</h3>
+                      <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+                        <Mail className="h-4 w-4" />
+                        {client.email}
+                      </div>
+                      {client.phone && (
+                        <p className="mt-1 text-sm text-muted-foreground">{client.phone}</p>
+                      )}
                     </div>
-                    {client.phone && (
-                      <p className="text-sm text-muted-foreground mt-1">{client.phone}</p>
-                    )}
+                    <AdminClientStatusBadge status="pending" />
                   </div>
-                  <Badge variant="outline">Pendiente</Badge>
-                </div>
 
-                {client.goal && (
-                  <p className="text-sm mb-4">
-                    <span className="font-medium">Objetivo:</span> {getGoalLabel(client.goal)}
-                  </p>
-                )}
+                  {client.goal && (
+                    <p className="mb-4 text-sm">
+                      <span className="font-medium">Objetivo:</span> {getGoalLabel(client.goal)}
+                    </p>
+                  )}
 
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
-                  <Calendar className="w-4 h-4" />
-                  {new Date(client.created_at).toLocaleDateString()}
-                </div>
+                  <div className="mb-4 flex items-center gap-2 text-xs text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    {new Date(client.created_at).toLocaleDateString()}
+                  </div>
 
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => handleApproveClient(client.id)}
-                    disabled={approving === client.id}
-                    className="flex-1 gap-2"
-                    variant="default"
-                  >
-                    <CheckCircle className="w-4 h-4" />
-                    Aprobar
-                  </Button>
-                  <Button
-                    onClick={() => handleRejectClient(client.id)}
-                    variant="outline"
-                    className="flex-1 gap-2"
-                  >
-                    <XCircle className="w-4 h-4" />
-                    Rechazar
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => handleApproveClient(client.id)}
+                      disabled={approving === client.id}
+                      className="flex-1 gap-2"
+                      variant="default"
+                    >
+                      <CheckCircle className="h-4 w-4" />
+                      Aprobar
+                    </Button>
+                    <Button
+                      onClick={() => handleRejectClient(client.id)}
+                      variant="outline"
+                      className="flex-1 gap-2"
+                    >
+                      <XCircle className="h-4 w-4" />
+                      Rechazar
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </main>
     </div>
   )
 }

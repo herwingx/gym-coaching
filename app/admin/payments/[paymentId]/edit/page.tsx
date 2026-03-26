@@ -3,9 +3,8 @@ import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
 import { EditPaymentForm } from './edit-payment-form'
+import { AdminPageHeader } from '@/components/admin/admin-page-header'
 
 export default async function EditPaymentPage({
   params,
@@ -31,21 +30,13 @@ export default async function EditPaymentPage({
 
   return (
     <div className="bg-background">
-      <header className="sticky top-0 z-40 border-b bg-background safe-area-header-pt">
-        <div className="container py-4 flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild className="size-9">
-            <Link href="/admin/payments">
-              <ArrowLeft className="size-4" />
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-xl font-bold">Editar pago</h1>
-            <p className="text-sm text-muted-foreground">
-              {payment.clients?.full_name} • ${payment.amount?.toFixed(2)}
-            </p>
-          </div>
-        </div>
-      </header>
+      <AdminPageHeader
+        sticky
+        title="Editar pago"
+        description={`${payment.clients?.full_name ?? 'Cliente'} • $${payment.amount?.toFixed(2) ?? '0.00'}`}
+        backHref="/admin/payments"
+        backLabel="Volver a pagos"
+      />
       <main className="container py-8">
         <EditPaymentForm payment={payment} />
       </main>

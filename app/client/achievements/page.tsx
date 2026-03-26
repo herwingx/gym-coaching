@@ -19,9 +19,13 @@ import {
 import { AchievementBadge } from '@/components/client/achievement-badge'
 import { AchievementsCatalog } from '@/components/client/achievements-catalog'
 import { getLevelName, calculateLevel } from '@/lib/types'
-import { getUserAchievements } from '@/lib/gamification'
+import {
+  checkAchievements,
+  getUserAchievements,
+  resolveClientTotalSessions,
+} from '@/lib/gamification'
 import { cn } from '@/lib/utils'
-import { ClientStackPageHeader } from '@/components/client/client-app-page-parts'
+import { CLIENT_DATA_PAGE_SHELL, ClientStackPageHeader } from '@/components/client/client-app-page-parts'
 
 export default async function ClientAchievementsPage() {
   const user = await getAuthUser()
@@ -29,9 +33,12 @@ export default async function ClientAchievementsPage() {
 
   const supabase = await createClient()
 
+  await checkAchievements(user.id)
+
   const [
     { data: profile },
     { unlocked: userAchievements, locked: lockedAchievements, progress },
+    totalSessions,
   ] = await Promise.all([
     supabase
       .from('profiles')
@@ -39,13 +46,8 @@ export default async function ClientAchievementsPage() {
       .eq('id', user.id)
       .single(),
     getUserAchievements(user.id),
+    resolveClientTotalSessions(user.id),
   ])
-
-  const { data: clientRow } = await supabase
-    .from('clients')
-    .select('total_sessions')
-    .eq('user_id', user.id)
-    .maybeSingle()
 
   const levelInfo = calculateLevel(profile?.xp_points || 0)
   const levelName = getLevelName(levelInfo.level)
@@ -76,7 +78,6 @@ export default async function ClientAchievementsPage() {
     .sort((a, b) => new Date(b.unlocked_at).getTime() - new Date(a.unlocked_at).getTime())
     .slice(0, 3)
 
-  const totalSessions = clientRow?.total_sessions ?? 0
   const streakDays = profile?.streak_days ?? 0
   const progressById = Object.fromEntries(progress)
 
@@ -85,7 +86,7 @@ export default async function ClientAchievementsPage() {
   return (
     <>
       <ClientStackPageHeader title="Progreso y reconocimientos" subtitle={achievementsSubtitle} />
-      <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-6 sm:px-6 lg:px-8 pb-12">
+      <div className={`${CLIENT_DATA_PAGE_SHELL} flex flex-col gap-8`}>
       <section aria-label="Resumen de progreso" className="flex flex-col gap-4">
         <Card className="overflow-hidden border-muted/70 shadow-none">
           <CardHeader className="flex flex-col gap-1 pb-2 sm:flex-row sm:items-end sm:justify-between">

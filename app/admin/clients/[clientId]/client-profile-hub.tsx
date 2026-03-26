@@ -5,16 +5,46 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { AdminClientStatusBadge } from '@/components/admin/admin-client-status-badge'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Textarea } from '@/components/ui/textarea'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { Progress } from '@/components/ui/progress'
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty'
+import { Separator } from '@/components/ui/separator'
+import { Field, FieldContent, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { Spinner } from '@/components/ui/spinner'
 import { createClient } from '@/lib/supabase/client'
-import { ArrowUpRight, FileImage, History, Dumbbell, Ruler, Notebook, Plus, Target } from 'lucide-react'
+import {
+  ArrowUpRight,
+  FileImage,
+  History,
+  Dumbbell,
+  Ruler,
+  Notebook,
+  Plus,
+  Target,
+  Camera,
+} from 'lucide-react'
 import { getGoalLabel } from '@/lib/constants'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { Routine, WorkoutSession } from '@/lib/types'
+import type { SessionExerciseLogRow } from '@/lib/workouts'
+import {
+  formatBodyMeasurementDate,
+  sessionInstantLabel,
+  workoutStatusBadgeClass,
+  workoutStatusLabelEs,
+} from '@/lib/format-workout-session'
 
 const RoutineDayCards = dynamic(
   () => import('@/components/routines/routine-day-cards'),
@@ -101,11 +131,38 @@ function trendFromSessions(sessions: HubWorkoutSession[]) {
   return 'flat'
 }
 
+function exerciseGroupsFromLogs(logs: SessionExerciseLogRow[]) {
+  const order: string[] = []
+  const byName = new Map<string, SessionExerciseLogRow[]>()
+  for (const log of logs) {
+    if (!byName.has(log.exercise_name)) {
+      order.push(log.exercise_name)
+      byName.set(log.exercise_name, [])
+    }
+    byName.get(log.exercise_name)!.push(log)
+  }
+  return order.map((name) => ({ name, sets: byName.get(name)! }))
+}
+
+function formatSetLine(log: SessionExerciseLogRow) {
+  const w = log.weight_kg != null ? `${log.weight_kg} kg` : '—'
+  const r = log.reps != null ? `${log.reps} rep.` : '—'
+  const bits = [
+    log.is_pr ? 'PR' : null,
+    log.is_warmup ? 'Calentamiento' : null,
+  ].filter(Boolean)
+  const tag = bits.length ? ` · ${bits.join(' · ')}` : ''
+  return `Serie ${log.set_number}: ${w} × ${r}${tag}`
+}
+
+const PROGRESS_VIEWPORT = 12
+
 export function ClientProfileHub({
   client,
   profile,
   routine,
   workoutSessions,
+  sessionExerciseLogs,
   bodyMeasurements,
   progressPhotos,
   clientId,
@@ -114,6 +171,7 @@ export function ClientProfileHub({
   profile: ClientHubProfile
   routine: Routine | null
   workoutSessions: HubWorkoutSession[]
+  sessionExerciseLogs: SessionExerciseLogRow[]
   bodyMeasurements: BodyMeasurementRow[]
   progressPhotos: ProgressPhotoRow[]
   clientId?: string
@@ -126,6 +184,45 @@ export function ClientProfileHub({
   const lastSessionAt = workoutSessions?.[0]?.started_at || client?.last_session_at || null
   const streakDays = profile?.streak_days ?? null
   const trend = useMemo(() => trendFromSessions(workoutSessions || []), [workoutSessions])
+
+  const logsBySessionId = useMemo(() => {
+    const m = new Map<string, SessionExerciseLogRow[]>()
+    for (const row of sessionExerciseLogs || []) {
+      if (!m.has(row.workout_session_id)) m.set(row.workout_session_id, [])
+      m.get(row.workout_session_id)!.push(row)
+    }
+    return m
+  }, [sessionExerciseLogs])
+
+  const progressRows = useMemo(() => {
+    const list = [...(workoutSessions || [])].slice(0, PROGRESS_VIEWPORT)
+    list.sort(
+      (a, b) =>
+        new Date(a.started_at ?? 0).getTime() - new Date(b.started_at ?? 0).getTime(),
+    )
+    const vols = list.map((s) => Math.max(0, s.total_volume_kg ?? 0))
+    const maxVol = vols.length ? Math.max(...vols) : 0
+    return { list, maxVol }
+  }, [workoutSessions])
+
+  const measurementRows = useMemo(() => {
+    const list = [...(bodyMeasurements || [])]
+    return list.map((m, i) => {
+      const older = list[i + 1]
+      let weightDelta: string | null = null
+      if (
+        older &&
+        m.weight != null &&
+        older.weight != null &&
+        Math.abs(m.weight - older.weight) > 1e-6
+      ) {
+        const d = m.weight - older.weight
+        const sign = d > 0 ? '+' : ''
+        weightDelta = `${sign}${d.toFixed(1)} kg vs medición anterior`
+      }
+      return { ...m, weightDelta }
+    })
+  }, [bodyMeasurements])
 
   async function saveNotes() {
     try {
@@ -165,7 +262,7 @@ export function ClientProfileHub({
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <ArrowUpRight className="w-4 h-4" />
+                  <ArrowUpRight className="size-4" />
                   Última sesión
                 </CardTitle>
               </CardHeader>
@@ -178,7 +275,7 @@ export function ClientProfileHub({
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Dumbbell className="w-4 h-4" />
+                  <Dumbbell className="size-4" />
                   Racha
                 </CardTitle>
               </CardHeader>
@@ -191,7 +288,7 @@ export function ClientProfileHub({
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <History className="w-4 h-4" />
+                  <History className="size-4" />
                   Tendencia
                 </CardTitle>
               </CardHeader>
@@ -210,7 +307,7 @@ export function ClientProfileHub({
             </CardHeader>
             <CardContent>
               <div className="flex items-start gap-4">
-                <Avatar className="h-12 w-12 rounded-xl">
+                <Avatar className="size-12 rounded-xl">
                   {client?.avatar_url ? (
                     <AvatarImage
                       src={client.avatar_url}
@@ -224,11 +321,7 @@ export function ClientProfileHub({
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2">
                     <div className="text-lg font-semibold">{client?.full_name || '-'}</div>
-                    {client?.status ? (
-                      <Badge variant={client.status === 'active' ? 'default' : 'secondary'}>
-                        {client.status === 'active' ? 'Activo' : client.status === 'pending' ? 'Pendiente' : client.status}
-                      </Badge>
-                    ) : null}
+                    {client?.status ? <AdminClientStatusBadge status={client.status} /> : null}
                   </div>
                   <div className="text-sm text-muted-foreground">
                     {client?.email ? `Email: ${client.email}` : 'Sin email'} · {client?.phone ? `Tel: ${client.phone}` : 'Sin teléfono'}
@@ -256,18 +349,17 @@ export function ClientProfileHub({
           </Card>
         </TabsContent>
 
-        {/* Pestañas inactivas: Radix desmonta el contenido (excepto la activa), así las imágenes y RoutineDayCards no cargan hasta abrirlas. */}
         <TabsContent value="routine" className="flex flex-col gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
-                <Dumbbell className="h-4 w-4" />
+                <Dumbbell className="size-4" />
                 Rutina asignada
               </CardTitle>
               {clientId ? (
                 <Button asChild size="sm" variant={routine ? 'outline' : 'default'}>
                   <Link href={`/admin/clients/${clientId}/assign-routine`}>
-                    <Plus className="mr-1 h-4 w-4" />
+                    <Plus className="mr-1 size-4" />
                     {routine ? 'Cambiar rutina' : 'Asignar rutina'}
                   </Link>
                 </Button>
@@ -303,33 +395,100 @@ export function ClientProfileHub({
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
-                <History className="h-4 w-4" />
+                <History className="size-4" />
                 Sesiones recientes
               </CardTitle>
+              <CardDescription>
+                Fecha y hora según el inicio real de la sesión. El bloque de rutina es la plantilla asignada a ese entreno, no el día del calendario.
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col gap-2">
-                {(workoutSessions || []).map((s) => (
-                  <div
-                    key={s.id}
-                    className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2"
-                  >
-                    <div className="min-w-0">
-                      <div className="truncate text-sm font-medium">
-                        {formatDate(s.started_at)}{' '}
-                        {s.routine_days?.day_name ? `(${s.routine_days.day_name})` : ''}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Estado: {s.status} · Volumen: {s.total_volume_kg ?? 0}kg
-                      </div>
-                    </div>
-                    <Badge variant={s.status === 'completed' ? 'secondary' : 'outline'}>{s.status}</Badge>
-                  </div>
-                ))}
-                {(workoutSessions || []).length === 0 ? (
-                  <div className="text-sm text-muted-foreground">Aún no hay historial</div>
-                ) : null}
-              </div>
+              {(workoutSessions || []).length === 0 ? (
+                <Empty className="border border-dashed bg-muted/20">
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <History />
+                    </EmptyMedia>
+                    <EmptyTitle>Aún no hay sesiones</EmptyTitle>
+                    <EmptyDescription>
+                      Cuando el asesorado registre entrenos, aparecerán aquí con volumen y detalle de series.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              ) : (
+                <Accordion type="multiple" className="flex flex-col gap-2">
+                  {(workoutSessions || []).map((s) => {
+                    const when = sessionInstantLabel(s.started_at ?? s.created_at)
+                    const routineDay = s.routine_days?.day_name?.trim()
+                    const logs = logsBySessionId.get(s.id) ?? []
+                    const groups = exerciseGroupsFromLogs(logs)
+                    const vol = s.total_volume_kg ?? 0
+                    const volLabel =
+                      vol > 0
+                        ? `${vol} kg de volumen`
+                        : 'Volumen en 0 — puede ser sesión sin cargas registradas'
+
+                    return (
+                      <AccordionItem
+                        key={s.id}
+                        value={s.id}
+                        className="rounded-xl border border-border/80 border-b-0 bg-card/50 px-3 last:border-b-0 data-[state=open]:bg-card"
+                      >
+                        <AccordionTrigger className="py-3 hover:no-underline [&[data-state=open]>svg]:rotate-180">
+                          <div className="flex w-full flex-col gap-1 text-left sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                            <div className="min-w-0 flex-1">
+                              <div className="font-medium leading-snug">{when.dateLine}</div>
+                              <div className="text-muted-foreground text-xs">
+                                {when.timeLine ? `${when.timeLine} · ` : null}
+                                {volLabel}
+                                {typeof s.exercises_completed === 'number'
+                                  ? ` · ${s.exercises_completed} ejercicios completados`
+                                  : null}
+                              </div>
+                              {routineDay ? (
+                                <div className="text-muted-foreground mt-0.5 text-xs">
+                                  Bloque de rutina:{' '}
+                                  <span className="text-foreground/90">{routineDay}</span>
+                                </div>
+                              ) : null}
+                            </div>
+                            <Badge
+                              variant="outline"
+                              className={`shrink-0 font-medium ${workoutStatusBadgeClass(s.status)}`}
+                            >
+                              {workoutStatusLabelEs(s.status)}
+                            </Badge>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="pb-3 pt-0">
+                          <Separator className="mb-3" />
+                          {groups.length === 0 ? (
+                            <p className="text-muted-foreground text-sm">
+                              No hay series registradas en esta sesión. Si el entreno se completó desde otro flujo, revisa que los logs se hayan guardado correctamente.
+                            </p>
+                          ) : (
+                            <div className="flex flex-col gap-3">
+                              <p className="text-muted-foreground text-xs">
+                                Detalle opcional: despliega para revisar series sin ir al historial técnico.
+                              </p>
+                              {groups.map(({ name, sets }) => (
+                                <div key={name} className="rounded-lg bg-muted/40 px-3 py-2">
+                                  <div className="text-sm font-medium">{name}</div>
+                                  <ul className="mt-1 flex flex-col gap-0.5 text-muted-foreground text-xs">
+                                    {sets.map((log, idx) => (
+                                      <li key={`${name}-${log.set_number}-${idx}`}>{formatSetLine(log)}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </AccordionContent>
+                      </AccordionItem>
+                    )
+                  })}
+                </Accordion>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -338,27 +497,63 @@ export function ClientProfileHub({
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Progreso (volumen total)</CardTitle>
+              <CardDescription>
+                Últimas {PROGRESS_VIEWPORT} sesiones en orden cronológico. La barra es proporcional al mayor volumen de esta lista (no a un valor fijo).
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col gap-3">
-                {(workoutSessions || []).slice(0, 10).map((s) => (
-                  <div key={s.id} className="grid grid-cols-3 items-center gap-3">
-                    <div className="text-sm text-muted-foreground">{formatDate(s.started_at)}</div>
-                    <div className="text-sm font-medium">{s.total_volume_kg ?? 0}kg</div>
-                    <div className="h-2 overflow-hidden rounded-full bg-muted">
+              {progressRows.list.length === 0 ? (
+                <Empty className="border border-dashed bg-muted/20">
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <Target />
+                    </EmptyMedia>
+                    <EmptyTitle>Sin datos de volumen</EmptyTitle>
+                    <EmptyDescription>Cuando haya sesiones completadas, verás la evolución aquí.</EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              ) : (
+                <div className="flex flex-col gap-4" aria-label="Volumen por sesión">
+                  {progressRows.list.map((s) => {
+                    const vol = Math.max(0, s.total_volume_kg ?? 0)
+                    const pct =
+                      progressRows.maxVol > 0 ? Math.min(100, Math.round((vol / progressRows.maxVol) * 100)) : 0
+                    const when = sessionInstantLabel(s.started_at ?? s.created_at)
+                    const isEmptyVol = vol <= 0
+
+                    return (
                       <div
-                        className="h-full bg-primary"
-                        style={{
-                          width: `${Math.min(100, Math.round(((s.total_volume_kg ?? 0) / 200) * 100))}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-                {(workoutSessions || []).length === 0 ? (
-                  <div className="text-sm text-muted-foreground">Sin datos de progreso aún</div>
-                ) : null}
-              </div>
+                        key={s.id}
+                        className="flex flex-col gap-2 rounded-xl border border-border/60 bg-card/40 p-3 sm:grid sm:grid-cols-[minmax(0,1fr)_5.5rem_minmax(0,1.5fr)] sm:items-center sm:gap-4"
+                      >
+                        <div className="min-w-0">
+                          <div className={`text-sm font-medium ${isEmptyVol ? 'text-muted-foreground' : ''}`}>
+                            {when.dateLine}
+                          </div>
+                          {when.timeLine ? (
+                            <div className="text-muted-foreground text-xs">{when.timeLine}</div>
+                          ) : null}
+                        </div>
+                        <div
+                          className={`tabular-nums text-sm font-semibold ${isEmptyVol ? 'text-muted-foreground' : ''}`}
+                        >
+                          {vol} kg
+                        </div>
+                        <div className="min-w-0 sm:pt-0">
+                          <Progress
+                            value={pct}
+                            className={isEmptyVol ? 'opacity-40' : ''}
+                            aria-label={`Volumen relativo ${pct} por ciento`}
+                          />
+                          {isEmptyVol ? (
+                            <span className="text-muted-foreground mt-1 block text-xs">Sin volumen registrado</span>
+                          ) : null}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -367,30 +562,39 @@ export function ClientProfileHub({
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
-                <Ruler className="h-4 w-4" />
+                <Ruler className="size-4" />
                 Medidas corporales
               </CardTitle>
+              <CardDescription>Más recientes primero. Comparación de peso respecto a la medición anterior en la lista.</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col gap-2">
-                {(bodyMeasurements || []).map((m) => (
-                  <div
-                    key={m.id}
-                    className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2"
-                  >
-                    <div className="min-w-0">
-                      <div className="text-sm font-medium">{formatDate(m.recorded_at)}</div>
-                      <div className="text-xs text-muted-foreground">
-                        Peso: {m.weight ?? '-'}kg · Grasa: {m.body_fat_pct ?? '-'}%
+              {(bodyMeasurements || []).length === 0 ? (
+                <Empty className="border border-dashed bg-muted/20">
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <Ruler />
+                    </EmptyMedia>
+                    <EmptyTitle>Sin medidas</EmptyTitle>
+                    <EmptyDescription>El asesorado aún no registró mediciones corporales.</EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              ) : (
+                <div className="flex flex-col gap-0 divide-y divide-border/70 rounded-xl border border-border/80">
+                  {measurementRows.map((m) => (
+                    <div key={m.id} className="flex flex-col gap-1 px-4 py-3 first:rounded-t-xl last:rounded-b-xl">
+                      <div className="text-sm font-medium">{formatBodyMeasurementDate(m.recorded_at)}</div>
+                      <div className="text-foreground/90 text-sm">
+                        <span className="font-medium">Peso:</span> {m.weight ?? '—'} kg
+                        <span className="text-muted-foreground mx-2">·</span>
+                        <span className="font-medium">Grasa:</span> {m.body_fat_pct ?? '—'}%
                       </div>
+                      {m.weightDelta ? (
+                        <div className="text-muted-foreground text-xs">{m.weightDelta}</div>
+                      ) : null}
                     </div>
-                    <Badge variant="secondary">#{m.id.slice(0, 4)}</Badge>
-                  </div>
-                ))}
-                {(bodyMeasurements || []).length === 0 ? (
-                  <div className="text-sm text-muted-foreground">Sin medidas registradas</div>
-                ) : null}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -399,63 +603,93 @@ export function ClientProfileHub({
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
-                <FileImage className="h-4 w-4" />
+                <FileImage className="size-4" />
                 Fotos de progreso
               </CardTitle>
+              <CardDescription>Imágenes que el asesorado suba desde su perfil.</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {(progressPhotos || []).map((p) => (
-                  <div key={p.id} className="overflow-hidden rounded-lg border">
-                    <div className="p-2">
-                      <div className="text-xs text-muted-foreground">
-                        {p.view_type || '-'} · {formatDate(p.taken_at)}
+              {(progressPhotos || []).length === 0 ? (
+                <Empty className="border border-dashed bg-muted/20">
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <Camera />
+                    </EmptyMedia>
+                    <EmptyTitle>Sin fotos aún</EmptyTitle>
+                    <EmptyDescription>
+                      Las comparaciones visuales aparecerán aquí. Puedes pedirle al asesorado que cargue fotos desde su app cuando corresponda.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {(progressPhotos || []).map((p) => (
+                    <div
+                      key={p.id}
+                      className="overflow-hidden rounded-xl border border-border/80 bg-card/40 shadow-sm"
+                    >
+                      <div className="text-muted-foreground flex items-center justify-between gap-2 px-3 py-2 text-xs">
+                        <span className="truncate font-medium text-foreground">
+                          {p.view_type?.replace(/_/g, ' ') || 'Progreso'}
+                        </span>
+                        <span className="shrink-0 tabular-nums">{formatDate(p.taken_at)}</span>
+                      </div>
+                      <div className="relative aspect-4/3 bg-muted">
+                        {p.photo_url ? (
+                          <Image
+                            src={p.photo_url}
+                            alt={p.view_type ? `Foto ${p.view_type}` : 'Foto de progreso'}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 768px) 100vw, 33vw"
+                          />
+                        ) : (
+                          <div className="text-muted-foreground flex h-full items-center justify-center text-xs">
+                            Sin archivo
+                          </div>
+                        )}
                       </div>
                     </div>
-                    <div className="relative aspect-4/3 bg-muted">
-                      {p.photo_url ? (
-                        <Image
-                          src={p.photo_url}
-                          alt={`Foto ${p.view_type}`}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 768px) 100vw, 33vw"
-                        />
-                      ) : null}
-                    </div>
-                  </div>
-                ))}
-                {(progressPhotos || []).length === 0 ? (
-                  <div className="text-sm text-muted-foreground">Sin fotos</div>
-                ) : null}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* NOTAS */}
         <TabsContent value="notes" className="flex flex-col gap-4">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Notebook className="w-4 h-4" />
-                Notas del coach (privadas)
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Notebook className="size-4" />
+                Notas del coach
               </CardTitle>
-              <div className="text-xs text-muted-foreground">
-                Se guardan en `clients.notes` para este desarrollo.
-              </div>
+              <CardDescription>Privadas: solo el equipo de asesoría las ve en esta ficha.</CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col gap-3">
-              <Textarea
-                value={notesDraft}
-                onChange={(e) => setNotesDraft(e.target.value)}
-                placeholder="Agrega observaciones, lesiones, preferencias..."
-                className="min-h-32"
-              />
+            <CardContent className="flex flex-col gap-4">
+              <FieldGroup>
+                <Field>
+                  <FieldLabel htmlFor="coach-private-notes">Observaciones</FieldLabel>
+                  <FieldDescription>Lesiones, preferencias, límites, estilo de entreno o acuerdos con el asesorado.</FieldDescription>
+                  <FieldContent>
+                    <Textarea
+                      id="coach-private-notes"
+                      value={notesDraft}
+                      onChange={(e) => setNotesDraft(e.target.value)}
+                      placeholder="Escribe notas útiles para seguimiento..."
+                      className="min-h-36 resize-y"
+                    />
+                  </FieldContent>
+                </Field>
+              </FieldGroup>
 
-              {saveError ? <div className="text-sm text-destructive">{saveError}</div> : null}
-
-              <div className="flex items-center justify-end gap-2">
+              {saveError ? <div className="text-destructive text-sm" role="alert">{saveError}</div> : null}
+            </CardContent>
+            <CardFooter className="flex flex-col gap-3 border-t bg-muted/15 pt-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-muted-foreground text-xs">
+                Los cambios se guardan al pulsar guardar. Descartar restaura el texto que había al cargar la página.
+              </p>
+              <div className="flex w-full flex-wrap justify-end gap-2 sm:w-auto">
                 <Button
                   variant="outline"
                   type="button"
@@ -468,14 +702,20 @@ export function ClientProfileHub({
                   Descartar
                 </Button>
                 <Button type="button" onClick={saveNotes} disabled={isSaving}>
-                  {isSaving ? 'Guardando...' : 'Guardar notas'}
+                  {isSaving ? (
+                    <>
+                      <Spinner data-icon="inline-start" className="opacity-80" />
+                      Guardando…
+                    </>
+                  ) : (
+                    'Guardar notas'
+                  )}
                 </Button>
               </div>
-            </CardContent>
+            </CardFooter>
           </Card>
         </TabsContent>
       </Tabs>
     </div>
   )
 }
-

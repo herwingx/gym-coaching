@@ -5,12 +5,9 @@ export function AdminSettingsSkeleton() {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-10 border-b bg-background">
-        <div className="container py-5">
-          <div className="flex flex-col gap-2">
-            <Skeleton className="h-5 w-36 rounded-md" />
-            <Skeleton className="h-8 w-44 sm:h-9 sm:w-56" />
-            <Skeleton className="h-4 w-full max-w-xl" />
-          </div>
+        <div className="container flex flex-col gap-3 py-4 sm:py-5">
+          <Skeleton className="h-8 w-44 sm:h-9 sm:w-56" />
+          <Skeleton className="h-4 w-full max-w-xl" />
         </div>
       </header>
 

@@ -1,10 +1,8 @@
 import { getAuthUser } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { NewPaymentForm } from './new-payment-form'
+import { AdminPageHeader } from '@/components/admin/admin-page-header'
 
 type MembershipPlanRow = {
   id: string
@@ -38,16 +36,11 @@ export default async function NewPaymentPage() {
 
   return (
     <div className="bg-background">
-      <header className="border-b">
-        <div className="container flex items-center gap-3 py-4 sm:gap-4">
-          <Button variant="ghost" size="icon" asChild className="shrink-0 -ml-1">
-            <Link href="/admin/payments" aria-label="Volver a pagos">
-              <ArrowLeft className="size-4" />
-            </Link>
-          </Button>
-          <h1 className="text-xl font-bold truncate sm:text-2xl">Registrar Nuevo Pago</h1>
-        </div>
-      </header>
+      <AdminPageHeader
+        title="Registrar Nuevo Pago"
+        backHref="/admin/payments"
+        backLabel="Volver a pagos"
+      />
 
       <main className="container py-6 sm:py-8">
         <div className="mx-auto max-w-2xl">

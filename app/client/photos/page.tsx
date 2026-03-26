@@ -37,7 +37,7 @@ export default async function ClientPhotosPage() {
   return (
     <>
       <ClientStackPageHeader title="Fotos" subtitle={photosSubtitle} />
-      <div className={`${CLIENT_DATA_PAGE_SHELL} gap-6`}>
+      <div className={CLIENT_DATA_PAGE_SHELL}>
         <PhotosContent clientId={clientRecord.id as string} initialPhotos={photoList} />
       </div>
     </>

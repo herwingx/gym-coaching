@@ -1,37 +1,47 @@
-"use client"
+'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer } from "recharts"
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from '@/components/ui/chart'
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
+import { ChartAreaShadowFilter, useChartShadowFilterId } from '@/components/charts/chart-visual-utils'
 
 interface ProgressChartProps {
   data: { date: string; value: number }[]
   title: string
   dataKey?: string
+  /** Token CSS (--chart-1 …) o variable de tema */
   color?: string
 }
 
-export function ProgressChart({ 
-  data, 
-  title, 
-  dataKey = "value",
-  color = "var(--chart-1)"
+export function ProgressChart({
+  data,
+  title,
+  dataKey = 'value',
+  color = 'var(--chart-1)',
 }: ProgressChartProps) {
+  const seriesKey = dataKey === 'value' ? 'value' : dataKey
   const chartConfig = {
-    [dataKey]: {
+    [seriesKey]: {
       label: title,
-      color: color,
+      color,
     },
-  }
+  } satisfies ChartConfig
+
+  const shadowFilterId = useChartShadowFilterId(`prog-${seriesKey}`)
 
   if (!data || data.length === 0) {
     return (
-      <Card>
+      <Card className="border-border/60 shadow-sm">
         <CardHeader className="pb-2">
           <CardTitle className="text-base">{title}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">
+          <div className="flex h-[200px] items-center justify-center text-sm text-muted-foreground">
             Sin datos disponibles
           </div>
         </CardContent>
@@ -39,47 +49,64 @@ export function ProgressChart({
     )
   }
 
+  const colorVar = `--color-${seriesKey}` as const
+
   return (
-    <Card>
+    <Card className="overflow-hidden border-border/60 shadow-md ring-1 ring-border/40">
       <CardHeader className="pb-2">
         <CardTitle className="text-base">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-[200px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <defs>
-                <linearGradient id={`gradient-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={color} stopOpacity={0.3} />
-                  <stop offset="100%" stopColor={color} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <XAxis 
-                dataKey="date" 
-                tickLine={false}
-                axisLine={false}
-                tick={{ fontSize: 12 }}
-                tickFormatter={(value) => {
-                  const date = new Date(value)
-                  return date.toLocaleDateString('es', { day: 'numeric', month: 'short' })
-                }}
-              />
-              <YAxis 
-                tickLine={false}
-                axisLine={false}
-                tick={{ fontSize: 12 }}
-                width={40}
-              />
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <Area
-                type="monotone"
-                dataKey={dataKey}
-                stroke={color}
-                strokeWidth={2}
-                fill={`url(#gradient-${dataKey})`}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+        <ChartContainer config={chartConfig} className="aspect-auto h-[220px] w-full min-h-[200px]">
+          <AreaChart
+            accessibilityLayer
+            data={data}
+            margin={{ left: 12, right: 12, top: 8, bottom: 0 }}
+          >
+            <defs>
+              <ChartAreaShadowFilter id={shadowFilterId} />
+            </defs>
+            <CartesianGrid vertical={false} />
+            <XAxis
+              dataKey="date"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              minTickGap={20}
+              tickFormatter={(value) => {
+                const date = new Date(value)
+                return date.toLocaleDateString('es', { day: 'numeric', month: 'short' })
+              }}
+            />
+            <YAxis tickLine={false} axisLine={false} tickMargin={8} width={44} />
+            <ChartTooltip
+              cursor={false}
+              content={
+                <ChartTooltipContent
+                  indicator="dot"
+                  formatter={(value) => {
+                    const n = typeof value === 'number' ? value : Number(value)
+                    const safe = Number.isFinite(n) ? n : 0
+                    return (
+                      <span className="text-foreground font-mono font-medium tabular-nums">
+                        {safe.toLocaleString('es-ES')}
+                      </span>
+                    )
+                  }}
+                />
+              }
+            />
+            <Area
+              name={title}
+              type="linear"
+              dataKey={seriesKey}
+              fill={`var(${colorVar})`}
+              fillOpacity={0.4}
+              stroke={`var(${colorVar})`}
+              strokeWidth={2}
+              style={{ filter: `url(#${shadowFilterId})` }}
+            />
+          </AreaChart>
         </ChartContainer>
       </CardContent>
     </Card>

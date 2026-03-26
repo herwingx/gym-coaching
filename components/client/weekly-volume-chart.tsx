@@ -1,8 +1,13 @@
-"use client"
+'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts"
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from '@/components/ui/chart'
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 
 interface WeeklyVolumeChartProps {
   data: { day: string; volume: number }[]
@@ -10,53 +15,70 @@ interface WeeklyVolumeChartProps {
 
 const DAYS = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom']
 
-export function WeeklyVolumeChart({ data }: WeeklyVolumeChartProps) {
-  const chartConfig = {
-    volume: {
-      label: "Volumen (kg)",
-      color: "var(--primary)",
-    },
-  }
+const chartConfig = {
+  volume: {
+    label: 'Volumen',
+    color: 'var(--chart-1)',
+  },
+} satisfies ChartConfig
 
-  // Fill missing days with 0
-  const filledData = DAYS.map((day, index) => {
-    const existing = data.find(d => d.day === day)
+export function WeeklyVolumeChart({ data }: WeeklyVolumeChartProps) {
+  const filledData = DAYS.map((day) => {
+    const existing = data.find((d) => d.day === day)
     return existing || { day, volume: 0 }
   })
 
   return (
-    <Card>
+    <Card className="overflow-hidden border-border/60 shadow-md ring-1 ring-border/40">
       <CardHeader className="pb-2">
-        <CardTitle className="text-base">Volumen Semanal</CardTitle>
+        <CardTitle className="text-base">Volumen semanal</CardTitle>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-[200px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={filledData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <XAxis 
-                dataKey="day" 
-                tickLine={false}
-                axisLine={false}
-                tick={{ fontSize: 12 }}
-              />
-              <YAxis 
-                tickLine={false}
-                axisLine={false}
-                tick={{ fontSize: 12 }}
-                width={50}
-                tickFormatter={(value) => `${(value / 1000).toFixed(1)}t`}
-              />
-              <ChartTooltip 
-                content={<ChartTooltipContent />}
-                formatter={(value: number) => [`${value.toLocaleString()} kg`, 'Volumen']}
-              />
-              <Bar
-                dataKey="volume"
-                fill="var(--primary)"
-                radius={[4, 4, 0, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
+        <ChartContainer config={chartConfig} className="aspect-auto h-[220px] w-full min-h-[200px]">
+          <BarChart
+            accessibilityLayer
+            data={filledData}
+            margin={{ left: 12, right: 12, top: 8, bottom: 0 }}
+          >
+            <CartesianGrid vertical={false} />
+            <XAxis
+              dataKey="day"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+            />
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              width={52}
+              tickFormatter={(value) => `${(value / 1000).toFixed(1)} t`}
+            />
+            <ChartTooltip
+              cursor={false}
+              content={
+                <ChartTooltipContent
+                  indicator="dot"
+                  formatter={(value) => {
+                    const n = typeof value === 'number' ? value : Number(value)
+                    const safe = Number.isFinite(n) ? n : 0
+                    return (
+                      <span className="text-foreground font-mono font-medium tabular-nums">
+                        {safe.toLocaleString('es-ES')} kg
+                      </span>
+                    )
+                  }}
+                />
+              }
+            />
+            <Bar
+              name={chartConfig.volume.label}
+              dataKey="volume"
+              fill="var(--color-volume)"
+              radius={[6, 6, 0, 0]}
+              maxBarSize={48}
+            />
+          </BarChart>
         </ChartContainer>
       </CardContent>
     </Card>

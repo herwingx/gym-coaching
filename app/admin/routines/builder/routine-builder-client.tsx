@@ -16,8 +16,9 @@ import {
   Sparkles,
   Lightbulb,
   Loader2,
+  Dumbbell,
 } from 'lucide-react'
-import { Switch } from '@/components/ui/switch'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { FieldGroup, Field, FieldLabel } from '@/components/ui/field'
 import { saveRoutineFromBuilder, updateRoutineFromBuilder } from '@/app/actions/routine-builder'
 import { toast } from 'sonner'
@@ -152,9 +153,18 @@ export function RoutineBuilderClient({
     setActiveDayId(null)
   }
 
-  const toggleRestDay = (dayId: string) => {
-    setDays(
-      days.map((d) => (d.id === dayId ? { ...d, isRestDay: !d.isRestDay, exercises: [] } : d)),
+  const setDayKind = (dayId: string, kind: 'train' | 'rest') => {
+    setDays((prev) =>
+      prev.map((d) => {
+        if (d.id !== dayId) return d
+        const nextRest = kind === 'rest'
+        if (d.isRestDay === nextRest) return d
+        return {
+          ...d,
+          isRestDay: nextRest,
+          exercises: nextRest ? [] : d.exercises,
+        }
+      }),
     )
   }
 
@@ -389,19 +399,50 @@ export function RoutineBuilderClient({
                         </CardDescription>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/30 px-3 py-2">
-                      <Switch
-                        checked={!day.isRestDay}
-                        onCheckedChange={() => toggleRestDay(day.id)}
-                        id={`train-${day.id}`}
-                        aria-label={day.isRestDay ? 'Marcar como día de entreno' : 'Marcar como descanso'}
-                      />
-                      <label
-                        htmlFor={`train-${day.id}`}
-                        className="cursor-pointer text-xs font-medium text-foreground sm:text-sm"
+                    <div className="flex w-full flex-col gap-1.5 sm:w-auto sm:items-end">
+                      <p
+                        id={`day-kind-label-${day.id}`}
+                        className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
                       >
-                        {day.isRestDay ? 'Día de descanso' : 'Día de entreno'}
-                      </label>
+                        Tipo de día
+                      </p>
+                      <ToggleGroup
+                        type="single"
+                        value={day.isRestDay ? 'rest' : 'train'}
+                        onValueChange={(v) => {
+                          if (v === 'train' || v === 'rest') setDayKind(day.id, v)
+                        }}
+                        variant="outline"
+                        size="sm"
+                        rovingFocus={false}
+                        className="flex w-full rounded-xl border border-border/80 bg-muted/25 p-1 shadow-none sm:w-auto"
+                        aria-labelledby={`day-kind-label-${day.id}`}
+                      >
+                        <ToggleGroupItem
+                          value="train"
+                          className={cn(
+                            'min-h-10 flex-1 gap-2 rounded-lg border-0 px-3 py-2 text-xs font-semibold shadow-none sm:flex-initial sm:text-sm',
+                            'data-[state=on]:bg-primary data-[state=on]:text-primary-foreground',
+                            'data-[state=off]:text-muted-foreground',
+                          )}
+                          aria-label="Marcar como día de entreno"
+                        >
+                          <Dumbbell className="opacity-90" data-icon="inline-start" />
+                          Entreno
+                        </ToggleGroupItem>
+                        <ToggleGroupItem
+                          value="rest"
+                          className={cn(
+                            'min-h-10 flex-1 gap-2 rounded-lg border-0 px-3 py-2 text-xs font-semibold shadow-none sm:flex-initial sm:text-sm',
+                            'data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:ring-2 data-[state=on]:ring-ring/60',
+                            'data-[state=off]:text-muted-foreground',
+                          )}
+                          aria-label="Marcar como día de descanso"
+                        >
+                          <Moon className="opacity-90" data-icon="inline-start" />
+                          Descanso
+                        </ToggleGroupItem>
+                      </ToggleGroup>
                     </div>
                   </div>
                 </CardHeader>

@@ -6,6 +6,19 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { randomUUID } from 'crypto'
 
+async function syncClientPlanDatesFromPayment(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  clientId: string,
+  fields: { period_start?: string | null; period_end?: string | null; plan_id?: string | null },
+) {
+  const clientUpdate: Record<string, unknown> = {}
+  if (fields.period_start) clientUpdate.membership_start = fields.period_start
+  if (fields.period_end) clientUpdate.membership_end = fields.period_end
+  if (fields.plan_id) clientUpdate.current_plan_id = fields.plan_id
+  if (Object.keys(clientUpdate).length === 0) return
+  await supabase.from('clients').update(clientUpdate).eq('id', clientId)
+}
+
 export async function registerPayment(formData: FormData) {
   const user = await getAuthUser()
   const profile = await getUserProfile()
@@ -45,20 +58,16 @@ export async function registerPayment(formData: FormData) {
     throw new Error(error.message)
   }
 
-  // Actualizar vencimiento del cliente según el pago
-  if (periodEnd || periodStart || planId) {
-    const clientUpdate: Record<string, unknown> = {}
-    if (periodStart) clientUpdate.membership_start = periodStart
-    if (periodEnd) clientUpdate.membership_end = periodEnd
-    if (planId) clientUpdate.current_plan_id = planId
-    if (Object.keys(clientUpdate).length > 0) {
-      await supabase.from('clients').update(clientUpdate).eq('id', clientId)
-    }
-  }
+  await syncClientPlanDatesFromPayment(supabase, clientId, {
+    period_start: periodStart || null,
+    period_end: periodEnd || null,
+    plan_id: planId || null,
+  })
 
   revalidatePath('/admin/payments')
   revalidatePath('/admin/clients')
   revalidatePath(`/admin/clients/${clientId}`)
+  revalidatePath('/admin/dashboard')
   redirect('/admin/payments')
 }
 
@@ -72,6 +81,17 @@ export async function markPaymentAsPaid(paymentId: string) {
 
   const supabase = await createClient()
 
+  const { data: existing, error: fetchErr } = await supabase
+    .from('payments')
+    .select('client_id, period_start, period_end, plan_id')
+    .eq('id', paymentId)
+    .maybeSingle()
+
+  if (fetchErr || !existing?.client_id) {
+    if (fetchErr) console.error('markPaymentAsPaid fetch', fetchErr)
+    throw new Error(fetchErr?.message || 'Pago no encontrado')
+  }
+
   const { error } = await supabase
     .from('payments')
     .update({
@@ -83,6 +103,17 @@ export async function markPaymentAsPaid(paymentId: string) {
     console.error('Error marking payment as paid:', error)
     throw new Error(error.message)
   }
+
+  await syncClientPlanDatesFromPayment(supabase, existing.client_id, {
+    period_start: existing.period_start,
+    period_end: existing.period_end,
+    plan_id: existing.plan_id,
+  })
+
+  revalidatePath('/admin/payments')
+  revalidatePath('/admin/clients')
+  revalidatePath(`/admin/clients/${existing.client_id}`)
+  revalidatePath('/admin/dashboard')
 
   return { success: true }
 }
@@ -112,6 +143,16 @@ export async function updatePayment(
     return { success: true }
   }
 
+  const { data: before, error: fetchErr } = await supabase
+    .from('payments')
+    .select('client_id, paid_at, period_start, period_end, plan_id')
+    .eq('id', paymentId)
+    .maybeSingle()
+
+  if (fetchErr || !before?.client_id) {
+    return { success: false, error: fetchErr?.message || 'Pago no encontrado' }
+  }
+
   const { error } = await supabase
     .from('payments')
     .update(updatePayload)
@@ -122,7 +163,22 @@ export async function updatePayment(
     return { success: false, error: error.message }
   }
 
+  const paidAt = (updatePayload.paid_at as string | undefined) ?? before.paid_at
+  if (paidAt) {
+    const periodStart = (updatePayload.period_start as string | undefined) ?? before.period_start
+    const periodEnd = (updatePayload.period_end as string | undefined) ?? before.period_end
+    const planId = (updatePayload.plan_id as string | undefined) ?? before.plan_id
+    await syncClientPlanDatesFromPayment(supabase, before.client_id, {
+      period_start: periodStart,
+      period_end: periodEnd,
+      plan_id: planId,
+    })
+  }
+
   revalidatePath('/admin/payments')
+  revalidatePath('/admin/clients')
+  revalidatePath(`/admin/clients/${before.client_id}`)
+  revalidatePath('/admin/dashboard')
   return { success: true }
 }
 

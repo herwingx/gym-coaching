@@ -4,11 +4,12 @@ import { redirect } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { ArrowLeft, CalendarDays, Pencil, Sparkles } from 'lucide-react'
+import { CalendarDays, Pencil, Sparkles } from 'lucide-react'
 import { DeleteRoutineButton } from './delete-routine-button'
 import { createClient } from '@/lib/supabase/server'
 import { Badge } from '@/components/ui/badge'
 import { RoutineDayCards } from '@/components/routines/routine-day-cards'
+import { AdminPageHeader } from '@/components/admin/admin-page-header'
 
 type RoutineDayRow = { is_rest_day: boolean }
 
@@ -64,33 +65,28 @@ export default async function RoutineDetailsPage({ params }: Props) {
 
   return (
     <div className="bg-background">
-      <header className="border-b">
-        <div className="container flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex min-w-0 items-center gap-4">
-            <Button variant="ghost" size="icon" asChild>
-              <Link href="/admin/routines">
-                <ArrowLeft className="w-4 h-4" />
-              </Link>
-            </Button>
-            <div className="min-w-0">
-              <h1 className="truncate text-2xl font-bold">{routine.name}</h1>
-              <div className="mt-1 flex flex-wrap items-center gap-2">
-                <Badge variant="secondary">{routine.level || 'Nivel libre'}</Badge>
-                <Badge variant="outline">{routine.goal || 'Objetivo general'}</Badge>
-              </div>
-            </div>
+      <AdminPageHeader
+        title={routine.name}
+        backHref="/admin/routines"
+        backLabel="Volver a rutinas"
+        description={
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="secondary">{routine.level || 'Nivel libre'}</Badge>
+            <Badge variant="outline">{routine.goal || 'Objetivo general'}</Badge>
           </div>
-          <div className="flex items-center gap-2 self-end sm:self-auto">
-            <Button asChild>
+        }
+        actions={
+          <>
+            <Button asChild className="w-full sm:w-auto">
               <Link href={`/admin/routines/${routineId}/edit`}>
-                <Pencil className="w-4 h-4 mr-2" />
+                <Pencil className="mr-2 size-4" />
                 Editar
               </Link>
             </Button>
             <DeleteRoutineButton routineId={routineId} routineName={routine.name} />
-          </div>
-        </div>
-      </header>
+          </>
+        }
+      />
 
       <main className="container py-6 sm:py-8">
         <div className="grid gap-6">

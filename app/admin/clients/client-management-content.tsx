@@ -42,6 +42,7 @@ import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { getGoalLabel } from '@/lib/constants'
+import { AdminClientStatusBadge } from '@/components/admin/admin-client-status-badge'
 
 const CLIENT_STATUS_LABELS: Record<string, string> = {
   active: 'Activo',
@@ -64,6 +65,9 @@ export type ClientManagementCard = {
   experienceLevel?: string | null
   lastSessionAt?: string | null
   daysSinceLastSession?: number | null
+  /** period_end del pago pagado más reciente (para contrastar con membership_end). */
+  latestPaidPeriodEnd?: string | null
+  membershipVsLastPaymentMismatch?: boolean
   planName?: string | null
   assignedRoutineName?: string | null
   createdAt: string
@@ -128,6 +132,21 @@ export function ClientManagementContent({ clients: initialClients }: ClientManag
     }
   }
 
+  function formatLastWorkoutLabel(client: ClientManagementCard) {
+    if (!client.lastSessionAt) return { primary: 'Nunca' as const, secondary: null as string | null }
+    const d = client.daysSinceLastSession
+    let primary: string
+    if (d === 0) primary = 'Hoy'
+    else if (d === 1) primary = 'Ayer'
+    else if (d != null && d < 7) primary = `Hace ${d} días`
+    else primary = format(new Date(client.lastSessionAt), 'd MMM yyyy', { locale: es })
+    const secondary =
+      d != null && d < 7
+        ? format(new Date(client.lastSessionAt), "EEE d MMM · HH:mm", { locale: es })
+        : null
+    return { primary, secondary }
+  }
+
   const handleStatusChange = async (clientId: string, userId: string | null | undefined, newStatus: string) => {
     try {
       const result = await updateClientStatus(clientId, newStatus)
@@ -142,22 +161,6 @@ export function ClientManagementContent({ clients: initialClients }: ClientManag
     } catch (error) {
       toast.error('No pudimos cambiar el estado. Revisa tu conexión.')
     }
-  }
-
-  const getStatusBadge = (status: string) => {
-    const config: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; className?: string }> = {
-      active: { label: 'Activo', variant: 'default', className: 'bg-success/15 text-success border-success/30' },
-      expired: { label: 'Vencido', variant: 'destructive' },
-      suspended: { label: 'Suspendido', variant: 'outline', className: 'border-amber-500/50 text-amber-700 dark:text-amber-400' },
-      inactive: { label: 'Inactivo', variant: 'secondary' },
-      pending: { label: 'Pendiente', variant: 'outline', className: 'border-primary/50 text-primary' },
-    }
-    const { label, className } = config[status.toLowerCase()] ?? { label: status, className: '' }
-    return (
-      <Badge variant="outline" className={className}>
-        {label}
-      </Badge>
-    )
   }
 
   return (
@@ -206,6 +209,7 @@ export function ClientManagementContent({ clients: initialClients }: ClientManag
             </div>
           ) : (
             filteredClients.map((client) => {
+              const lastWorkout = formatLastWorkoutLabel(client)
               const menuSections: AdminCardMenuSection[] = [
                 {
                   items: [
@@ -265,7 +269,7 @@ export function ClientManagementContent({ clients: initialClients }: ClientManag
                     </div>
                   </div>
                   <div className="flex items-center gap-2 mt-3">
-                    {getStatusBadge(client.status)}
+                    <AdminClientStatusBadge status={client.status} />
                     {client.planName && (
                       <Badge variant="secondary" className="font-normal text-[10px] uppercase tracking-wider">
                         {client.planName}
@@ -280,11 +284,14 @@ export function ClientManagementContent({ clients: initialClients }: ClientManag
                         <Dumbbell className="size-3" />
                         Último Entreno
                       </div>
-                      <p className="text-xs font-semibold">
-                        {client.lastSessionAt 
-                          ? format(new Date(client.lastSessionAt), "d MMM", { locale: es })
-                          : 'Nunca'}
-                      </p>
+                      <div className="min-h-0">
+                        <p className="text-xs font-semibold leading-tight">{lastWorkout.primary}</p>
+                        {lastWorkout.secondary ? (
+                          <p className="mt-0.5 text-[10px] capitalize leading-snug text-muted-foreground">
+                            {lastWorkout.secondary}
+                          </p>
+                        ) : null}
+                      </div>
                     </div>
                     <div className="flex flex-col gap-1 rounded-lg border border-muted-foreground/5 bg-muted/30 p-2">
                       <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase font-bold">
@@ -296,8 +303,24 @@ export function ClientManagementContent({ clients: initialClients }: ClientManag
                           ? format(new Date(client.membershipEnd), "d MMM yyyy", { locale: es })
                           : 'Sin fecha'}
                       </p>
+                      {client.latestPaidPeriodEnd ? (
+                        <p className="text-[10px] leading-snug text-muted-foreground">
+                          Último pago: hasta{' '}
+                          {format(new Date(client.latestPaidPeriodEnd), 'd MMM yyyy', { locale: es })}
+                        </p>
+                      ) : null}
                     </div>
                   </div>
+
+                  {client.membershipVsLastPaymentMismatch ? (
+                    <div className="flex items-start gap-2 rounded-lg border border-amber-500/35 bg-amber-500/10 px-2.5 py-2 text-[11px] leading-snug text-amber-950 dark:text-amber-100">
+                      <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden />
+                      <span>
+                        La fecha de la ficha y la del <span className="font-medium">último pago</span> no coinciden.
+                        Actualiza el pago o la ficha para que administración y acceso queden alineados.
+                      </span>
+                    </div>
+                  ) : null}
 
                   {client.goal && (
                     <div className="flex items-center gap-2 px-1 text-xs text-muted-foreground">

@@ -15,8 +15,9 @@ import {
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { assignRoutineToClient } from '@/app/actions/routine-assignment'
-import { ChevronLeft, Dumbbell } from 'lucide-react'
+import { Dumbbell } from 'lucide-react'
 import Link from 'next/link'
+import { AdminPageHeader } from '@/components/admin/admin-page-header'
 
 interface Routine {
   id: string
@@ -59,19 +60,12 @@ export function AssignRoutineForm({ clientId, clientName, routines }: Props) {
 
   return (
     <div className="min-h-dvh bg-background">
-      <header className="border-b bg-background">
-        <div className="container flex items-center gap-4 py-4 sm:py-5">
-          <Button variant="ghost" size="icon" asChild className="size-9 sm:size-10">
-            <Link href={`/admin/clients/${clientId}`}>
-              <ChevronLeft className="size-4" />
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight sm:text-2xl">Asignar rutina</h1>
-            <p className="text-sm text-muted-foreground truncate">{clientName}</p>
-          </div>
-        </div>
-      </header>
+      <AdminPageHeader
+        title="Asignar rutina"
+        description={clientName}
+        backHref={`/admin/clients/${clientId}`}
+        backLabel="Volver al asesorado"
+      />
 
       <main className="container py-8 max-w-2xl">
         <Card>

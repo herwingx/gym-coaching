@@ -12,6 +12,67 @@ interface ProgressionSuggestion {
   reasoning: string
 }
 
+function roundToIncrement(value: number, increment: number) {
+  if (!Number.isFinite(value)) return 0
+  if (increment <= 0) return value
+  return Math.round(value / increment) * increment
+}
+
+export function suggestWeightForTargetReps(args: {
+  estimated1RM?: number | null
+  lastWeight?: number | null
+  lastReps?: number | null
+  targetReps: number
+  incrementKg?: number
+  defaultWeightKg?: number
+}): ProgressionSuggestion {
+  const {
+    estimated1RM,
+    lastWeight,
+    lastReps,
+    targetReps,
+    incrementKg = 2.5,
+    defaultWeightKg = 20,
+  } = args
+
+  if (!targetReps || targetReps <= 0) {
+    return { weight: defaultWeightKg, reps: targetReps, reasoning: 'Objetivo de reps inválido' }
+  }
+
+  if (estimated1RM && estimated1RM > 0) {
+    const base = estimated1RM / (1 + targetReps / 30)
+    const baseRounded = Math.max(roundToIncrement(base, incrementKg), 0)
+
+    if (lastWeight && lastReps && lastWeight > 0) {
+      if (lastReps >= targetReps) {
+        return {
+          weight: roundToIncrement(baseRounded + incrementKg, incrementKg),
+          reps: targetReps,
+          reasoning: 'Basado en tu e1RM y desempeño reciente: sube un poco',
+        }
+      }
+      return {
+        weight: baseRounded,
+        reps: targetReps,
+        reasoning: 'Basado en tu e1RM: mantén para completar reps objetivo',
+      }
+    }
+
+    return { weight: baseRounded, reps: targetReps, reasoning: 'Basado en tu e1RM' }
+  }
+
+  if (lastWeight && lastReps && lastWeight > 0) {
+    const next = lastReps >= targetReps ? lastWeight + incrementKg : lastWeight
+    return {
+      weight: Math.max(roundToIncrement(next, incrementKg), 0),
+      reps: targetReps,
+      reasoning: lastReps >= targetReps ? 'Completaste reps objetivo: sube un poco' : 'Mantén para completar reps objetivo',
+    }
+  }
+
+  return { weight: defaultWeightKg, reps: targetReps, reasoning: 'Sin historial: peso inicial' }
+}
+
 /**
  * Calculates suggested weight for next set based on history and RPE
  * Uses a conservative progression model:
@@ -101,18 +162,55 @@ export function estimateMax(weight: number, reps: number): number {
   return calculate1RM(weight, reps)
 }
 
+/** Best-known lift for PR comparisons (persisted or in-session). */
+export type PRBaseline = { weight: number; reps: number; estimated_1rm: number }
+
 /**
- * Determines if a new PR was achieved
+ * True if this set strictly beats the baseline e1RM, or if there is no baseline yet
+ * (first recorded comparison in this chain).
  */
-export function isPR(
-  newWeight: number,
-  newReps: number,
-  currentPR: { weight: number; reps: number; estimated_1rm: number } | null
+export function isPRBeatingBaseline(
+  weight: number,
+  reps: number,
+  baseline: PRBaseline | null,
 ): boolean {
-  if (!currentPR) return true
-  
-  const newEstimated1RM = calculate1RM(newWeight, newReps)
-  return newEstimated1RM > currentPR.estimated_1rm
+  const newEstimated1RM = calculate1RM(weight, reps)
+  if (!baseline) return true
+  return newEstimated1RM > baseline.estimated_1rm
+}
+
+/** Stronger of two baselines (by e1RM), or whichever is non-null. */
+export function mergePRBaselines(a: PRBaseline | null, b: PRBaseline | null): PRBaseline | null {
+  if (!a) return b
+  if (!b) return a
+  return a.estimated_1rm >= b.estimated_1rm ? a : b
+}
+
+export function prBaselineFromDbRow(
+  row:
+    | {
+        weight_kg: number | null
+        reps: number | null
+        estimated_1rm: number | null
+      }
+    | undefined,
+): PRBaseline | null {
+  if (!row) return null
+  const weight = Number(row.weight_kg ?? 0)
+  const reps = Number(row.reps ?? 0)
+  if (weight <= 0 || reps <= 0) return null
+  let estimated_1rm = Number(row.estimated_1rm ?? 0)
+  if (!Number.isFinite(estimated_1rm) || estimated_1rm <= 0) {
+    estimated_1rm = calculate1RM(weight, reps)
+  }
+  return { weight, reps, estimated_1rm }
+}
+
+/**
+ * Determines if a new PR was achieved (vs stored best only — no in-session dedupe).
+ */
+export function isPR(newWeight: number, newReps: number, currentPR: PRBaseline | null): boolean {
+  return isPRBeatingBaseline(newWeight, newReps, currentPR)
 }
 
 /**

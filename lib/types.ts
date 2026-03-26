@@ -58,6 +58,7 @@ export interface Exercise {
   primary_muscle?: string
   secondary_muscle?: string
   exercise_type?: string
+  uses_external_load?: boolean
   equipment?: string
   demo_video_url?: string
   technique_notes?: string

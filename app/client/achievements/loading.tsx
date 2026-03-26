@@ -1,22 +1,14 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ClientStackPageHeaderSkeleton } from '@/components/client/client-data-pages-skeleton'
+import { CLIENT_DATA_PAGE_SHELL } from '@/components/client/client-app-page-parts'
 
 export default function AchievementsLoading() {
   return (
-    <div
-      className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-6 sm:px-6 lg:px-8 pb-12"
-      aria-busy="true"
-      aria-label="Cargando progreso"
-    >
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-          <Skeleton className="h-9 w-[7.5rem] rounded-xl" />
-          <div className="min-w-0 flex-1 space-y-2">
-            <Skeleton className="h-8 w-[min(100%,20rem)] sm:h-9" />
-            <Skeleton className="h-4 w-full max-w-prose" />
-          </div>
-        </div>
-      </div>
+    <>
+      <ClientStackPageHeaderSkeleton />
+      <div className={CLIENT_DATA_PAGE_SHELL} aria-busy="true" aria-label="Cargando progreso">
+        <div className="flex flex-col gap-8">
 
       <section className="flex flex-col gap-4" aria-hidden>
         <Card className="overflow-hidden border-muted/70 shadow-none">
@@ -68,7 +60,7 @@ export default function AchievementsLoading() {
             <Card key={i} className="border-muted/70 shadow-none">
               <CardContent className="flex flex-col items-center gap-4 p-6">
                 <Skeleton className="size-16 rounded-2xl" />
-                <Skeleton className="h-4 w-full max-w-[12rem]" />
+                <Skeleton className="h-4 w-full max-w-48" />
                 <Skeleton className="h-3 w-24" />
               </CardContent>
             </Card>
@@ -101,6 +93,8 @@ export default function AchievementsLoading() {
           ))}
         </div>
       </div>
-    </div>
+        </div>
+      </div>
+    </>
   )
 }

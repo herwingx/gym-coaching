@@ -20,8 +20,8 @@ function InboxAsideSkeleton() {
           <li key={i} className="flex items-center gap-3 px-2 py-3">
             <Skeleton className="size-11 shrink-0 rounded-full" />
             <div className="min-w-0 flex-1 space-y-2">
-              <Skeleton className="h-4 w-3/4 max-w-[10rem]" />
-              <Skeleton className="h-3 w-full max-w-[12rem]" />
+              <Skeleton className="h-4 w-3/4 max-w-40" />
+              <Skeleton className="h-3 w-full max-w-48" />
             </div>
           </li>
         ))}
@@ -42,7 +42,6 @@ function ThreadPaneSkeleton({ showAdminMobileChrome }: { showAdminMobileChrome?:
         ) : (
           <>
             <Skeleton className="size-9 shrink-0 rounded-md md:hidden" />
-            <Skeleton className="hidden size-9 shrink-0 rounded-md sm:flex" />
           </>
         )}
         <Skeleton className="size-11 shrink-0 rounded-full" />

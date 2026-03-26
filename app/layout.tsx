@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from 'sonner'
 import { PWASetup } from '@/components/pwa-setup'
+import { PWAInstallCTA } from '@/components/pwa-install-cta'
 import './globals.css'
 
 const geist = Geist({ 
@@ -30,8 +31,7 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/icon-light-32x32.png', media: '(prefers-color-scheme: light)' },
-      { url: '/icon-dark-32x32.png', media: '(prefers-color-scheme: dark)' },
+      { url: '/icon.png', sizes: '32x32', type: 'image/png' },
       { url: '/icon.svg', type: 'image/svg+xml' },
     ],
     apple: '/apple-icon.png',
@@ -93,6 +93,7 @@ export default function RootLayout({
             }}
           />
           <PWASetup />
+          <PWAInstallCTA />
         </ThemeProvider>
         <Analytics />
       </body>

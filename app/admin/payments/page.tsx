@@ -7,6 +7,7 @@ import { Plus, CreditCard, Hourglass, ClipboardList } from 'lucide-react'
 import { AdminKpiStatCard } from '@/components/admin/admin-kpi-stat-card'
 import { createClient } from '@/lib/supabase/server'
 import { PaymentCardsClient, type PaymentCardItem } from './payment-cards-client'
+import { AdminPageHeader } from '@/components/admin/admin-page-header'
 
 type PaymentQueryRow = {
   id: string
@@ -79,11 +80,7 @@ export default async function AdminPaymentsPage() {
 
   return (
     <div className="bg-background">
-      <header className="sticky top-0 z-40 border-b bg-background safe-area-header-pt">
-        <div className="container py-4">
-          <h1 className="text-2xl font-bold">Pagos y Membresías</h1>
-        </div>
-      </header>
+      <AdminPageHeader sticky title="Pagos y Membresías" />
 
       <main className="container py-8">
         <div className="grid gap-6">
