@@ -1,5 +1,6 @@
 'use client'
 
+// Triggering re-build for chunkload fix
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -8,7 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { toast } from 'sonner'
 import { getNextWorkoutDay, suggestProgressionWeekly } from '@/app/actions/routine-assignment'
-import { CheckCircle2, ChevronRight, TrendingUp, Info } from 'lucide-react'
+import { CheckCircle2, ChevronRight, TrendingUp, Info, Dumbbell } from 'lucide-react'
 import Link from 'next/link'
 import { ExerciseDetailDrawer } from '@/components/client/exercise-detail-drawer'
 import { ExerciseMedia } from '@/components/client/exercise-media'
@@ -17,7 +18,7 @@ import {
   CLIENT_DATA_PAGE_SHELL,
   ClientStackPageHeader,
 } from '@/components/client/client-app-page-parts'
-import { Exercise } from '@/lib/types'
+import type { Exercise } from '@/lib/types'
 import {
   Empty,
   EmptyContent,
@@ -26,7 +27,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@/components/ui/empty'
-import { Dumbbell } from 'lucide-react'
+
 
 interface RoutineSummary {
   id: string

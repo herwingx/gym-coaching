@@ -4,11 +4,12 @@ import * as React from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { FieldGroup, Field, FieldLabel } from '@/components/ui/field'
 import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { createInvitationCode } from '@/app/actions/invitations'
-import { UserPlus } from 'lucide-react'
+import { UserPlus, User, ShieldCheck } from 'lucide-react'
 import { toast } from 'sonner'
 
 export function NewInvitationForm() {
@@ -57,23 +58,35 @@ export function NewInvitationForm() {
           <FieldGroup>
             <Field>
               <FieldLabel>Tipo de invitación</FieldLabel>
-              <ToggleGroup
-                type="single"
+              <Tabs
                 value={forRole}
                 onValueChange={(val) => val && setForRole(val)}
-                className="grid w-full grid-cols-1 justify-start gap-2 sm:grid-cols-2 sm:gap-0"
+                className="w-full"
               >
-                <ToggleGroupItem value="client" className="px-4">
-                  Cliente (asesorado)
-                </ToggleGroupItem>
-                <ToggleGroupItem value="admin" className="px-4">
-                  Coach / Admin
-                </ToggleGroupItem>
-              </ToggleGroup>
-              <p className="mt-2 text-xs text-muted-foreground">
+                <ScrollArea className="w-full whitespace-nowrap">
+                  <TabsList className="inline-flex w-auto bg-muted/50 p-1 h-12 rounded-2xl border border-border/40 shadow-sm">
+                    <TabsTrigger
+                      value="client"
+                      className="rounded-xl px-4 py-2 data-[state=active]:shadow-md gap-2 text-xs sm:text-sm"
+                    >
+                      <User className="size-4" />
+                      Cliente (asesorado)
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="admin"
+                      className="rounded-xl px-4 py-2 data-[state=active]:shadow-md gap-2 text-xs sm:text-sm"
+                    >
+                      <ShieldCheck className="size-4" />
+                      Coach / Admin
+                    </TabsTrigger>
+                  </TabsList>
+                  <ScrollBar orientation="horizontal" className="invisible" />
+                </ScrollArea>
+              </Tabs>
+              <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground bg-muted/20 p-2 rounded-lg border border-dashed border-border/60">
                 {forRole === 'admin'
-                  ? 'El código de coach crea otro administrador con acceso completo al panel.'
-                  : 'El código de cliente permite el registro de un nuevo asesorado.'}
+                  ? '🛡️ El código de coach crea otro administrador con acceso completo al panel. Úsalo con cuidado.'
+                  : '👤 El código de cliente permite el registro de un nuevo asesorado en tu base de datos.'}
               </p>
             </Field>
 

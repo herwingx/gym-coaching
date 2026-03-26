@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth-utils'
+import { revalidatePath } from 'next/cache'
 import {
   buildWeeklyProgressionSuggestions,
   type WeeklyLogRow,
@@ -10,6 +11,40 @@ import {
   getNextRoutineDayIndex,
   sortRoutineDaysByDayNumber,
 } from '@/lib/next-routine-day'
+
+export async function restartClientRoutine(clientRoutineId: string) {
+  const user = await getAuthUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const supabase = await createClient()
+
+  // Verify user is admin
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.role !== 'admin') {
+    throw new Error('Only admins can restart routines')
+  }
+
+  // Update client_routines current week/day
+  const { error: updateError } = await supabase
+    .from('client_routines')
+    .update({
+      current_week: 1,
+      current_day_index: 0,
+    })
+    .eq('id', clientRoutineId)
+
+  if (updateError) throw updateError
+  
+  revalidatePath('/admin/dashboard')
+  revalidatePath('/client/dashboard')
+  
+  return { success: true }
+}
 
 export async function assignRoutineToClient(
   clientId: string,
@@ -168,8 +203,8 @@ export async function getNextWorkoutDay(clientRoutineId: string) {
   if (totalWeeks > 0 && clientRoutine.current_week > totalWeeks) {
     return {
       isComplete: true,
-      message: 'Rutina completada! Felicidades!',
-      suggestedAction: 'Puedes repetir la rutina o asignar una nueva',
+      message: '¡Felicidades! Rutina completada 🏆',
+      suggestedAction: `Has completado las ${totalWeeks} semanas de esta rutina. Hemos notificado a tu coach para que revise tu progreso y te asigne el siguiente reto.`,
     }
   }
 

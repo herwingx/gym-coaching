@@ -2,7 +2,7 @@ import { getAuthUser } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/server'
-import { Sparkles, TrendingUp } from 'lucide-react'
+import { Award, Sparkles, TrendingUp } from 'lucide-react'
 import {
   VolumeChartLazy,
   ExerciseProgressChartLazy,
@@ -142,7 +142,22 @@ export default async function ClientProgressPage() {
               </div>
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
-              {strengthInsight.status === 'ok' ? (
+              {strengthInsight.status === 'ok' && strengthInsight.recentMilestone && (
+                <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 sm:p-5 ring-1 ring-primary/10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Award className="size-4 text-primary" />
+                    <p className="text-xs font-bold uppercase tracking-wider text-primary">¡Nuevo Récord!</p>
+                  </div>
+                  <p className="font-semibold leading-snug">
+                    {strengthInsight.recentMilestone.name}: <span className="tabular-nums">{strengthInsight.recentMilestone.weight_kg.toFixed(1)}</span> kg
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Superaste tu mejor marca personal hace poco. ¡Sigue así!
+                  </p>
+                </div>
+              )}
+
+              {strengthInsight.status === 'ok' && strengthInsight.deltaPct > 0 ? (
                 <div className="rounded-xl border border-border/60 bg-muted/15 p-4 sm:p-5">
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Tendencia de carga</p>
                   <p className="mt-2 font-semibold leading-snug">
@@ -150,23 +165,13 @@ export default async function ClientProgressPage() {
                     <span className="font-normal text-muted-foreground"> en ~30 días</span>
                   </p>
                   <p className="mt-2 text-sm text-muted-foreground tabular-nums">
-                    Mediana al inicio del periodo{' '}
-                    <span className="font-medium text-foreground">{strengthInsight.fromKg.toFixed(1)} kg</span> → ahora{' '}
-                    <span className="font-medium text-foreground">{strengthInsight.toKg.toFixed(1)} kg</span>
-                    <span className="sr-only">. {strengthInsight.sampleDays} registros considerados.</span>
-                  </p>
-                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                    Comparamos el bloque inicial vs el final del periodo (medianas) para suavizar un solo día raro.
+                    Mediana inicial <span className="font-medium text-foreground">{strengthInsight.fromKg.toFixed(1)} kg</span> → ahora <span className="font-medium text-foreground">{strengthInsight.toKg.toFixed(1)} kg</span>
                   </p>
                 </div>
-              ) : (
+              ) : strengthInsight.status === 'ok' && strengthInsight.recentMilestone ? null : (
                 <div className="rounded-xl border border-border/60 bg-muted/15 px-4 py-6 text-center sm:text-left">
                   <p className="text-sm text-foreground/90 text-pretty leading-relaxed">
-                    Cuando tengas varios registros del mismo ejercicio en ~30 días, mostraremos la tendencia de carga
-                    (no solo un PR puntual).
-                  </p>
-                  <p className="mt-2 text-sm text-muted-foreground text-pretty leading-relaxed">
-                    Sigue registrando series efectivas en tus entrenos completados.
+                    Cuando tengas varios registros del mismo ejercicio en ~30 días, mostraremos la tendencia de carga.
                   </p>
                 </div>
               )}

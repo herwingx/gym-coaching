@@ -15,6 +15,7 @@ interface ExerciseSelectorDrawerProps {
   onOpenChange: (open: boolean) => void
   exercises: Exercise[]
   onSelectExercises: (selectedIds: string[]) => void
+  loading?: boolean
 }
 
 export function ExerciseSelectorDrawer({
@@ -22,6 +23,7 @@ export function ExerciseSelectorDrawer({
   onOpenChange,
   exercises,
   onSelectExercises,
+  loading = false,
 }: ExerciseSelectorDrawerProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -39,6 +41,7 @@ export function ExerciseSelectorDrawer({
           exercises={exercises}
           onSelectExercises={onSelectExercises}
           onClose={() => onOpenChange(false)}
+          loading={loading}
         />
       </SheetContent>
     </Sheet>

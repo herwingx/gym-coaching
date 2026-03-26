@@ -1,29 +1,21 @@
-import { getAuthUser } from '@/lib/auth-utils'
+import { getAuthData } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { GymSettingsForm } from './gym-settings-form'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Building2, Dumbbell, Globe2, Library } from 'lucide-react'
+import { Building2, Dumbbell, Globe2, Library, User, Settings } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { AdminPageHeader } from '@/components/admin/admin-page-header'
 import { CoachProfileSettings } from '@/components/admin/coach-profile-settings'
 
 export default async function AdminSettingsPage() {
-  const user = await getAuthUser()
+  const { user, role, profile } = await getAuthData()
 
-  if (!user) redirect('/auth/login')
+  if (!user || role !== 'admin') redirect('/auth/login')
 
   const supabase = await createClient()
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role, full_name, avatar_url')
-    .eq('id', user.id)
-    .single()
-
-  if (profile?.role !== 'admin') redirect('/client/dashboard')
 
   const { data: gymSettings } = await supabase
     .from('gym_settings')
@@ -77,11 +69,20 @@ export default async function AdminSettingsPage() {
             </Card>
           </div>
 
-          <Tabs defaultValue="profile" className="flex flex-col gap-4">
-            <TabsList className="grid w-full grid-cols-3 sm:w-fit">
-              <TabsTrigger value="profile">Mi perfil</TabsTrigger>
-              <TabsTrigger value="general">General</TabsTrigger>
-              <TabsTrigger value="biblioteca">Biblioteca</TabsTrigger>
+          <Tabs defaultValue="profile" className="flex flex-col gap-6">
+            <TabsList className="grid grid-cols-3 w-full sm:w-[500px] h-12 p-1 bg-muted/50 rounded-2xl border border-border/40 shadow-sm">
+              <TabsTrigger value="profile" className="rounded-xl px-4 py-2 data-[state=active]:shadow-md gap-2">
+                <User className="size-4" />
+                Mi perfil
+              </TabsTrigger>
+              <TabsTrigger value="general" className="rounded-xl px-4 py-2 data-[state=active]:shadow-md gap-2">
+                <Settings className="size-4" />
+                General
+              </TabsTrigger>
+              <TabsTrigger value="biblioteca" className="rounded-xl px-4 py-2 data-[state=active]:shadow-md gap-2">
+                <Library className="size-4" />
+                Biblioteca
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="profile" className="mt-0">
               <CoachProfileSettings

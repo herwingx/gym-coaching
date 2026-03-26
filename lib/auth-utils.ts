@@ -10,14 +10,25 @@ export async function getAuthUser() {
 }
 
 export async function getUserProfile() {
+  const data = await getAuthData()
+  return data.profile
+}
+
+/**
+ * Combined data to avoid redundant calls to getUser and profiles table.
+ * Next.js 15/16 benefits from fewer sequential awaits in server components.
+ */
+export async function getAuthData() {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) return null
+  if (!user) {
+    return { user: null, role: null, profile: null }
+  }
 
-  const { data, error } = await supabase
+  const { data: profile, error } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
@@ -25,44 +36,31 @@ export async function getUserProfile() {
 
   if (error) {
     console.error('Error fetching profile:', error)
-    return null
   }
 
-  return data
+  let role: UserRole | null = null
+  const fromRow = profile?.role
+  if (fromRow === 'admin' || fromRow === 'client' || fromRow === 'receptionist') {
+    role = fromRow
+  } else {
+    const fromMeta = user.user_metadata?.role
+    if (fromMeta === 'admin' || fromMeta === 'client' || fromMeta === 'receptionist') {
+      role = fromMeta
+    } else {
+      role = 'client'
+    }
+  }
+
+  return { user, role, profile }
 }
 
 /**
- * Rol efectivo alineado con `proxy.ts`: si falla `profiles` (RLS/red), no devolver `null`
+ * Rol efectivo alineado con `middleware.ts`: si falla `profiles` (RLS/red), no devolver `null`
  * o los layouts mandan a `/auth/login` con sesión aún válida → bucles y “logout” fantasma.
  */
 export async function getUserRole(): Promise<UserRole | null> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return null
-
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  const fromRow = data?.role
-  if (fromRow === 'admin' || fromRow === 'client' || fromRow === 'receptionist') {
-    return fromRow
-  }
-
-  const fromMeta = user.user_metadata?.role
-  if (fromMeta === 'admin' || fromMeta === 'client' || fromMeta === 'receptionist') {
-    return fromMeta
-  }
-
-  if (error) {
-    console.error('Error fetching profile role:', error)
-  }
-
-  return 'client'
+  const data = await getAuthData()
+  return data.role
 }
 
 export async function isAdmin(): Promise<boolean> {

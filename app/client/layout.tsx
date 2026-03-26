@@ -1,4 +1,4 @@
-import { getAuthUser, getUserRole } from '@/lib/auth-utils'
+import { getAuthData } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
 import { ClientLayoutShell } from '@/components/client-layout-shell'
 
@@ -7,14 +7,9 @@ export default async function ClientLayout({
 }: {
   children: React.ReactNode
 }) {
-  const user = await getAuthUser()
-  const role = await getUserRole()
+  const { user, role } = await getAuthData()
 
-  if (!user) {
-    redirect('/auth/login')
-  }
-
-  if (role !== 'client') {
+  if (!user || role !== 'client') {
     redirect('/auth/login')
   }
 

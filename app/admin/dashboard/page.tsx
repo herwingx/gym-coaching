@@ -1,4 +1,4 @@
-import { getAuthUser, getUserProfile, getUserRole } from '@/lib/auth-utils'
+import { getAuthData } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { format } from 'date-fns'
@@ -9,15 +9,9 @@ import { CoachOverview } from './coach-overview'
 import { AdminPageHeader } from '@/components/admin/admin-page-header'
 
 export default async function AdminDashboard() {
-  const user = await getAuthUser()
-  const role = await getUserRole()
-  const profile = await getUserProfile()
+  const { user, role, profile } = await getAuthData()
 
-  if (!user) {
-    redirect('/auth/login')
-  }
-
-  if (role !== 'admin') {
+  if (!user || role !== 'admin') {
     redirect('/auth/login')
   }
 

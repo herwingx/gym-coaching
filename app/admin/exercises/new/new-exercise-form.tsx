@@ -15,8 +15,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { createAdminExercise } from '@/app/actions/exercises'
+import { getR2PresignedUrl } from '@/app/actions/r2-storage'
+import { R2_PUBLIC_URL } from '@/lib/r2'
 import { toast } from 'sonner'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Upload } from 'lucide-react'
 
 const PRIMARY_MUSCLES = [
   { value: 'chest', label: 'Pecho' },
@@ -48,6 +50,40 @@ export function NewExerciseForm() {
   const [primaryMuscle, setPrimaryMuscle] = useState<string>('chest')
   const [exerciseType, setExerciseType] = useState<string>('strength')
 
+  // R2 Upload State
+  const [uploadingGif, setUploadingGif] = useState(false)
+  const [gifUrl, setGifUrl] = useState('')
+
+  async function handleGifUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploadingGif(true)
+    try {
+      const ext = file.name.split('.').pop() || 'gif'
+      const path = `exercises/${crypto.randomUUID()}.${ext}`
+      
+      const signedUrl = await getR2PresignedUrl(path, file.type)
+      
+      const res = await fetch(signedUrl, {
+        method: 'PUT',
+        body: file,
+        headers: { 'Content-Type': file.type }
+      })
+
+      if (!res.ok) throw new Error('Error al subir a R2')
+
+      const finalUrl = `${R2_PUBLIC_URL}/${path}`
+      setGifUrl(finalUrl)
+      toast.success('GIF subido a R2 correctamente')
+    } catch (err) {
+      toast.error('Error al subir el GIF')
+      console.error(err)
+    } finally {
+      setUploadingGif(false)
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setPending(true)
@@ -55,6 +91,9 @@ export function NewExerciseForm() {
       const fd = new FormData(e.currentTarget)
       fd.set('primaryMuscle', primaryMuscle)
       fd.set('exerciseType', exerciseType)
+      // Si tenemos URL de R2, la forzamos en el FormData
+      if (gifUrl) fd.set('gifUrl', gifUrl)
+      
       await createAdminExercise(fd)
       toast.success('Ejercicio creado')
       router.push('/admin/exercises')
@@ -135,10 +174,40 @@ export function NewExerciseForm() {
         </Field>
 
         <Field>
-          <FieldLabel htmlFor="ex-gif">URL del GIF (opcional)</FieldLabel>
-          <FieldDescription>Enlace directo a imagen animada; se verá en la ficha como en el entreno.</FieldDescription>
-          <FieldContent>
-            <Input id="ex-gif" name="gifUrl" type="url" className="rounded-xl" placeholder="https://…" />
+          <FieldLabel htmlFor="ex-gif">GIF del ejercicio</FieldLabel>
+          <FieldDescription>Sube un archivo o pega una URL directa.</FieldDescription>
+          <FieldContent className="space-y-3">
+            <div className="flex items-center gap-4">
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="relative rounded-xl overflow-hidden"
+                disabled={uploadingGif}
+              >
+                {uploadingGif ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
+                {gifUrl ? 'Cambiar GIF' : 'Subir a R2'}
+                <input 
+                  type="file" 
+                  accept="image/gif,image/webp" 
+                  className="absolute inset-0 opacity-0 cursor-pointer" 
+                  onChange={handleGifUpload}
+                />
+              </Button>
+              {gifUrl && (
+                <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                  ✓ {gifUrl.split('/').pop()}
+                </span>
+              )}
+            </div>
+            <Input 
+              id="ex-gif" 
+              name="gifUrl" 
+              type="url" 
+              className="rounded-xl" 
+              placeholder="https://... o sube uno arriba" 
+              value={gifUrl}
+              onChange={(e) => setGifUrl(e.target.value)}
+            />
           </FieldContent>
         </Field>
 

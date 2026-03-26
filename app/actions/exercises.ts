@@ -56,3 +56,28 @@ export async function createAdminExercise(formData: FormData) {
 
   return { id: data.id as string }
 }
+
+export async function getExercisesForSelector() {
+  const supabase = await createClient()
+
+  // Fetch all exercises (handling 1000 row limit)
+  let allExercises: any[] = []
+  let from = 0
+  let to = 999
+  
+  while (true) {
+    const { data, error } = await supabase
+      .from('exercises')
+      .select('id, name, gif_url, body_parts, target_muscles, equipments, primary_muscle, exercise_type, equipment')
+      .order('name')
+      .range(from, to)
+    
+    if (error || !data || data.length === 0) break
+    allExercises = [...allExercises, ...data]
+    if (data.length < 1000) break
+    from += 1000
+    to += 1000
+  }
+
+  return allExercises
+}

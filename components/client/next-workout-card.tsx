@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Play, Dumbbell, Clock, ChevronRight } from "lucide-react"
+import { Play, Dumbbell, Clock, ChevronRight, Trophy } from "lucide-react"
 import Link from "next/link"
 import type { RoutineDay, RoutineExercise } from "@/lib/types"
 
@@ -17,13 +17,34 @@ interface NextWorkoutCardProps {
   routineName?: string
   /** True cuando hay rutina activa pero aún no hay `routineDay` (no confundir con “sin rutina”). */
   hasAssignedRoutine?: boolean
+  isRoutineCompleted?: boolean
 }
 
 export function NextWorkoutCard({
   routineDay,
   routineName,
   hasAssignedRoutine,
+  isRoutineCompleted,
 }: NextWorkoutCardProps) {
+  if (isRoutineCompleted) {
+    return (
+      <Card className="overflow-hidden border-success/30 shadow-sm bg-gradient-to-br from-success/15 via-background to-background">
+        <CardContent className="p-8 sm:p-10 text-center flex flex-col items-center">
+          <div className="size-16 rounded-full bg-success/20 ring-4 ring-success/10 flex items-center justify-center mb-6">
+            <Trophy className="size-8 text-success" />
+          </div>
+          <h3 className="text-xl sm:text-2xl font-bold mb-3 text-foreground tracking-tight">¡Felicidades! Rutina completada</h3>
+          <p className="text-base text-muted-foreground max-w-md text-balance mb-8">
+            Has completado todas las semanas de esta rutina. Hemos notificado a tu coach para que revise tu progreso y te asigne el siguiente reto.
+          </p>
+          <Button variant="outline" className="font-medium" asChild>
+            <Link href="/client/routines">Ver resumen de rutina</Link>
+          </Button>
+        </CardContent>
+      </Card>
+    )
+  }
+
   if (!routineDay) {
     if (hasAssignedRoutine) {
       return (

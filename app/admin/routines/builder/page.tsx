@@ -20,11 +20,6 @@ export default async function BuilderPage() {
 
   if (profile?.role !== 'admin') redirect('/client/dashboard')
 
-  const { data: exercises } = await supabase
-    .from('exercises')
-    .select('*')
-    .order('name')
-
   return (
     <div className="min-h-dvh bg-background">
       <AdminPageHeader
@@ -36,7 +31,7 @@ export default async function BuilderPage() {
       />
 
       <main className="container py-8">
-        <RoutineBuilderLazy exercises={exercises || []} />
+        <RoutineBuilderLazy />
       </main>
     </div>
   )

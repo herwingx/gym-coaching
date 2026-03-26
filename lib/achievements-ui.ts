@@ -73,6 +73,20 @@ export function achievementCategoryLabel(cat: Achievement['category']): string {
 }
 
 /** Copy for milestone emphasis (replaces “rarity / épico” tone). */
+export function achievementRarityColor(rarity: Achievement['rarity'] | undefined): string {
+  switch (rarity) {
+    case 'legendary':
+      return 'from-amber-400 to-orange-600'
+    case 'epic':
+      return 'from-purple-500 to-indigo-600'
+    case 'rare':
+      return 'from-blue-400 to-blue-600'
+    case 'common':
+    default:
+      return 'from-slate-400 to-slate-600'
+  }
+}
+
 export function achievementMilestoneBadgeLabel(rarity: Achievement['rarity'] | undefined): string {
   switch (rarity) {
     case 'legendary':

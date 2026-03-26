@@ -77,6 +77,7 @@ export async function uploadProfileAvatar(
   const { error: upErr } = await supabase.storage.from(PROFILE_AVATAR_BUCKET).upload(path, file, {
     contentType: mime,
     cacheControl: '3600',
+    upsert: true,
   })
 
   if (upErr) {
@@ -85,5 +86,9 @@ export async function uploadProfileAvatar(
   }
 
   const { data: pub } = supabase.storage.from(PROFILE_AVATAR_BUCKET).getPublicUrl(path)
-  return { ok: true, publicUrl: pub.publicUrl, path }
+  
+  // Agregar un timestamp para evitar que el navegador muestre la imagen cacheada anterior
+  const publicUrlWithTimestamp = `${pub.publicUrl}?v=${Date.now()}`
+  
+  return { ok: true, publicUrl: publicUrlWithTimestamp, path }
 }

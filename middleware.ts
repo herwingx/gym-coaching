@@ -57,7 +57,7 @@ function redirectPreservingSupabaseCookies(
   return redirect
 }
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   // API de validación de invitaciones: pasar directo para evitar latencia
   if (request.nextUrl.pathname === '/api/invitations/validate') {
     return NextResponse.next({ request })
@@ -164,6 +164,14 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|manifest\\.json|sw\\.js|offline\\.html|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api/auth (auth handles its own redirect/cookies)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public (manifest, sw, offline.html, icons)
+     */
+    '/((?!api/auth|_next/static|_next/image|favicon.ico|manifest\\.json|sw\\.js|offline\\.html|icons/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

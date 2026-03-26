@@ -73,11 +73,6 @@ export default async function EditRoutinePage({ params }: Props) {
     redirect('/admin/routines')
   }
 
-  const { data: exercises } = await admin
-    .from('exercises')
-    .select('*')
-    .order('name')
-
   const dayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
   const existingDays: RoutineDayRow[] = ((routine.routine_days ?? []) as RoutineDayRow[])
     .slice()
@@ -129,7 +124,6 @@ export default async function EditRoutinePage({ params }: Props) {
 
       <main className="container py-8">
         <RoutineBuilderClient
-          exercises={exercises || []}
           routineId={routineId}
           initialData={builderInitialData}
         />

@@ -47,6 +47,8 @@ import {
 import { ClientStackPageHeader } from "@/components/client/client-app-page-parts"
 import { cn } from "@/lib/utils"
 import { exerciseUsesExternalLoad } from "@/lib/exercise-tracking"
+import { AchievementUnlockModal } from "@/components/client/achievement-unlock-modal"
+import type { Achievement } from "@/lib/types"
 
 function formatElapsed(totalSeconds: number) {
   const s = Math.max(0, totalSeconds)
@@ -120,6 +122,7 @@ export function WorkoutActiveSession({
   const [elapsedSec, setElapsedSec] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
   const [isFinishing, setIsFinishing] = useState(false)
+  const [newlyUnlocked, setNewlyUnlocked] = useState<Achievement[]>([])
   const [workoutNote, setWorkoutNote] = useState("")
   const [jumpTargetIndex, setJumpTargetIndex] = useState<number | null>(null)
 
@@ -521,7 +524,12 @@ export function WorkoutActiveSession({
         description: `${duration} min · ${Math.round(totalVolume)} kg volumen · ${result.stats?.prsCount ?? 0} PRs`,
       })
 
-      router.push(`/client/workout/summary?sessionId=${result.sessionId}`)
+      if (result.stats?.newAchievements && result.stats.newAchievements.length > 0) {
+        sessionStorage.setItem('last_session_id', result.sessionId)
+        setNewlyUnlocked(result.stats.newAchievements as Achievement[])
+      } else {
+        router.push(`/client/workout/summary?sessionId=${result.sessionId}`)
+      }
     } catch (err) {
       toast.error("Error inesperado guardando el entrenamiento")
       console.error(err)
@@ -1301,6 +1309,17 @@ export function WorkoutActiveSession({
         onOpenChange={setDetailOpen}
         exercise={selectedExercise}
         variant="compact"
+      />
+
+      <AchievementUnlockModal
+        achievements={newlyUnlocked}
+        onClose={() => {
+          const sessionId = sessionStorage.getItem('last_session_id')
+          setNewlyUnlocked([])
+          if (sessionId) {
+            router.push(`/client/workout/summary?sessionId=${sessionId}`)
+          }
+        }}
       />
     </div>
   )

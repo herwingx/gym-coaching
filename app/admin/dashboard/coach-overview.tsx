@@ -1,5 +1,6 @@
 import { getAuthUser, getUserRole } from '@/lib/auth-utils'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { COACH_OVERVIEW_SESSIONS_CAP } from '@/lib/performance-limits'
 import { fetchLatestCompletedSessionByClients } from '@/lib/admin-client-rollups'
 import { diffWholeDaysFromNow } from '@/lib/calendar-date'
@@ -44,6 +45,10 @@ export type CoachClientCard = {
   prStalled30d?: boolean
   needsAttention?: boolean
   attentionReason?: string | null
+  isRoutineCompleted?: boolean
+  clientRoutineId?: string | null
+  currentWeek?: number | null
+  durationWeeks?: number | null
 }
 
 type ClientDbRow = {
@@ -127,15 +132,15 @@ export async function CoachOverview() {
   }
 
   // Rutina activa por cliente desde client_routines
-  const routineByClient = new Map<string, string>()
+  const routineByClient = new Map<string, { id: string; routine_id: string; current_week: number }>()
   if (clientIds.length > 0) {
     const { data: crData } = await supabase
       .from('client_routines')
-      .select('client_id, routine_id')
+      .select('id, client_id, routine_id, current_week')
       .in('client_id', clientIds)
       .eq('is_active', true)
     for (const cr of crData || []) {
-      routineByClient.set(cr.client_id, cr.routine_id)
+      routineByClient.set(cr.client_id, { id: cr.id, routine_id: cr.routine_id, current_week: cr.current_week ?? 1 })
     }
   }
 
@@ -147,7 +152,9 @@ export async function CoachOverview() {
     status: c.status,
     last_session_at: c.last_session_at,
     plan_name: c.current_plan_id ? plansById.get(c.current_plan_id) ?? null : null,
-    assigned_routine_id: routineByClient.get(c.id) ?? null,
+    assigned_routine_id: routineByClient.get(c.id)?.routine_id ?? null,
+    client_routine_id: routineByClient.get(c.id)?.id ?? null,
+    current_week: routineByClient.get(c.id)?.current_week ?? 1,
   }))
   if (clientsSummary.length === 0) {
     return (
@@ -164,7 +171,8 @@ export async function CoachOverview() {
   const userIds = clientsSummary.map((c) => c.user_id).filter(Boolean)
   const profilesByUserId = new Map<string, { streak_days?: number | null; last_workout_at?: string | null }>()
   if (userIds.length > 0) {
-    const { data: profiles } = await supabase
+    const adminClient = createAdminClient()
+    const { data: profiles } = await adminClient
       .from('profiles')
       .select('id, streak_days, last_workout_at')
       .in('id', userIds)
@@ -181,14 +189,14 @@ export async function CoachOverview() {
   const routineIds = Array.from(
     new Set(clientsSummary.map((c) => c.assigned_routine_id).filter(Boolean)),
   )
-  const routinesById = new Map<string, { name: string; daysPerWeek: number | null }>()
+  const routinesById = new Map<string, { name: string; daysPerWeek: number | null; durationWeeks: number | null }>()
   if (routineIds.length > 0) {
     const { data: routines } = await supabase
       .from('routines')
-      .select('id, name, days_per_week')
+      .select('id, name, days_per_week, duration_weeks')
       .in('id', routineIds)
     for (const r of routines || []) {
-      routinesById.set(r.id, { name: r.name, daysPerWeek: r.days_per_week ?? null })
+      routinesById.set(r.id, { name: r.name, daysPerWeek: r.days_per_week ?? null, durationWeeks: r.duration_weeks ?? null })
     }
   }
 
@@ -405,6 +413,8 @@ export async function CoachOverview() {
     const isActive = c.status === 'active'
 
     const routineMeta = c.assigned_routine_id ? routinesById.get(c.assigned_routine_id) : undefined
+    const isRoutineCompleted = !!(routineMeta?.durationWeeks && c.current_week > routineMeta.durationWeeks)
+
     const expectedPerWeek = routineMeta?.daysPerWeek ?? null
     const doneLast7 = sessionsList.filter((s) => {
       if (s.client_id !== c.id) return false
@@ -423,7 +433,8 @@ export async function CoachOverview() {
     const prStalled30d = prEvents30d === 0
 
     let attentionReason: string | null = null
-    if (isPending) attentionReason = 'Falta registro'
+    if (isRoutineCompleted) attentionReason = 'Rutina completada'
+    else if (isPending) attentionReason = 'Falta registro'
     else if (isExpired) attentionReason = 'Plan vencido'
     else if (isSuspended) attentionReason = 'Suspendido'
     else if (isActive) {
@@ -455,6 +466,10 @@ export async function CoachOverview() {
       prStalled30d,
       needsAttention,
       attentionReason,
+      isRoutineCompleted,
+      clientRoutineId: (c as any).client_routine_id,
+      currentWeek: c.current_week,
+      durationWeeks: routineMeta?.durationWeeks ?? null,
     }
   })
 
@@ -465,9 +480,10 @@ export async function CoachOverview() {
   
   if (attentionCandidates.length > 0) {
     // Prioridad de atención: 
-    // 1. Expired, 2. No routine, 3. Inactivo +7d, 4. Pending
+    // 0. Routine Completed, 1. Expired, 2. No routine, 3. Inactivo +7d, 4. Pending
     const sorted = [...attentionCandidates].sort((a, b) => {
       const getScore = (c: CoachClientCard) => {
+        if (c.attentionReason === 'Rutina completada') return 5
         if (c.status === 'expired') return 4
         if (c.status === 'active' && !c.assignedRoutineId) return 3
         if (c.status === 'active' && c.daysSinceLastSession != null && c.daysSinceLastSession >= 7) return 2

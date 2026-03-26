@@ -61,6 +61,19 @@ export default async function WorkoutStartPage() {
     redirect('/client/dashboard')
   }
 
+  // Check if routine is completed
+  const { data: activeLink } = await supabase
+    .from('client_routines')
+    .select('current_week')
+    .eq('client_id', client.id)
+    .eq('routine_id', routineId)
+    .eq('is_active', true)
+    .maybeSingle()
+
+  if (activeLink && routine.duration_weeks && activeLink.current_week > routine.duration_weeks) {
+    redirect('/client/dashboard')
+  }
+
   const routineDays = sortRoutineDaysByDayNumber(routine.routine_days || [])
 
   const { data: lastSession } = await supabase

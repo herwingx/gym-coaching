@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -21,6 +21,7 @@ import {
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { FieldGroup, Field, FieldLabel } from '@/components/ui/field'
 import { saveRoutineFromBuilder, updateRoutineFromBuilder } from '@/app/actions/routine-builder'
+import { getExercisesForSelector } from '@/app/actions/exercises'
 import { toast } from 'sonner'
 
 import {
@@ -64,7 +65,7 @@ interface Day {
 const DAY_NAMES = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 
 export interface RoutineBuilderClientProps {
-  exercises: Exercise[]
+  exercises?: Exercise[]
   routineId?: string
   initialData?: {
     name: string
@@ -75,11 +76,14 @@ export interface RoutineBuilderClientProps {
 }
 
 export function RoutineBuilderClient({
-  exercises,
+  exercises: initialExercises = [],
   routineId,
   initialData,
 }: RoutineBuilderClientProps) {
   const router = useRouter()
+  const [exercises, setExercises] = useState<Exercise[]>(initialExercises)
+  const [loadingExercises, setLoadingExercises] = useState(initialExercises.length === 0)
+  
   const [name, setName] = useState(initialData?.name ?? '')
   const [description, setDescription] = useState(initialData?.description ?? '')
   const [durationWeeks, setDurationWeeks] = useState(initialData?.durationWeeks ?? 4)
@@ -97,6 +101,20 @@ export function RoutineBuilderClient({
 
   const [selectorOpen, setSelectorOpen] = useState(false)
   const [activeDayId, setActiveDayId] = useState<string | null>(null)
+
+  // Fetch exercises on client if not provided
+  useEffect(() => {
+    if (initialExercises.length === 0) {
+      getExercisesForSelector().then((data) => {
+        setExercises(data as Exercise[])
+        setLoadingExercises(false)
+      }).catch(err => {
+        console.error('Error loading exercises', err)
+        toast.error('No pudimos cargar el catálogo de ejercicios.')
+        setLoadingExercises(false)
+      })
+    }
+  }, [initialExercises])
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -247,7 +265,7 @@ export function RoutineBuilderClient({
 
   return (
     <div className="mx-auto flex h-full w-full max-w-3xl flex-col gap-8 pb-28 lg:pb-10">
-      {exercises.length === 0 && (
+      {!loadingExercises && exercises.length === 0 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 px-4">
           <Card className="w-full max-w-md rounded-xl border shadow-sm">
             <CardHeader>
@@ -554,6 +572,7 @@ export function RoutineBuilderClient({
         }}
         exercises={exercises}
         onSelectExercises={handleSelectExercises}
+        loading={loadingExercises}
       />
     </div>
   )

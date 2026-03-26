@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { getAuthUser, getUserRole } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import {
   getBodyMeasurements,
   getExerciseLogsForSessions,
@@ -63,8 +64,10 @@ export default async function ClientProfilePage({ params, searchParams }: Props)
           .single()
       : Promise.resolve({ data: null as { name: string } | null })
 
+  const adminClient = createAdminClient()
+
   const profilePromise = client.user_id
-    ? supabase
+    ? adminClient
         .from('profiles')
         .select('role, streak_days, last_workout_at, xp_points, level, onboarding_completed')
         .eq('id', client.user_id)

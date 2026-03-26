@@ -1,4 +1,4 @@
-import { getAuthUser } from '@/lib/auth-utils'
+import { getAuthData } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { calculateLevel, type RoutineDay } from '@/lib/types'
@@ -7,7 +7,7 @@ import { getNextRoutineDay } from '@/lib/next-routine-day'
 import { ClientDashboardContent } from './client-dashboard-content'
 
 export default async function ClientDashboard() {
-  const user = await getAuthUser()
+  const { user, profile } = await getAuthData()
 
   if (!user) {
     redirect('/auth/login')
@@ -15,18 +15,16 @@ export default async function ClientDashboard() {
 
   const supabase = await createClient()
 
-  // Batch 1: profile, client, userAchievements (independent, only need user.id)
+  // Batch 1: client, userAchievements (independent, only need user.id)
   const startOfMonth = new Date()
   startOfMonth.setDate(1)
   startOfMonth.setHours(0, 0, 0, 0)
 
-  const [profileRes, clientRes, userAchievementsRes] = await Promise.all([
-    supabase.from('profiles').select('*').eq('id', user.id).single(),
+  const [clientRes, userAchievementsRes] = await Promise.all([
     supabase.from('clients').select('*').eq('user_id', user.id).single(),
     supabase.from('user_achievements').select('*, achievements(*)').eq('user_id', user.id),
   ])
 
-  const profile = profileRes.data
   const client = clientRes.data
   const userAchievements = userAchievementsRes.data || []
 
@@ -40,6 +38,7 @@ export default async function ClientDashboard() {
   let prsThisMonth = 0
   let routineId = (client as { assigned_routine_id?: string } | null)?.assigned_routine_id ?? null
   let latestCompletedRoutineDayId: string | null = null
+  let clientCurrentWeek = 1
 
   if (client?.id) {
     const [sessionsRes, prsRes, crRes, lastCompletedDayRes] = await Promise.all([
@@ -56,7 +55,7 @@ export default async function ClientDashboard() {
         .gte('achieved_at', startOfMonth.toISOString()),
       supabase
         .from('client_routines')
-        .select('routine_id')
+        .select('routine_id, current_week')
         .eq('client_id', client.id)
         .eq('is_active', true)
         .limit(1)
@@ -75,10 +74,15 @@ export default async function ClientDashboard() {
     prsThisMonth = prsRes.count ?? 0
     if (!routineId) routineId = crRes.data?.routine_id ?? null
     latestCompletedRoutineDayId = lastCompletedDayRes.data?.routine_day_id ?? null
+    
+    // Store current_week to check for completion
+    clientCurrentWeek = crRes.data?.current_week ?? 1
   }
 
   // Batch 3: routine with full details (need routineId)
   let assignedRoutine = null
+  let isRoutineCompleted = false
+  
   if (routineId) {
     const { data } = await supabase
       .from('routines')
@@ -95,6 +99,10 @@ export default async function ClientDashboard() {
       .eq('id', routineId)
       .single()
     assignedRoutine = data
+    
+    if (assignedRoutine && assignedRoutine.duration_weeks) {
+      isRoutineCompleted = clientCurrentWeek > assignedRoutine.duration_weeks
+    }
   }
 
   // Calculate level info
@@ -144,8 +152,8 @@ export default async function ClientDashboard() {
       prsThisMonth={prsThisMonth || 0}
       assignedRoutine={assignedRoutine}
       nextWorkoutRoutineDay={nextWorkoutRoutineDay}
+      isRoutineCompleted={isRoutineCompleted}
       userAchievements={userAchievements || []}
       chartData={chartData}
     />
-  )
-}
+  )}

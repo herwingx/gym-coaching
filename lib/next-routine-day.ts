@@ -78,3 +78,22 @@ export function getNextRoutineDay<T extends RoutineDayLike>(
   if (idx === null) return null
   return sorted[idx] ?? null
 }
+
+/**
+ * Devuelve `true` si al completar `lastCompletedRoutineDayId`, el ciclo
+ * da la vuelta (el siguiente día entrenable tiene un índice menor o igual
+ * al recién completado, o no hay más).
+ */
+export function didCompleteMicrocycle(
+  sortedDays: RoutineDayLike[],
+  lastCompletedRoutineDayId: string,
+): boolean {
+  if (!sortedDays.length) return false
+  const lastIdx = sortedDays.findIndex((d) => d.id === lastCompletedRoutineDayId)
+  if (lastIdx === -1) return false
+  
+  const nextIdx = getNextRoutineDayIndex(sortedDays, lastCompletedRoutineDayId)
+  if (nextIdx === null) return true // No hay más días entrenables
+  
+  return nextIdx <= lastIdx // Si dio la vuelta al array
+}

@@ -2,6 +2,16 @@
 
 import { useMemo, useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
+import { 
+  Scale, 
+  Ruler, 
+  Activity, 
+  TrendingUp, 
+  LayoutGrid,
+  History,
+  Calendar
+} from 'lucide-react'
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 import {
   ChartContainer,
@@ -91,22 +101,42 @@ export function MeasurementsChart({ measurements }: { measurements: MeasurementR
 
   return (
     <Tabs value={metric} onValueChange={(v) => setMetric(v as Metric)}>
-      <TabsList className="flex w-fit flex-wrap gap-1">
-        <TabsTrigger value="weight">Peso</TabsTrigger>
-        <TabsTrigger value="waist">Cintura</TabsTrigger>
-        <TabsTrigger value="fat">Grasa</TabsTrigger>
-      </TabsList>
+      <ScrollArea className="w-full whitespace-nowrap">
+        <TabsList className="inline-flex w-auto bg-muted/50 p-1 h-11 rounded-xl border border-border/40 shadow-sm">
+          <TabsTrigger value="weight" className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs">
+            <Scale className="size-3.5" />
+            Peso
+          </TabsTrigger>
+          <TabsTrigger value="waist" className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs">
+            <Ruler className="size-3.5" />
+            Cintura
+          </TabsTrigger>
+          <TabsTrigger value="fat" className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs">
+            <Activity className="size-3.5" />
+            Grasa %
+          </TabsTrigger>
+        </TabsList>
+        <ScrollBar orientation="horizontal" className="invisible" />
+      </ScrollArea>
+
 
       <TabsContent value={metric} className="pt-4">
         <div className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="text-sm text-muted-foreground">{title}</div>
             <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
-              <TabsList className="flex w-fit flex-wrap gap-1">
-                <TabsTrigger value="raw">Registro</TabsTrigger>
-                <TabsTrigger value="monthly">Promedio mensual</TabsTrigger>
+              <TabsList className="inline-flex w-auto bg-muted/50 p-1 h-9 rounded-lg border border-border/40 shadow-sm">
+                <TabsTrigger value="monthly" className="rounded-md px-2.5 py-1 data-[state=active]:shadow-sm gap-2 text-xs">
+                  <Calendar className="size-3" />
+                  Mensual
+                </TabsTrigger>
+                <TabsTrigger value="raw" className="rounded-md px-2.5 py-1 data-[state=active]:shadow-sm gap-2 text-xs">
+                  <History className="size-3" />
+                  Registro real
+                </TabsTrigger>
               </TabsList>
             </Tabs>
+
           </div>
           <ChartContainer config={chartConfig} className="aspect-auto h-72 w-full min-h-72">
             <AreaChart

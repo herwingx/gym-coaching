@@ -11,6 +11,7 @@ import {
 } from '@/lib/progression'
 import { awardXP, updateStreak, checkAchievements, XP_REWARDS } from '@/lib/gamification'
 import { exerciseUsesExternalLoad } from '@/lib/exercise-tracking'
+import { didCompleteMicrocycle, sortRoutineDaysByDayNumber, getNextRoutineDayIndex } from '@/lib/next-routine-day'
 
 interface SetData {
   exerciseId: string
@@ -248,6 +249,36 @@ export async function completeWorkoutSession(data: WorkoutCompletionData) {
   if (completedCountError) {
     console.error('[completeWorkoutSession] completed session count', completedCountError)
   }
+
+  // --- PROGRESS WEEK LOGIC ---
+  if (data.routineDayId) {
+    try {
+      const { data: rd } = await supabase.from('routine_days').select('routine_id').eq('id', data.routineDayId).single()
+      if (rd?.routine_id) {
+        const { data: activeRoutine } = await supabase.from('client_routines')
+          .select('id, current_week')
+          .eq('client_id', data.clientId)
+          .eq('routine_id', rd.routine_id)
+          .eq('is_active', true)
+          .single()
+        
+        if (activeRoutine) {
+          const { data: allDays } = await supabase.from('routine_days')
+            .select('id, day_number, is_rest_day, routine_exercises(id)')
+            .eq('routine_id', rd.routine_id)
+          
+          if (allDays && didCompleteMicrocycle(allDays, data.routineDayId)) {
+            await supabase.from('client_routines')
+              .update({ current_week: (activeRoutine.current_week ?? 1) + 1 })
+              .eq('id', activeRoutine.id)
+          }
+        }
+      }
+    } catch (err) {
+      console.error('[completeWorkoutSession] week progression error', err)
+    }
+  }
+  // ---------------------------
 
   const lastSessionInstant =
     (session.finished_at as string | null) ??

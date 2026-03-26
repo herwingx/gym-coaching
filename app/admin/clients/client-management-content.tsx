@@ -22,6 +22,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { 
   Users, 
   UserCheck, 
@@ -34,7 +35,8 @@ import {
   Dumbbell,
   Target,
   Calendar,
-  AlertTriangle
+  AlertTriangle,
+  AlertCircle
 } from 'lucide-react'
 import { deleteClient, updateClientStatus } from '@/app/actions/clients'
 import { updateUserSubscription } from '@/app/actions/invitations'
@@ -191,13 +193,31 @@ export function ClientManagementContent({ clients: initialClients }: ClientManag
             />
           </div>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full sm:w-auto">
-            <TabsList className="grid w-full grid-cols-5 sm:w-auto">
-              <TabsTrigger value="all" className="text-xs">Todos</TabsTrigger>
-              <TabsTrigger value="active" className="text-xs">Activos</TabsTrigger>
-              <TabsTrigger value="pending" className="text-xs">Pendientes</TabsTrigger>
-              <TabsTrigger value="expired" className="text-xs">Vencidos</TabsTrigger>
-              <TabsTrigger value="suspended" className="text-xs">Susp.</TabsTrigger>
-            </TabsList>
+            <ScrollArea className="w-full whitespace-nowrap">
+              <TabsList className="inline-flex w-auto bg-muted/50 p-1 h-11 rounded-xl border border-border/40 shadow-sm">
+                <TabsTrigger value="all" className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs">
+                  <Users className="size-3.5" />
+                  Todos
+                </TabsTrigger>
+                <TabsTrigger value="active" className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs">
+                  <UserCheck className="size-3.5" />
+                  Activos
+                </TabsTrigger>
+                <TabsTrigger value="pending" className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs">
+                  <AlertCircle className="size-3.5" />
+                  Pendientes
+                </TabsTrigger>
+                <TabsTrigger value="expired" className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs">
+                  <CalendarX className="size-3.5" />
+                  Vencidos
+                </TabsTrigger>
+                <TabsTrigger value="suspended" className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs">
+                  <UserX className="size-3.5" />
+                  Susp.
+                </TabsTrigger>
+              </TabsList>
+              <ScrollBar orientation="horizontal" className="invisible" />
+            </ScrollArea>
           </Tabs>
         </div>
 

@@ -82,40 +82,51 @@ export function UserProfileContent({
   }, [clientId])
 
   const handleSaveProfile = async () => {
+    if (!profile.full_name?.trim()) {
+      toast.error('El nombre completo es obligatorio.')
+      return
+    }
+
     setSaving(true)
     try {
+      // Normalizamos valores: si es string vacío, enviamos null para evitar violaciones de CHECK constraints
       const profilePayload = {
-        username: profile.username,
-        full_name: profile.full_name,
-        phone: profile.phone,
-        gender: profile.gender,
-        birth_date: profile.birth_date,
-        fitness_goal: profile.fitness_goal,
-        experience_level: profile.experience_level,
+        username: profile.username?.trim() || null,
+        full_name: profile.full_name.trim(),
+        phone: profile.phone?.trim() || null,
+        gender: profile.gender && profile.gender !== 'none' ? profile.gender : null,
+        birth_date: profile.birth_date || null,
+        fitness_goal: profile.fitness_goal || null,
+        experience_level: profile.experience_level || null,
       }
+
       const { error } = await supabase
         .from('profiles')
         .update(profilePayload)
         .eq('id', userId)
 
       if (error) {
+        console.error('Error updating profile:', error)
         toast.error('No pudimos guardar. Intenta de nuevo.')
         return
       }
 
-      if (clientId && (profile.phone || profile.gender || profile.birth_date)) {
+      if (clientId) {
+        // También normalizamos para la tabla de clientes si existe
         await supabase
           .from('clients')
           .update({
-            phone: profile.phone || '',
-            gender: profile.gender || null,
+            full_name: profile.full_name.trim(),
+            phone: profile.phone?.trim() || '',
+            gender: profile.gender && profile.gender !== 'none' ? profile.gender : null,
             birth_date: profile.birth_date || null,
           })
           .eq('id', clientId)
       }
 
       toast.success('¡Perfil actualizado!')
-    } catch {
+    } catch (err) {
+      console.error('Error in handleSaveProfile:', err)
       toast.error('No pudimos guardar el perfil. Intenta de nuevo.')
     } finally {
       setSaving(false)

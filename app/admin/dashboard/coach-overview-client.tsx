@@ -36,6 +36,7 @@ import {
   type AdminCardMenuSection,
 } from '@/components/admin/admin-card-with-actions'
 import { type CoachClientCard, type CoachOverviewMetrics } from './coach-overview'
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import {
   ArrowDown,
   ArrowUp,
@@ -46,10 +47,16 @@ import {
   UserCheck,
   UserX,
   Sparkles,
+  Trophy,
+  Users,
+  Clock,
+  AlertCircle,
+  Zap,
 } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import { updateClientStatus } from '@/app/actions/clients'
+import { restartClientRoutine } from '@/app/actions/routine-assignment'
 import { toast } from 'sonner'
 
 function formatRelativeDays(days: number) {
@@ -129,6 +136,24 @@ export function CoachOverviewClient({
       }
     } catch {
       toast.error('No pudimos cambiar el estado. Revisa tu conexión.')
+    }
+  }
+
+  const handleRestartRoutine = async (clientRoutineId: string, fullName: string) => {
+    if (!confirm(`¿Estás seguro de que quieres reiniciar la rutina de ${fullName} a la Semana 1?`)) return
+    
+    try {
+      const result = await restartClientRoutine(clientRoutineId)
+      if (result?.success) {
+        setCardsState((prev) =>
+          prev.map((c) => (c.clientRoutineId === clientRoutineId ? { ...c, currentWeek: 1, isRoutineCompleted: false, attentionReason: null, needsAttention: false } : c))
+        )
+        toast.success(`Rutina de ${fullName} reiniciada a la Semana 1.`)
+      } else {
+        toast.error('No pudimos reiniciar la rutina.')
+      }
+    } catch (err) {
+      toast.error('Error al reiniciar la rutina.')
     }
   }
 
@@ -234,20 +259,27 @@ export function CoachOverviewClient({
               }}
               className="w-full sm:w-auto"
             >
-              <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 p-1 sm:w-auto">
-                <TabsTrigger value="all" className="text-xs sm:text-sm">
-                  Todos
-                </TabsTrigger>
-                <TabsTrigger value="activeWeek" className="text-xs sm:text-sm">
-                  Activos 7d
-                </TabsTrigger>
-                <TabsTrigger value="inactive3" className="text-xs sm:text-sm">
-                  Baja actividad
-                </TabsTrigger>
-                <TabsTrigger value="attention" className="text-xs sm:text-sm">
-                  Atención
-                </TabsTrigger>
-              </TabsList>
+              <ScrollArea className="w-full whitespace-nowrap">
+                <TabsList className="inline-flex w-auto bg-muted/50 p-1 h-11 rounded-xl border border-border/40 shadow-sm">
+                  <TabsTrigger value="all" className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs sm:text-sm">
+                    <Users className="size-3.5" />
+                    Todos
+                  </TabsTrigger>
+                  <TabsTrigger value="activeWeek" className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs sm:text-sm">
+                    <Zap className="size-3.5" />
+                    Activos 7d
+                  </TabsTrigger>
+                  <TabsTrigger value="inactive3" className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs sm:text-sm">
+                    <Clock className="size-3.5" />
+                    Baja actividad
+                  </TabsTrigger>
+                  <TabsTrigger value="attention" className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs sm:text-sm">
+                    <AlertCircle className="size-3.5" />
+                    Atención
+                  </TabsTrigger>
+                </TabsList>
+                <ScrollBar orientation="horizontal" className="invisible" />
+              </ScrollArea>
             </Tabs>
           </CardHeader>
           <CardContent className="flex flex-col gap-4 p-4 pt-0 sm:p-5 sm:pt-0">
@@ -321,6 +353,21 @@ export function CoachOverviewClient({
                 { label: 'Editar', icon: <Edit2 className="mr-2 size-4" />, href: `/admin/clients/${c.id}/edit` },
               ],
             },
+            ...(c.isRoutineCompleted && c.clientRoutineId
+              ? [
+                  {
+                    separatorBefore: true as const,
+                    items: [
+                      {
+                        label: 'Reiniciar rutina (W1)',
+                        icon: <Sparkles className="mr-2 size-4" />,
+                        onClick: () => handleRestartRoutine(c.clientRoutineId!, c.fullName),
+                        className: 'text-primary focus:text-primary',
+                      },
+                    ],
+                  },
+                ]
+              : []),
             ...((c.status === 'active' || c.status === 'suspended')
               ? [
                   {
@@ -368,7 +415,16 @@ export function CoachOverviewClient({
                       {c.planName ? `Plan: ${c.planName}` : 'Sin plan'}
                     </div>
                   </div>
-                  {c.needsAttention ? (
+                  {c.isRoutineCompleted ? (
+                    <Badge
+                      variant="outline"
+                      className="max-w-[min(100%,12rem)] shrink-0 gap-1 border-success/35 bg-success/12 text-success sm:max-w-[240px] ml-auto [&>svg]:text-current"
+                      title="Rutina completada"
+                    >
+                      <Trophy className="size-3.5 shrink-0" aria-hidden />
+                      <span className="truncate text-xs font-bold uppercase tracking-tight">Completada</span>
+                    </Badge>
+                  ) : c.needsAttention ? (
                     <Badge
                       variant="outline"
                       className="max-w-[min(100%,12rem)] shrink-0 gap-1 border-warning/35 bg-warning/12 text-warning-foreground sm:max-w-[240px] ml-auto [&>svg]:text-current"

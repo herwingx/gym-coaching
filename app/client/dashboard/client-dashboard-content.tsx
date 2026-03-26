@@ -33,6 +33,7 @@ interface ClientDashboardContentProps {
   assignedRoutine: Routine | null
   /** Mismo criterio que /client/workout/start (última sesión completada + orden day_number). */
   nextWorkoutRoutineDay: RoutineDay | null
+  isRoutineCompleted?: boolean
   userAchievements: UserAchievement[]
   chartData: { date: string; sessions: number }[]
 }
@@ -45,6 +46,7 @@ export function ClientDashboardContent({
   prsThisMonth,
   assignedRoutine,
   nextWorkoutRoutineDay,
+  isRoutineCompleted,
   userAchievements,
   chartData,
 }: ClientDashboardContentProps) {
@@ -80,6 +82,7 @@ export function ClientDashboardContent({
           routineDay={nextWorkoutRoutineDay as any}
           routineName={assignedRoutine?.name}
           hasAssignedRoutine={!!assignedRoutine}
+          isRoutineCompleted={isRoutineCompleted}
         />
         {userAchievements.length > 0 ? (
           <Card className="overflow-hidden border-muted/70 shadow-none bg-linear-to-br from-background to-muted/15">

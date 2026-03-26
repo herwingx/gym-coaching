@@ -1,4 +1,4 @@
-import { getAuthUser } from '@/lib/auth-utils'
+import { getAuthData } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -36,9 +36,9 @@ function toPaymentCardItem(row: PaymentQueryRow): PaymentCardItem {
 }
 
 export default async function AdminPaymentsPage() {
-  const user = await getAuthUser()
+  const { user, role } = await getAuthData()
 
-  if (!user) {
+  if (!user || role !== 'admin') {
     redirect('/auth/login')
   }
 

@@ -3,7 +3,6 @@
 import dynamic from 'next/dynamic'
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -13,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Textarea } from '@/components/ui/textarea'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Progress } from '@/components/ui/progress'
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import {
   Empty,
   EmptyDescription,
@@ -26,7 +26,6 @@ import { Spinner } from '@/components/ui/spinner'
 import { createClient } from '@/lib/supabase/client'
 import {
   ArrowUpRight,
-  FileImage,
   History,
   Dumbbell,
   Ruler,
@@ -34,6 +33,8 @@ import {
   Plus,
   Target,
   Camera,
+  LayoutGrid,
+  Diff,
 } from 'lucide-react'
 import { getGoalLabel } from '@/lib/constants'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -45,6 +46,10 @@ import {
   workoutStatusBadgeClass,
   workoutStatusLabelEs,
 } from '@/lib/format-workout-session'
+
+import { PhotoGallery } from '@/components/photos/photo-gallery'
+import { PhotoCompare } from '@/components/photos/photo-compare'
+import type { ProgressPhoto } from '@/components/photos/photo-card'
 
 const RoutineDayCards = dynamic(
   () => import('@/components/routines/routine-day-cards'),
@@ -65,12 +70,8 @@ type BodyMeasurementRow = {
   body_fat_pct?: number | null
 }
 
-type ProgressPhotoRow = {
-  id: string
-  photo_url: string | null
-  view_type?: string | null
-  taken_at?: string | null
-}
+// Actualizado para coincidir con el componente PhotoCard
+export type ProgressPhotoRow = ProgressPhoto
 
 export type ClientHubClient = {
   id: string
@@ -245,16 +246,42 @@ export function ClientProfileHub({
 
   return (
     <div className="flex flex-col gap-6">
-      <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="w-fit flex-wrap gap-2">
-          <TabsTrigger value="summary">Resumen</TabsTrigger>
-          <TabsTrigger value="routine">Rutina</TabsTrigger>
-          <TabsTrigger value="history">Historial</TabsTrigger>
-          <TabsTrigger value="progress">Progreso</TabsTrigger>
-          <TabsTrigger value="measurements">Medidas</TabsTrigger>
-          <TabsTrigger value="photos">Fotos</TabsTrigger>
-          <TabsTrigger value="notes">Notas</TabsTrigger>
-        </TabsList>
+      <Tabs value={tab} onValueChange={setTab} className="w-full">
+        <div className="sticky top-0 z-10 -mx-4 px-4 py-2 bg-background/95 backdrop-blur-md border-b sm:static sm:z-auto sm:mx-0 sm:px-0 sm:py-0 sm:bg-transparent sm:border-none">
+          <ScrollArea className="w-full whitespace-nowrap pb-1">
+            <TabsList className="inline-flex w-auto bg-muted/50 p-1 h-12 rounded-2xl border border-border/40 shadow-sm">
+              <TabsTrigger value="summary" className="rounded-xl px-4 py-2 data-[state=active]:shadow-md gap-2">
+                <Target className="size-4" />
+                Resumen
+              </TabsTrigger>
+              <TabsTrigger value="routine" className="rounded-xl px-4 py-2 data-[state=active]:shadow-md gap-2">
+                <Dumbbell className="size-4" />
+                Rutina
+              </TabsTrigger>
+              <TabsTrigger value="history" className="rounded-xl px-4 py-2 data-[state=active]:shadow-md gap-2">
+                <History className="size-4" />
+                Historial
+              </TabsTrigger>
+              <TabsTrigger value="progress" className="rounded-xl px-4 py-2 data-[state=active]:shadow-md gap-2">
+                <ArrowUpRight className="size-4" />
+                Progreso
+              </TabsTrigger>
+              <TabsTrigger value="measurements" className="rounded-xl px-4 py-2 data-[state=active]:shadow-md gap-2">
+                <Ruler className="size-4" />
+                Medidas
+              </TabsTrigger>
+              <TabsTrigger value="photos" className="rounded-xl px-4 py-2 data-[state=active]:shadow-md gap-2">
+                <Camera className="size-4" />
+                Fotos
+              </TabsTrigger>
+              <TabsTrigger value="notes" className="rounded-xl px-4 py-2 data-[state=active]:shadow-md gap-2">
+                <Notebook className="size-4" />
+                Notas
+              </TabsTrigger>
+            </TabsList>
+            <ScrollBar orientation="horizontal" className="invisible" />
+          </ScrollArea>
+        </div>
 
         {/* RESUMEN */}
         <TabsContent value="summary" className="flex flex-col gap-4">
@@ -599,62 +626,51 @@ export function ClientProfileHub({
           </Card>
         </TabsContent>
 
-        <TabsContent value="photos" className="flex flex-col gap-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <FileImage className="size-4" />
-                Fotos de progreso
-              </CardTitle>
-              <CardDescription>Imágenes que el asesorado suba desde su perfil.</CardDescription>
-            </CardHeader>
-            <CardContent>
+        <TabsContent value="photos" className="flex flex-col gap-8 focus-visible:outline-none">
+          <Tabs defaultValue="gallery" className="w-full">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <div>
+                <h3 className="text-lg font-bold">Registro Visual</h3>
+                <p className="text-sm text-muted-foreground">Monitorea el progreso físico del asesorado.</p>
+              </div>
+              <TabsList className="grid grid-cols-2 w-full sm:w-[300px] h-11 p-1 bg-muted/50 rounded-xl">
+                <TabsTrigger value="gallery" className="rounded-lg gap-2 text-xs">
+                  <LayoutGrid className="size-3.5" />
+                  Galería
+                </TabsTrigger>
+                <TabsTrigger value="compare" className="rounded-lg gap-2 text-xs">
+                  <Diff className="size-3.5" />
+                  Comparador
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            <TabsContent value="gallery" className="focus-visible:outline-none">
               {(progressPhotos || []).length === 0 ? (
-                <Empty className="border border-dashed bg-muted/20">
+                <Empty className="border-2 border-dashed bg-muted/20 rounded-3xl py-16">
                   <EmptyHeader>
                     <EmptyMedia variant="icon">
-                      <Camera />
+                      <Camera className="text-muted-foreground" />
                     </EmptyMedia>
-                    <EmptyTitle>Sin fotos aún</EmptyTitle>
+                    <EmptyTitle>Sin fotos de progreso</EmptyTitle>
                     <EmptyDescription>
-                      Las comparaciones visuales aparecerán aquí. Puedes pedirle al asesorado que cargue fotos desde su app cuando corresponda.
+                      El asesorado aún no ha cargado imágenes de su evolución. 
+                      Puedes pedirle que suba fotos desde su perfil.
                     </EmptyDescription>
                   </EmptyHeader>
                 </Empty>
               ) : (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {(progressPhotos || []).map((p) => (
-                    <div
-                      key={p.id}
-                      className="overflow-hidden rounded-xl border border-border/80 bg-card/40 shadow-sm"
-                    >
-                      <div className="text-muted-foreground flex items-center justify-between gap-2 px-3 py-2 text-xs">
-                        <span className="truncate font-medium text-foreground">
-                          {p.view_type?.replace(/_/g, ' ') || 'Progreso'}
-                        </span>
-                        <span className="shrink-0 tabular-nums">{formatDate(p.taken_at)}</span>
-                      </div>
-                      <div className="relative aspect-4/3 bg-muted">
-                        {p.photo_url ? (
-                          <Image
-                            src={p.photo_url}
-                            alt={p.view_type ? `Foto ${p.view_type}` : 'Foto de progreso'}
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 768px) 100vw, 33vw"
-                          />
-                        ) : (
-                          <div className="text-muted-foreground flex h-full items-center justify-center text-xs">
-                            Sin archivo
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <PhotoGallery 
+                  photos={progressPhotos as ProgressPhoto[]} 
+                  showActions={false} // Admin can't delete for now, or we can enable if needed
+                />
               )}
-            </CardContent>
-          </Card>
+            </TabsContent>
+
+            <TabsContent value="compare" className="focus-visible:outline-none">
+               <PhotoCompare photos={progressPhotos as ProgressPhoto[]} />
+            </TabsContent>
+          </Tabs>
         </TabsContent>
 
         <TabsContent value="notes" className="flex flex-col gap-4">

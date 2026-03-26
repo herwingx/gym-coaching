@@ -84,12 +84,18 @@ export type StrengthProgressInsight =
       fromKg: number
       toKg: number
       sampleDays: number
+      recentMilestone?: {
+        name: string
+        weight_kg: number
+        achieved_at: string
+      } | null
     }
 
 export type StrengthProgressPoint = { achieved_at: string; weight_kg: number }
 
 /**
- * Compares median load in the first third vs last third of points in the rolling window (more stable than first vs last single session).
+ * Compares median load in the first third vs last third of points in the rolling window.
+ * Also checks for absolute PRs achieved in the last 7 days to highlight them.
  */
 export function computeStrengthProgressInsight(
   entries: Array<{ name: string; points: StrengthProgressPoint[] }>,
@@ -101,6 +107,12 @@ export function computeStrengthProgressInsight(
   start.setHours(0, 0, 0, 0)
   const startMs = start.getTime()
 
+  const sevenDaysAgo = new Date(now)
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+  sevenDaysAgo.setHours(0, 0, 0, 0)
+  const sevenDaysAgoMs = sevenDaysAgo.getTime()
+
+  let recentMilestone: { name: string; weight_kg: number; achieved_at: string } | null = null
   let best: {
     name: string
     deltaPct: number
@@ -110,17 +122,33 @@ export function computeStrengthProgressInsight(
   } | null = null
 
   for (const ex of entries) {
-    const pts = ex.points
-      .filter((p) => new Date(p.achieved_at).getTime() >= startMs)
-      .filter((p) => p.weight_kg > 0)
-      .sort((a, b) => new Date(a.achieved_at).getTime() - new Date(b.achieved_at).getTime())
+    const allPts = [...ex.points].sort(
+      (a, b) => new Date(a.achieved_at).getTime() - new Date(b.achieved_at).getTime(),
+    )
+    if (allPts.length === 0) continue
 
-    if (pts.length < 4) continue
+    // Check for absolute PR in last 7 days
+    const maxWeight = Math.max(...allPts.map((p) => p.weight_kg))
+    const latestPt = allPts[allPts.length - 1]
+    const latestPtMs = new Date(latestPt.achieved_at).getTime()
 
-    const n = pts.length
+    if (latestPt.weight_kg === maxWeight && latestPtMs >= sevenDaysAgoMs) {
+      if (!recentMilestone || latestPt.weight_kg > recentMilestone.weight_kg) {
+        recentMilestone = {
+          name: ex.name,
+          weight_kg: latestPt.weight_kg,
+          achieved_at: latestPt.achieved_at,
+        }
+      }
+    }
+
+    const windowPts = allPts.filter((p) => new Date(p.achieved_at).getTime() >= startMs)
+    if (windowPts.length < 4) continue
+
+    const n = windowPts.length
     const third = Math.max(1, Math.floor(n / 3))
-    const firstSlice = pts.slice(0, third)
-    const lastSlice = pts.slice(-third)
+    const firstSlice = windowPts.slice(0, third)
+    const lastSlice = windowPts.slice(-third)
     const medFirst = median(firstSlice.map((p) => p.weight_kg))
     const medLast = median(lastSlice.map((p) => p.weight_kg))
     if (medFirst <= 0) continue
@@ -133,13 +161,15 @@ export function computeStrengthProgressInsight(
     }
   }
 
-  if (!best) return { status: 'insufficient' }
+  if (!best && !recentMilestone) return { status: 'insufficient' }
+
   return {
     status: 'ok',
-    exerciseName: best.name,
-    deltaPct: best.deltaPct,
-    fromKg: best.fromK,
-    toKg: best.toK,
-    sampleDays: best.n,
+    exerciseName: best?.name || recentMilestone?.name || '',
+    deltaPct: best?.deltaPct || 0,
+    fromKg: best?.fromK || 0,
+    toKg: best?.toK || 0,
+    sampleDays: best?.n || 0,
+    recentMilestone,
   }
 }

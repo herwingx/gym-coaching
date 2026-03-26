@@ -1,4 +1,4 @@
-import { getAuthUser, getUserRole } from '@/lib/auth-utils'
+import { getAuthData } from '@/lib/auth-utils'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -13,8 +13,7 @@ import {
 import { diffWholeDaysFromNow, isoTimestampsDifferMoreThanDays } from '@/lib/calendar-date'
 
 export default async function AdminClientsPage() {
-  const user = await getAuthUser()
-  const role = await getUserRole()
+  const { user, role } = await getAuthData()
 
   if (!user || role !== 'admin') redirect('/auth/login')
 

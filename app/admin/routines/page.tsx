@@ -1,4 +1,4 @@
-import { getAuthUser } from '@/lib/auth-utils'
+import { getAuthData } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -36,9 +36,9 @@ function toRoutineCardItem(r: RoutineListRow): RoutineCardItem {
 }
 
 export default async function AdminRoutinesPage() {
-  const user = await getAuthUser()
+  const { user, role } = await getAuthData()
 
-  if (!user) {
+  if (!user || role !== 'admin') {
     redirect('/auth/login')
   }
 

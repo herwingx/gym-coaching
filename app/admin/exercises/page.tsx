@@ -1,4 +1,4 @@
-import { getAuthUser } from '@/lib/auth-utils'
+import { getAuthData } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
@@ -8,22 +8,53 @@ import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 import type { Exercise } from '@/lib/types'
 
-export default async function AdminExercisesPage() {
-  const user = await getAuthUser()
-  if (!user) redirect('/auth/login')
+interface AdminExercisesPageProps {
+  searchParams: Promise<{
+    page?: string
+    search?: string
+    bodyPart?: string
+  }>
+}
+
+export default async function AdminExercisesPage({ searchParams }: AdminExercisesPageProps) {
+  const { page: pageStr, search, bodyPart } = await searchParams
+  const { user, role } = await getAuthData()
+  if (!user || role !== 'admin') redirect('/auth/login')
 
   const supabase = await createClient()
 
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') redirect('/client/dashboard')
+  const pageSize = 24
+  const page = pageStr ? Math.max(1, parseInt(pageStr)) : 1
+  const from = (page - 1) * pageSize
+  const to = from + pageSize - 1
 
-  const { data: rows, error } = await supabase.from('exercises').select('*').order('name')
+  let query = supabase.from('exercises').select('*', { count: 'exact' })
+
+  if (search) {
+    query = query.ilike('name', `%${search}%`)
+  }
+
+  if (bodyPart) {
+    query = query.contains('body_parts', [bodyPart])
+  }
+
+  const { data: rows, count, error } = await query
+    .order('name')
+    .range(from, to)
 
   if (error) {
     console.error('admin exercises', error)
   }
 
   const exercises = (rows ?? []) as Exercise[]
+  const totalCount = count ?? 0
+  const totalPages = Math.ceil(totalCount / pageSize)
+
+  // Use a predefined list of body parts instead of slow DB loops
+  const allBodyParts = [
+    "neck", "lower arms", "shoulders", "cardio", "upper arms", 
+    "chest", "lower legs", "back", "upper legs", "waist"
+  ].sort()
 
   return (
     <div className="min-h-dvh bg-background">
@@ -42,7 +73,14 @@ export default async function AdminExercisesPage() {
       />
 
       <main className="container py-6 sm:py-8">
-        <AdminExerciseCatalog exercises={exercises} />
+        <AdminExerciseCatalog 
+          exercises={exercises} 
+          totalCount={totalCount}
+          totalPages={totalPages}
+          currentPage={page}
+          allBodyParts={allBodyParts}
+          initialFilters={{ search: search || '', bodyPart: bodyPart || null }}
+        />
       </main>
     </div>
   )

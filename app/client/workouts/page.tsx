@@ -5,9 +5,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { getClientStats, getWorkoutSessionsForMonth } from '@/lib/workouts'
+import { getClientStats, getWorkoutSessionsByDateRange } from '@/lib/workouts'
 import { sessionInstantLabel } from '@/lib/format-workout-session'
-import { clampMonthYear } from '@/lib/client-month-nav'
 import { CalendarDays, ChevronRight, Clock, Dumbbell } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -15,9 +14,9 @@ import {
   ClientIncompleteProfileCard,
   ClientStackPageHeader,
 } from '@/components/client/client-app-page-parts'
-import { WorkoutsHistoryMonthToolbar } from '@/components/client/workouts-history-month-toolbar'
+import { WorkoutsHistoryDateRangePicker } from '@/components/client/workouts-history-date-range'
 
-type SearchParams = { y?: string; m?: string }
+type SearchParams = { from?: string; to?: string }
 
 export default async function ClientWorkoutsPage({
   searchParams,
@@ -45,37 +44,36 @@ export default async function ClientWorkoutsPage({
   }
 
   const sp = await searchParams
-  const now = new Date()
-  const parsedY = sp.y != null ? Number(sp.y) : now.getFullYear()
-  const parsedM = sp.m != null ? Number(sp.m) : now.getMonth() + 1
-  const { year, monthIndex } = clampMonthYear(parsedY, parsedM)
+  
+  // Rango por defecto: últimos 7 días
+  const today = new Date()
+  const sevenDaysAgo = new Date(today)
+  sevenDaysAgo.setDate(today.getDate() - 7)
 
-  const monthCaption = new Date(year, monthIndex, 1).toLocaleDateString('es', {
-    month: 'long',
-    year: 'numeric',
-  })
+  const fromIso = sp.from || sevenDaysAgo.toISOString().split('T')[0]
+  const toIso = sp.to || today.toISOString().split('T')[0]
 
   const [workoutSessions, stats] = await Promise.all([
-    getWorkoutSessionsForMonth(clientRecord.id, year, monthIndex),
+    getWorkoutSessionsByDateRange(clientRecord.id, fromIso, toIso),
     getClientStats(clientRecord.id),
   ])
 
-  const monthSessionCount = workoutSessions?.length ?? 0
+  const rangeSessionCount = workoutSessions?.length ?? 0
   const totalCompleted = stats.totalSessions ?? 0
 
   const historySubtitle =
     totalCompleted === 0
       ? 'Sin sesiones aún · empieza un entreno desde Mis rutinas.'
-      : monthSessionCount === 0
-        ? `Nada en ${monthCaption}${totalCompleted > 0 ? ` · ${totalCompleted} en total` : ''} · cambia de mes arriba.`
-        : `${monthSessionCount} ${monthSessionCount === 1 ? 'sesión' : 'sesiones'} en ${monthCaption}${totalCompleted > monthSessionCount ? ` · ${totalCompleted} en total` : ''} · tiempo, volumen y notas.`
+      : rangeSessionCount === 0
+        ? `Ninguna sesión en este rango${totalCompleted > 0 ? ` · ${totalCompleted} en total histórico` : ''}.`
+        : `${rangeSessionCount} ${rangeSessionCount === 1 ? 'sesión' : 'sesiones'} encontradas${totalCompleted > rangeSessionCount ? ` · ${totalCompleted} en total histórico` : ''}.`
 
   const historyAside = (
     <aside className="order-2 flex flex-col gap-6 lg:order-1 lg:col-span-4 lg:sticky lg:top-[max(1rem,env(safe-area-inset-top))] lg:self-start">
       <Card className="overflow-hidden border-border/80 shadow-sm ring-1 ring-primary/5">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
               <Dumbbell className="size-4 text-primary" aria-hidden />
             </div>
             <div>
@@ -97,9 +95,9 @@ export default async function ClientWorkoutsPage({
               </>
             ) : (
               <>
-                <span className="tabular-nums font-semibold text-foreground">{monthSessionCount}</span>{' '}
-                {monthSessionCount === 1 ? 'sesión este mes' : 'sesiones este mes'}
-                {totalCompleted > monthSessionCount ? (
+                <span className="tabular-nums font-semibold text-foreground">{rangeSessionCount}</span>{' '}
+                {rangeSessionCount === 1 ? 'sesión en el rango' : 'sesiones en el rango'}
+                {totalCompleted > rangeSessionCount ? (
                   <>
                     {' '}
                     ·{' '}
@@ -136,7 +134,7 @@ export default async function ClientWorkoutsPage({
             <Card className="overflow-hidden border-border/80 shadow-sm ring-1 ring-primary/5">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
-                  <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
+                  <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
                     <CalendarDays className="size-4 text-primary" aria-hidden />
                   </div>
                   <div>
@@ -146,45 +144,49 @@ export default async function ClientWorkoutsPage({
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="rounded-xl border border-border/60 bg-muted/15 px-4 py-8 text-center sm:px-6">
+                <div className="rounded-xl border border-dashed border-border/60 bg-muted/30 px-4 py-8 text-center sm:px-6">
                   <p className="text-sm font-medium text-foreground">Aún no tienes entrenamientos registrados</p>
                   <p className="mt-2 text-sm text-muted-foreground text-pretty">
-                    Cuando completes un entreno desde <span className="font-medium">Mis rutinas</span>, podrás
-                    revisarlo por mes en el historial.
+                    Cuando completes un entreno desde <span className="font-medium text-foreground">Mis rutinas</span>, podrás
+                    revisarlo aquí filtrado por fecha.
                   </p>
                 </div>
               </CardContent>
             </Card>
           ) : (
             <Card className="overflow-hidden border-border/80 shadow-sm ring-1 ring-primary/5">
-              <CardHeader className="flex flex-col gap-4 pb-4">
-                <div className="flex items-center gap-2">
-                  <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
+              <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                     <CalendarDays className="size-4 text-primary" aria-hidden />
                   </div>
                   <div className="min-w-0">
-                    <CardTitle className="text-base sm:text-lg">Sesiones</CardTitle>
-                    <CardDescription className="text-pretty">
-                      Un mes a la vez · la fecha mostrada es la del entreno real
+                    <CardTitle className="text-base sm:text-lg">Tus Sesiones</CardTitle>
+                    <CardDescription className="text-pretty truncate">
+                      Historial detallado por fechas
                     </CardDescription>
                   </div>
                 </div>
-                <WorkoutsHistoryMonthToolbar
-                  year={year}
-                  monthIndex={monthIndex}
-                  monthCaption={monthCaption}
-                />
+                
+                <div className="shrink-0 w-full sm:w-auto">
+                  <WorkoutsHistoryDateRangePicker 
+                    defaultFrom={sevenDaysAgo} 
+                    defaultTo={today} 
+                  />
+                </div>
               </CardHeader>
-              <CardContent className="flex flex-col gap-3">
+              
+              <CardContent className="flex flex-col gap-4">
                 {!workoutSessions || workoutSessions.length === 0 ? (
-                  <div className="rounded-xl border border-border/60 bg-muted/15 px-4 py-8 text-center sm:px-6">
-                    <p className="text-sm font-medium text-foreground">Nada que mostrar en este mes</p>
-                    <p className="mt-2 text-sm text-muted-foreground text-pretty">
-                      Usa los botones de mes o el calendario para ver otras fechas.
+                  <div className="rounded-xl border border-dashed border-border/60 bg-muted/30 px-4 py-10 text-center sm:px-6">
+                    <p className="text-sm font-medium text-foreground">Nada que mostrar en estas fechas</p>
+                    <p className="mt-2 text-sm text-muted-foreground text-pretty max-w-sm mx-auto">
+                      Intenta seleccionar un rango de fechas diferente usando el calendario de arriba.
                     </p>
                   </div>
                 ) : (
-                  workoutSessions.map((session) => {
+                  <div className="grid gap-4">
+                  {workoutSessions.map((session) => {
                     const rd = session.routine_days
                     const dayMeta = Array.isArray(rd) ? rd[0] : rd
                     const when = sessionInstantLabel(session.started_at ?? session.created_at)
@@ -195,64 +197,89 @@ export default async function ClientWorkoutsPage({
                     return (
                       <article
                         key={session.id}
-                        className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-muted/15 p-4 shadow-sm transition-colors sm:p-5"
+                        className="group flex flex-col gap-4 rounded-xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm transition-all hover:shadow-md hover:border-border"
                       >
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-                          <div className="min-w-0 text-center sm:text-left">
-                            <h2 className="text-base font-semibold leading-snug">{when.dateLine}</h2>
-                            {when.timeLine ? (
-                              <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">{when.timeLine}</p>
-                            ) : null}
-                            {planLabel ? (
-                              <p className="mt-1 text-sm text-muted-foreground">
-                                Día en el plan: <span className="text-foreground/90">{planLabel}</span>
-                              </p>
-                            ) : null}
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                          <div className="min-w-0 flex flex-col gap-1 text-center sm:text-left">
+                            <h2 className="text-base font-semibold text-foreground leading-snug tracking-tight">
+                              {when.dateLine}
+                            </h2>
+                            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-1">
+                              {when.timeLine ? (
+                                <Badge variant="secondary" className="font-mono text-[11px] font-medium bg-muted/50 text-muted-foreground">
+                                  {when.timeLine}
+                                </Badge>
+                              ) : null}
+                              {planLabel ? (
+                                <span className="text-sm text-muted-foreground">
+                                  • Plan: <span className="font-medium text-foreground/80">{planLabel}</span>
+                                </span>
+                              ) : null}
+                            </div>
                           </div>
+                          
                           <Badge
                             variant="secondary"
                             className={cn(
-                              'mx-auto shrink-0 sm:mx-0',
+                              'mx-auto shrink-0 sm:mx-0 font-medium px-2.5 py-0.5',
                               session.status === 'completed' &&
-                                'border border-success/30 bg-success/10 text-success',
+                                'border border-success/20 bg-success/10 text-success',
                               session.status === 'in_progress' &&
-                                'border border-warning/35 bg-warning/15 text-warning-foreground',
+                                'border border-warning/30 bg-warning/15 text-warning-foreground',
                             )}
                           >
                             {session.status === 'completed'
-                              ? 'Completado'
+                              ? 'Completada'
                               : session.status === 'in_progress'
                                 ? 'En progreso'
                                 : session.status}
                           </Badge>
                         </div>
 
-                        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-muted-foreground sm:justify-start">
-                          <span className="inline-flex items-center gap-1.5">
-                            <Dumbbell className="size-4 shrink-0 text-primary/80" aria-hidden />
-                            <span className="tabular-nums">{session.exercises_completed ?? 0} ejercicios</span>
-                          </span>
+                        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-6 gap-y-3 pt-1">
+                          <div className="flex items-center gap-2">
+                            <div className="flex size-7 items-center justify-center rounded-full bg-primary/10">
+                              <Dumbbell className="size-3.5 text-primary" aria-hidden />
+                            </div>
+                            <span className="text-sm font-medium tabular-nums text-foreground/80">
+                              {session.exercises_completed ?? 0} <span className="text-muted-foreground font-normal">ejercicios</span>
+                            </span>
+                          </div>
+                          
                           {session.duration_minutes != null ? (
-                            <span className="inline-flex items-center gap-1.5">
-                              <Clock className="size-4 shrink-0 text-primary/80" aria-hidden />
-                              <span className="tabular-nums">{session.duration_minutes} min</span>
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <div className="flex size-7 items-center justify-center rounded-full bg-primary/10">
+                                <Clock className="size-3.5 text-primary" aria-hidden />
+                              </div>
+                              <span className="text-sm font-medium tabular-nums text-foreground/80">
+                                {session.duration_minutes} <span className="text-muted-foreground font-normal">min</span>
+                              </span>
+                            </div>
                           ) : null}
-                          {session.total_volume_kg != null ? (
-                            <span className="tabular-nums font-medium text-foreground">
-                              {session.total_volume_kg} kg volumen
-                            </span>
+                          
+                          {session.total_volume_kg != null && session.total_volume_kg > 0 ? (
+                            <div className="flex items-center gap-2">
+                              <div className="flex size-7 items-center justify-center rounded-full bg-primary/10 font-bold text-primary text-[10px]">
+                                KG
+                              </div>
+                              <span className="text-sm font-medium tabular-nums text-foreground/80">
+                                {session.total_volume_kg} <span className="text-muted-foreground font-normal">volumen</span>
+                              </span>
+                            </div>
                           ) : null}
                         </div>
 
                         {session.feeling_note ? (
-                          <p className="rounded-lg border border-border/50 bg-background/80 px-3 py-2 text-sm italic leading-relaxed text-muted-foreground">
-                            {session.feeling_note}
-                          </p>
+                          <div className="mt-1 rounded-lg border border-border/40 bg-muted/20 px-4 py-3">
+                            <p className="text-sm italic leading-relaxed text-muted-foreground">
+                              "{session.feeling_note}"
+                            </p>
+                          </div>
                         ) : null}
                       </article>
                     )
-                  })
+                  })}
+                  </div>
                 )}
               </CardContent>
             </Card>
