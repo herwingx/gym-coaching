@@ -16,6 +16,7 @@
 - [Seguridad y Acceso](#seguridad-y-acceso)
 - [Despliegue y Configuración](#despliegue-y-configuración)
 - [Soporte y Roadmap](#soporte-y-roadmap)
+- [Resetear DB y CORS (Producción)](docs/RESET_DB_PROD.md)
 
 ---
 
@@ -93,7 +94,7 @@ GymCoach es la plataforma definitiva de coaching fitness para gimnasios y entren
 
 ## Gamificación y Logros
 
-- Gana XP por entrenar, mantener rachas, desbloquear PRs y logros
+- Ganas XP por entrenar, mantener rachas, desbloquear PRs y logros
 - Sistema de niveles: sube de nivel con XP acumulado
 - 15+ logros con rarezas (común, raro, épico, legendario)
 - Dashboard visual con animaciones y feedback inmediato
@@ -124,6 +125,7 @@ GymCoach es la plataforma definitiva de coaching fitness para gimnasios y entren
 - ¿Dudas? Contacta a soporte: support@gymcoach.app
 - Consulta el roadmap y mejoras en `PLAN_MEJORAS_PREMIUM.md`
 - Documentación técnica y arquitectura en `ARCHITECTURE.md`
+- [Resetear DB y CORS (Producción)](docs/RESET_DB_PROD.md)
 
 ---
 
