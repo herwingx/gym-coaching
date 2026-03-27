@@ -35,7 +35,7 @@ La app está orientada a **coaches independientes** que gestionan **asesorados**
 
 ### 6. ~~Persistir preferencia de notificaciones en onboarding~~ ✅ RESUELTO
 
-**Implementado:** `notificationsEnabled` se envía a `completeOnboarding` y se guarda en `profiles.notifications_enabled`. Migración 011 añade la columna.
+
 
 ### 7. ~~Botón "Contactar a mi Coach" en `/suspended`~~ ✅ RESUELTO
 

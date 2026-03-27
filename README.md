@@ -1,49 +1,57 @@
-# Gym Coaching
 
-Aplicacion de coaching fitness con arquitectura `frontend + Supabase` (sin backend propio).
+# GymCoach
+
+Plataforma premium de coaching fitness para gimnasios y entrenadores personales. Experiencia mobile-first, gamificada y sin backend propio, usando Next.js y Supabase.
 
 ## Stack
 
-- `Next.js` (App Router)
-- `React`
-- `Supabase` (Auth, Postgres, Storage, RLS)
-- `shadcn/ui` + Tailwind
+- **Next.js 16** (App Router, Server Components)
+- **React 19** + **TypeScript**
+- **Supabase** (Auth, PostgreSQL, Storage, RLS)
+- **shadcn/ui** + **Tailwind CSS v4**
 
-## Estructura recomendada
+## Estructura del Proyecto
 
-- `app/`: rutas y pantallas (admin, client, auth, receptionist)
-- `app/actions/`: server actions que orquestan operaciones con Supabase
+- `app/`: rutas y pantallas (admin, client, auth, onboarding, receptionist)
+- `app/actions/`: server actions para lógica de negocio
 - `components/`: UI reutilizable y componentes de dominio
-- `lib/`: acceso a datos y utilidades de dominio
-- `scripts/`: migraciones SQL versionadas (fuente de verdad)
-- `docs/`: plan de producto y documentacion funcional
+- `lib/`: acceso a datos, lógica de negocio y utilidades
+- `docs/`: documentación funcional, técnica y roadmap
 
-## Base de datos
+## Características Clave
 
-La app depende de Supabase con RLS activo. El orden de scripts para entornos nuevos esta documentado en `scripts/README.md`.
+- Onboarding guiado para admin y clientes
+- Sistema de invitaciones y aprobación manual
+- Builder visual de rutinas y asignación inteligente
+- Tracking automático de progresión y PRs
+- Gamificación: XP, niveles, logros, rachas
+- Dashboard inteligente para coach y clientes
+- Seguridad avanzada: RLS, control de acceso, suspensión automática
+- PWA: instalación en móvil/desktop, offline support
 
-## Desarrollo
+## Desarrollo Local
 
 ```bash
 pnpm install
 cp .env.example .env.local
-# Completa Supabase, service role y (si aplica) ADMIN_SETUP_CODE — ver .env.example
+# Completa las variables de entorno: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, ADMIN_SETUP_CODE, etc.
 pnpm dev
 ```
 
-En Supabase, ejecuta los SQL en el orden de `scripts/README.md` (proyecto nuevo). En **Auth → URL Configuration** añade `http://localhost:3000/auth/callback` en Redirect URLs.
+## Despliegue
 
-Comprobar que todo compila y pasa tests antes de desplegar:
+1. Configura tu proyecto en Supabase y Vercel (o similar)
+2. Añade las variables de entorno necesarias
+3. Despliega con Vercel o tu plataforma preferida
+4. Accede a `/auth/admin-setup` para crear el primer admin
 
-```bash
-pnpm verify
-```
+## Documentación
 
-Solo producción local estática:
+- Documentación completa y premium en [`docs/`](docs/README.md)
+- Arquitectura técnica en [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- Guía de rutinas en [`docs/ROUTINES.md`](docs/ROUTINES.md)
+- Progresión y gamificación en [`docs/PROGRESSION.md`](docs/PROGRESSION.md)
 
-```bash
-pnpm build
-pnpm start
-```
+---
 
-Variables en `.env.local`: copia desde `.env.example`. Mínimo para arrancar: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`. Para crear el primer admin: `ADMIN_SETUP_CODE` (y opcionalmente Resend / `NEXT_PUBLIC_APP_URL`).
+¿Dudas? Consulta la documentación interna o contacta a soporte.

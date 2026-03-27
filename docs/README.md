@@ -1,62 +1,133 @@
-# GymCoach Premium - Documentación Completa
+<!--
+   GymCoach Premium - Documentación Oficial
+   Última actualización: Marzo 2026
+-->
 
-**Tabla de Contenidos**
+# GymCoach
+
+## Índice
+
 - [Visión General](#visión-general)
+- [Onboarding y Primeros Pasos](#onboarding-y-primeros-pasos)
 - [Guía del Coach/Admin](#guía-del-coachadmin)
-- [Guía del Asesorado/Cliente](#guía-del-asesoradocliente)
-- [Sistema de Rutinas](#sistema-de-rutinas)
-- [Progresión de Carga](#progresión-de-carga)
-- [Gamificación](#gamificación)
+- [Guía del Cliente](#guía-del-cliente)
+- [Rutinas y Progresión](#rutinas-y-progresión)
+- [Gamificación y Logros](#gamificación-y-logros)
 - [Seguridad y Acceso](#seguridad-y-acceso)
+- [Despliegue y Configuración](#despliegue-y-configuración)
+- [Soporte y Roadmap](#soporte-y-roadmap)
 
 ---
 
 ## Visión General
 
-GymCoach Premium es una plataforma revolucionaria de coaching de fitness que permite a un entrenador personal (coach) administrar y hacer seguimiento de múltiples clientes de forma inteligente.
+GymCoach es la plataforma definitiva de coaching fitness para gimnasios y entrenadores personales. Ofrece una experiencia premium, mobile-first y gamificada, con tecnología de punta:
 
-**Características Principales:**
-- ✅ Asignación de rutinas personalizadas
-- ✅ Tracking automático de progresión de carga
-- ✅ Sistema de gamificación con logros y niveles
-- ✅ Dashboard inteligente que sugiere próximas sesiones
-- ✅ Control de acceso por suscripción
-- ✅ Dark/Light mode con tema premium
-- ✅ Aplicación PWA (funciona offline)
+- **Next.js 16, React 19, TypeScript, Tailwind v4, shadcn/ui**
+- **Supabase PostgreSQL** con RLS y seguridad avanzada
+- **PWA**: Funciona offline, instalación en móvil y desktop
+- **Gamificación**: XP, niveles, logros, rachas y dashboard inteligente
+- **Control de acceso**: Invitaciones, roles, pagos y suspensión automática
+- **UI/UX**: Animaciones, dark/light mode, diseño responsive y accesible
+
+---
+
+## Onboarding y Primeros Pasos
+
+1. **Despliega la app** (ver sección de despliegue)
+2. **Crea el primer admin** accediendo a `/auth/admin-setup` (solo una vez)
+3. **Configura tu gym y perfil** en el onboarding guiado
+4. **Invita a tus clientes** desde el dashboard admin
+5. **Aprueba clientes** y asigna rutinas personalizadas
 
 ---
 
 ## Guía del Coach/Admin
 
-### Paso 1: Crear tu Cuenta (Primera Vez)
+### Crear y Gestionar Clientes
 
-1. Ve a `https://tu-app/auth/admin-setup`
-2. Ingresa el código secreto: `GYMCOACH2024`
-3. Completa el formulario con tu email y contraseña
-4. ¡Listo! Serás el admin principal del gym
+- Genera códigos de invitación únicos y compártelos por email/WhatsApp
+- Aprueba o rechaza clientes desde el panel de pendientes
+- Asigna rutinas, monitorea progreso, registra pagos y suspende acceso si es necesario
 
-**Nota:** Esta ruta solo funciona UNA SOLA VEZ. Después se bloquea automáticamente.
+### Crear Rutinas Premium
 
-### Paso 2: Invitar Asesorados
+- Usa el builder visual para crear rutinas semanales, días de descanso y entrenamientos
+- Asigna ejercicios, series, repeticiones, pesos y notas personalizadas
+- Guarda plantillas y reutiliza rutinas para nuevos clientes
 
-1. Entra al dashboard admin en `/admin/dashboard`
-2. Ve a **"Invitaciones"** en el sidebar
-3. Click en **"Generar Nuevo Código"**
-4. Configura:
-   - **Email del asesorado** (opcional)
-   - **Fecha de expiración** (cuando expire el código)
-   - **Máximo de usos** (normalmente 1)
-5. Click en **"Generar"**
-6. **Copia el código** y comparte con tu asesorado por WhatsApp, email, etc.
+### Dashboard Inteligente
 
-### Paso 3: Aprobar Asesorados
+- Visualiza el estado de todos tus clientes en tarjetas
+- Filtros rápidos: activos, inactivos, por plan, por racha
+- Métricas globales: entrenamientos, PRs, clientes destacados
 
-1. En el sidebar, ve a **"Clientes"** > **"Pendientes"**
-2. Verás una lista de clientes que se registraron
-3. Revisa sus datos y haz click en **"Aprobar"**
-4. El cliente ahora puede acceder a la app
+---
 
-### Paso 4: Crear Rutinas
+## Guía del Cliente
+
+### Registro y Onboarding
+
+1. Recibe un código de invitación de tu coach
+2. Regístrate en `/auth/sign-up` con tu email y código
+3. Completa el onboarding: objetivo, experiencia, foto de perfil
+4. Espera aprobación del coach para acceder
+
+### Uso Diario
+
+- Consulta tu rutina y progreso en el dashboard
+- Marca entrenamientos como completados y registra sets/reps/peso/RPE
+- Recibe sugerencias automáticas de progresión y logros
+- Visualiza tu XP, nivel, racha y badges
+
+---
+
+## Rutinas y Progresión
+
+- Crea rutinas personalizadas con días de entrenamiento y descanso
+- El sistema calcula automáticamente el siguiente día y semana
+- Progresión inteligente: sugerencias de peso, reps y cambios de ejercicio
+- Tracking automático de PRs, volumen semanal y consistencia
+
+---
+
+## Gamificación y Logros
+
+- Gana XP por entrenar, mantener rachas, desbloquear PRs y logros
+- Sistema de niveles: sube de nivel con XP acumulado
+- 15+ logros con rarezas (común, raro, épico, legendario)
+- Dashboard visual con animaciones y feedback inmediato
+
+---
+
+## Seguridad y Acceso
+
+- Control de acceso por invitación y aprobación manual
+- Suspensión automática por falta de pago
+- RLS en base de datos: cada usuario solo accede a su información
+- Políticas estrictas para admins y clientes
+- Cumplimiento de mejores prácticas de seguridad Supabase
+
+---
+
+## Despliegue y Configuración
+
+1. **Requisitos:** Cuenta en Supabase y Vercel (u otro hosting compatible)
+2. **Variables de entorno:** Configura las variables necesarias (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `ADMIN_SETUP_CODE`, etc.)
+3. **Primer admin:** Accede a `/auth/admin-setup` y completa el onboarding
+4. **PWA:** Instala la app en tu móvil o desktop para experiencia offline
+
+---
+
+## Soporte y Roadmap
+
+- ¿Dudas? Contacta a soporte: support@gymcoach.app
+- Consulta el roadmap y mejoras en `PLAN_MEJORAS_PREMIUM.md`
+- Documentación técnica y arquitectura en `ARCHITECTURE.md`
+
+---
+
+¡Bienvenido a la experiencia GymCoach! Siéntete libre de explorar, personalizar y llevar tu coaching al siguiente nivel.
 
 1. Ve a **"Rutinas"** en el sidebar
 2. Click en **"Crear Rutina"**
