@@ -62,8 +62,12 @@ export function AdminSidebar() {
     <Sidebar side="left" collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border h-12 sm:h-14 flex flex-row items-center px-4 shrink-0 py-0">
         <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:-ml-2">
-          <div className="size-8 rounded bg-primary flex items-center justify-center shrink-0 group-data-[collapsible=icon]:size-8">
-            <span className="text-primary-foreground font-bold text-xs">GC</span>
+          <div className="size-8 rounded overflow-hidden flex items-center justify-center shrink-0 group-data-[collapsible=icon]:size-8">
+            <img 
+              src="/android-chrome-512x512.png" 
+              alt="GymCoach Logo" 
+              className="size-full object-cover"
+            />
           </div>
           <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
             <h1 className="text-sm font-bold truncate leading-none">GymCoach</h1>

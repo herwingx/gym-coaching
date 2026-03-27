@@ -7,11 +7,15 @@ export default function SignUpPage() {
   return (
     <div className="min-h-dvh flex flex-col bg-background">
       <header className="container flex items-center justify-between py-4">
-        <Link href="/auth/login" className="flex items-center gap-2 min-w-0">
-          <div className="size-8 shrink-0 rounded-lg bg-primary flex items-center justify-center">
-            <Dumbbell className="size-4 text-primary-foreground" />
+        <Link href="/auth/login" className="flex items-center gap-2 min-w-0" aria-label="GymCoach - Inicio">
+          <div className="size-9 shrink-0 rounded-xl overflow-hidden shadow-sm ring-1 ring-border">
+            <img 
+              src="/android-chrome-512x512.png" 
+              alt="GymCoach Logo" 
+              className="size-full object-cover"
+            />
           </div>
-          <span className="font-bold">GymCoach</span>
+          <span className="font-bold tracking-tight">GymCoach</span>
         </Link>
         <ThemeToggle />
       </header>

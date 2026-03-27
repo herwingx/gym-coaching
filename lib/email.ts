@@ -1,11 +1,22 @@
 import { Resend } from 'resend'
+import { render } from '@react-email/components'
+import * as React from 'react'
+import { InvitationEmail } from '@/emails/InvitationEmail'
+import { WelcomeEmail } from '@/emails/WelcomeEmail'
+import { NewRoutineEmail } from '@/emails/NewRoutineEmail'
+import { PaymentConfirmationEmail } from '@/emails/PaymentConfirmationEmail'
 
-const resend = process.env.RESEND_API_KEY
-  ? new Resend(process.env.RESEND_API_KEY)
-  : null
+let resendInstance: Resend | null = null
 
-const EMAIL_FROM =
-  process.env.EMAIL_FROM ?? 'GymCoach <onboarding@resend.dev>'
+function getResend() {
+  if (resendInstance) return resendInstance
+  const key = process.env.RESEND_API_KEY
+  if (!key) return null
+  resendInstance = new Resend(key)
+  return resendInstance
+}
+
+const EMAIL_FROM = process.env.EMAIL_FROM || 'GymCoach <noreply@herwingx.com>'
 
 function getAppUrl(): string {
   if (process.env.NEXT_PUBLIC_APP_URL) {
@@ -14,7 +25,7 @@ function getAppUrl(): string {
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`
   }
-  return 'https://tu-app.com'
+  return 'https://gymcoach.app'
 }
 
 export function isEmailConfigured(): boolean {
@@ -23,156 +34,152 @@ export function isEmailConfigured(): boolean {
 
 /**
  * Envía el código de invitación al asesorado cuando el admin lo da de alta.
- * El asesorado usa el código para registrarse (crear usuario + contraseña).
  */
 export async function sendClientInvitationEmail(params: {
   to: string
   clientName: string
   code: string
 }): Promise<{ success: boolean; error?: string }> {
-  if (!resend) {
-    console.warn('Resend no configurado (RESEND_API_KEY). No se envió el correo.')
-    return { success: false, error: 'Email no configurado' }
-  }
+  const resend = getResend()
+  if (!resend) return { success: false, error: 'Email no configurado' }
 
   const signUpUrl = `${getAppUrl()}/auth/sign-up?code=${params.code}`
-
-  const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tu código de acceso - GymCoach</title>
-</head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f4f4f5;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f4f4f5;">
-    <tr>
-      <td align="center" style="padding: 40px 20px;">
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 480px; background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-          <tr>
-            <td style="padding: 40px 32px;">
-              <div style="width: 48px; height: 48px; background: #e5a84d; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px;">
-                <span style="font-size: 24px;">💪</span>
-              </div>
-              <h1 style="margin: 0 0 8px; font-size: 24px; font-weight: 700; color: #18181b;">
-                Bienvenido a GymCoach
-              </h1>
-              <p style="margin: 0 0 24px; font-size: 16px; line-height: 24px; color: #71717a;">
-                Hola <strong>${escapeHtml(params.clientName)}</strong>, tu entrenador te ha registrado. Usa el siguiente código para crear tu cuenta y acceder a la app.
-              </p>
-              <div style="background: #f4f4f5; border-radius: 8px; padding: 20px; text-align: center; margin-bottom: 24px;">
-                <p style="margin: 0 0 8px; font-size: 12px; color: #71717a; text-transform: uppercase; letter-spacing: 0.5px;">Código de acceso</p>
-                <p style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 4px; font-family: monospace; color: #18181b;">${escapeHtml(params.code)}</p>
-              </div>
-              <p style="margin: 0 0 24px; font-size: 14px; line-height: 22px; color: #71717a;">
-                Ve a la página de registro, ingresa este código y crea tu usuario (email) y contraseña. El código expira en 30 días.
-              </p>
-              <a href="${escapeHtml(signUpUrl)}" style="display: inline-block; background: #e5a84d; color: #18181b; font-weight: 600; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-size: 16px;">
-                Crear mi cuenta
-              </a>
-              <p style="margin: 24px 0 0; font-size: 12px; color: #a1a1aa;">
-                Si no esperabas este correo, puedes ignorarlo.
-              </p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
-`
-
+  
   try {
+    const html = await render(
+      React.createElement(InvitationEmail, {
+        clientName: params.clientName,
+        code: params.code,
+        signUpUrl
+      })
+    )
+
     const { error } = await resend.emails.send({
       from: EMAIL_FROM,
       to: [params.to],
-      subject: `Tu código de acceso - GymCoach`,
+      subject: `💪 Tu código de acceso a GymCoach`,
       html,
     })
-    if (error) {
-      console.error('Error enviando email de invitación:', error)
-      return { success: false, error: error.message }
-    }
+
+    if (error) return { success: false, error: error.message }
     return { success: true }
   } catch (err) {
-    console.error('Error enviando email:', err)
-    return {
-      success: false,
-      error: err instanceof Error ? err.message : 'Error desconocido',
-    }
+    console.error('Error rendering/sending invitation email:', err)
+    return { success: false, error: 'Error interno al enviar email' }
   }
 }
 
 /**
- * Envía el código de invitación cuando el admin crea una invitación manual.
+ * Envía un correo de bienvenida cuando el usuario completa su registro.
+ */
+export async function sendWelcomeEmail(params: {
+  to: string
+  clientName: string
+}): Promise<{ success: boolean; error?: string }> {
+  const resend = getResend()
+  if (!resend) return { success: false, error: 'Email no configurado' }
+
+  try {
+    const html = await render(
+      React.createElement(WelcomeEmail, {
+        clientName: params.clientName
+      })
+    )
+
+    const { error } = await resend.emails.send({
+      from: EMAIL_FROM,
+      to: [params.to],
+      subject: `🚀 ¡Bienvenido a GymCoach!`,
+      html,
+    })
+
+    if (error) return { success: false, error: error.message }
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: 'Error al enviar bienvenida' }
+  }
+}
+
+/**
+ * Notifica al cliente que se le ha asignado una nueva rutina.
+ */
+export async function sendNewRoutineNotification(params: {
+  to: string
+  clientName: string
+  routineName: string
+}): Promise<{ success: boolean; error?: string }> {
+  const resend = getResend()
+  if (!resend) return { success: false, error: 'Email no configurado' }
+
+  try {
+    const html = await render(
+      React.createElement(NewRoutineEmail, {
+        clientName: params.clientName,
+        routineName: params.routineName
+      })
+    )
+
+    const { error } = await resend.emails.send({
+      from: EMAIL_FROM,
+      to: [params.to],
+      subject: `🏋️ Nueva rutina asignada: ${params.routineName}`,
+      html,
+    })
+
+    if (error) return { success: false, error: error.message }
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: 'Error al enviar notificación de rutina' }
+  }
+}
+
+/**
+ * Envía confirmación de pago recibido.
+ */
+export async function sendPaymentConfirmation(params: {
+  to: string
+  clientName: string
+  amount: string
+  planName: string
+  expiryDate: string
+}): Promise<{ success: boolean; error?: string }> {
+  const resend = getResend()
+  if (!resend) return { success: false, error: 'Email no configurado' }
+
+  try {
+    const html = await render(
+      React.createElement(PaymentConfirmationEmail, {
+        clientName: params.clientName,
+        amount: params.amount,
+        planName: params.planName,
+        expiryDate: params.expiryDate
+      })
+    )
+
+    const { error } = await resend.emails.send({
+      from: EMAIL_FROM,
+      to: [params.to],
+      subject: `✅ Pago confirmado - GymCoach`,
+      html,
+    })
+
+    if (error) return { success: false, error: error.message }
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: 'Error al enviar confirmación de pago' }
+  }
+}
+
+/**
+ * Invitación manual (solo código).
  */
 export async function sendManualInvitationEmail(params: {
   to: string
   code: string
 }): Promise<{ success: boolean; error?: string }> {
-  if (!resend) {
-    return { success: false, error: 'Email no configurado' }
-  }
-
-  const signUpUrl = `${getAppUrl()}/auth/sign-up?code=${params.code}`
-
-  const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Invitación - GymCoach</title>
-</head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f4f4f5;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f4f4f5;">
-    <tr>
-      <td align="center" style="padding: 40px 20px;">
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 480px; background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-          <tr>
-            <td style="padding: 40px 32px;">
-              <div style="width: 48px; height: 48px; background: #e5a84d; border-radius: 10px; margin-bottom: 24px;">💪</div>
-              <h1 style="margin: 0 0 16px; font-size: 24px; font-weight: 700; color: #18181b;">Invitación a GymCoach</h1>
-              <p style="margin: 0 0 24px; font-size: 16px; line-height: 24px; color: #71717a;">
-                Te han invitado a unirte. Usa este código para registrarte y crear tu cuenta:
-              </p>
-              <div style="background: #f4f4f5; border-radius: 8px; padding: 20px; text-align: center; margin-bottom: 24px;">
-                <p style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 4px; font-family: monospace; color: #18181b;">${escapeHtml(params.code)}</p>
-              </div>
-              <a href="${escapeHtml(signUpUrl)}" style="display: inline-block; background: #e5a84d; color: #18181b; font-weight: 600; padding: 14px 28px; border-radius: 8px; text-decoration: none;">Registrarme</a>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
-`
-
-  try {
-    const { error } = await resend.emails.send({
-      from: EMAIL_FROM,
-      to: [params.to],
-      subject: `Invitación a GymCoach`,
-      html,
-    })
-    if (error) return { success: false, error: error.message }
-    return { success: true }
-  } catch (err) {
-    return {
-      success: false,
-      error: err instanceof Error ? err.message : 'Error desconocido',
-    }
-  }
-}
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
+  return sendClientInvitationEmail({
+    to: params.to,
+    clientName: 'Atleta',
+    code: params.code
+  })
 }

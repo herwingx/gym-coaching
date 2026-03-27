@@ -105,6 +105,32 @@ export async function assignRoutineToClient(
     .update({ assigned_routine_id: routineId })
     .eq('id', clientId)
 
+  // Notificar por email (background)
+  try {
+    const { data: clientInfo } = await supabase
+      .from('clients')
+      .select('full_name, email')
+      .eq('id', clientId)
+      .single()
+    
+    const { data: routineInfo } = await supabase
+      .from('routines')
+      .select('name')
+      .eq('id', routineId)
+      .single()
+
+    if (clientInfo?.email && routineInfo?.name) {
+      const { sendNewRoutineNotification } = await import('@/lib/email')
+      sendNewRoutineNotification({
+        to: clientInfo.email,
+        clientName: clientInfo.full_name,
+        routineName: routineInfo.name
+      }).catch(err => console.error('Error enviando email rutina:', err))
+    }
+  } catch (err) {
+    console.warn('No se pudo enviar notificación de rutina:', err)
+  }
+
   return data[0]
 }
 

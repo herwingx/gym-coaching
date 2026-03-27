@@ -18,12 +18,12 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'GymCoach | Gestiona tus asesorados y su progreso',
+  title: 'GymCoach | Entrena al siguiente nivel',
   manifest: '/manifest.json',
   keywords: ['coach', 'fitness', 'coaching', 'entrenamiento', 'rutinas', 'asesorados', 'progresion'],
   authors: [{ name: 'GymCoach' }],
   openGraph: {
-    title: 'GymCoach - Gestiona tus asesorados y su progreso',
+    title: 'GymCoach - Tu plataforma de entrenamiento personal',
     description: 'La plataforma revolucionaria para seguimiento de fitness con IA',
     type: 'website',
     url: 'https://gymcoach.app',
@@ -31,10 +31,10 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/icon.png', sizes: '32x32', type: 'image/png' },
-      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
     ],
-    apple: '/apple-icon.png',
+    apple: '/apple-touch-icon.png',
   },
   appleWebApp: {
     capable: true,
@@ -65,6 +65,8 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="GymCoach" />
+        <meta name="theme-color" content="#0A0A0A" media="(prefers-color-scheme: dark)" />
+        <meta name="theme-color" content="#FAFAFA" media="(prefers-color-scheme: light)" />
         <meta name="msapplication-TileColor" content="#e5a84d" />
         <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#e5a84d" />
         <link rel="alternate" href="https://gymcoach.app" hrefLang="es" />

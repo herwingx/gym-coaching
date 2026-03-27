@@ -41,9 +41,20 @@ export default function HomePage() {
 
   return (
     <div id="main-content" className="min-h-dvh flex items-center justify-center bg-background" tabIndex={-1}>
-      <div className="text-center space-y-4">
-        <h1 className="text-3xl font-bold">GymCoach</h1>
-        <p className="text-muted-foreground">Cargando tu dashboard...</p>
+      <div className="text-center space-y-6">
+        <div className="flex justify-center">
+          <div className="size-16 rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10">
+            <img 
+              src="/android-chrome-512x512.png" 
+              alt="GymCoach Logo" 
+              className="size-full object-cover"
+            />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight">GymCoach</h1>
+          <p className="text-muted-foreground">Cargando tu dashboard...</p>
+        </div>
         <div className="flex justify-center gap-2" aria-hidden="true">
           <div className="size-2 rounded-full bg-primary animate-bounce motion-reduce:animate-none" style={{ animationDelay: '0ms' }} aria-hidden />
           <div className="size-2 rounded-full bg-primary animate-bounce motion-reduce:animate-none" style={{ animationDelay: '150ms' }} aria-hidden />

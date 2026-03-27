@@ -181,6 +181,20 @@ html {
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+
+    /* Native PWA Feel Improvements */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    overscroll-behavior-y: none;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Prevent selection on UI elements to feel more like an app */
+  button, 
+  nav, 
+  [role="button"],
+  .sidebar-item {
+    user-select: none;
   }
 
   /* Scrollbar Webkit (Chrome, Safari, Edge) */

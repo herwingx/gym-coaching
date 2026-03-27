@@ -87,11 +87,15 @@ export default function ResetPasswordPage() {
   return (
     <div className="min-h-dvh bg-background flex flex-col">
       <header className="container flex items-center justify-between py-4">
-        <div className="flex items-center gap-2">
-          <div className="size-8 rounded-lg bg-primary flex items-center justify-center">
-            <Dumbbell className="w-4 h-4 text-primary-foreground" />
+        <div className="flex items-center gap-2" aria-label="GymCoach - Inicio">
+          <div className="size-9 shrink-0 rounded-xl overflow-hidden shadow-sm ring-1 ring-border">
+            <img 
+              src="/android-chrome-512x512.png" 
+              alt="GymCoach Logo" 
+              className="size-full object-cover"
+            />
           </div>
-          <span className="font-bold">GymCoach</span>
+          <span className="font-bold tracking-tight">GymCoach</span>
         </div>
         <ThemeToggle />
       </header>

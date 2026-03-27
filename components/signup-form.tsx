@@ -293,10 +293,17 @@ function SignUpFormInner({
       {isCodeValid && (
         <Card className="overflow-hidden border-0 shadow-xl">
           <CardHeader className="pb-4">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <CardTitle className="text-xl">Crear cuenta</CardTitle>
-                <CardDescription>
+            <div className="flex items-center gap-4">
+              <div className="size-14 rounded-xl overflow-hidden shadow-lg ring-1 ring-border">
+                <img 
+                  src="/android-chrome-512x512.png" 
+                  alt="GymCoach Logo" 
+                  className="size-full object-cover"
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-xl font-bold tracking-tight">Crea tu cuenta</CardTitle>
+                <CardDescription className="truncate">
                   Código validado. Completa tu registro
                 </CardDescription>
               </div>

@@ -79,6 +79,15 @@ export async function completeOnboarding(data: OnboardingData) {
     return { success: false, error: 'Error al actualizar el perfil' }
   }
 
+  // Enviar email de bienvenida (en background, no bloqueante)
+  if (user.email) {
+    const { sendWelcomeEmail } = await import('@/lib/email')
+    sendWelcomeEmail({
+      to: user.email,
+      clientName: data.fullName
+    }).catch(err => console.error('Error enviando email bienvenida:', err))
+  }
+
   const clientGoal = GOAL_MAP[data.fitnessGoal] ?? 'maintenance'
 
   // Buscar cliente ya vinculado a este usuario

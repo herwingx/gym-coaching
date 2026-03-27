@@ -58,15 +58,15 @@ export function AdminOnboardingFlow({ userId, gymName }: AdminOnboardingFlowProp
 
   return (
     <div className="min-h-dvh bg-background flex flex-col">
-      <header className="border-b">
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container py-4">
           <div className="flex items-center gap-3">
-            <div className="size-10 rounded-xl bg-primary flex items-center justify-center">
-              <Dumbbell className="w-5 h-5 text-primary-foreground" />
+            <div className="size-10 rounded-xl overflow-hidden shadow-sm ring-1 ring-border shrink-0">
+              <img src="/android-chrome-192x192.png" alt="Logo" className="size-full object-cover" />
             </div>
             <div>
-              <h1 className="font-bold">GymCoach</h1>
-              <p className="text-xs text-muted-foreground">Configuración inicial</p>
+              <h1 className="font-bold tracking-tight">GymCoach</h1>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Configuración de Coach</p>
             </div>
           </div>
         </div>

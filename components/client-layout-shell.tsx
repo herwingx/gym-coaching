@@ -18,8 +18,14 @@ export function ClientLayoutShell({ children }: { children: React.ReactNode }) {
       <ClientSidebar />
       <SidebarInset>
         {!isMessagesRoute ? (
-          <header className="sticky top-0 z-40 flex h-12 shrink-0 items-center border-b border-border bg-background px-4 sm:h-14 sm:px-6 lg:px-8">
+          <header className="sticky top-0 z-40 flex h-12 shrink-0 items-center gap-2 border-b border-border bg-background px-4 sm:h-14 sm:px-6 lg:px-8">
             <SidebarTrigger className="-ml-1 size-9 sm:size-8" aria-label="Abrir menú" />
+            <div className="flex items-center gap-2 lg:hidden">
+              <div className="size-7 rounded-lg overflow-hidden ring-1 ring-border">
+                <img src="/android-chrome-192x192.png" alt="Logo" className="size-full object-cover" />
+              </div>
+              <span className="text-sm font-bold tracking-tight">GymCoach</span>
+            </div>
           </header>
         ) : null}
         <div

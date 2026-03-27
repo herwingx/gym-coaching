@@ -19,6 +19,34 @@ async function syncClientPlanDatesFromPayment(
   await supabase.from('clients').update(clientUpdate).eq('id', clientId)
 }
 
+async function notifyPayment(clientId: string, amount: number, planId?: string | null, periodEnd?: string | null) {
+  try {
+    const supabase = await createClient()
+    const { data: client } = await supabase.from('clients').select('full_name, email').eq('id', clientId).single()
+    if (!client?.email) return
+
+    let planName = 'Plan Personalizado'
+    if (planId) {
+      const { data: plan } = await supabase.from('membership_plans').select('name').eq('id', planId).single()
+      if (plan) planName = plan.name
+    }
+
+    const { sendPaymentConfirmation } = await import('@/lib/email')
+    const formattedAmount = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount)
+    const formattedDate = periodEnd ? new Date(periodEnd).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'
+
+    await sendPaymentConfirmation({
+      to: client.email,
+      clientName: client.full_name,
+      amount: formattedAmount,
+      planName,
+      expiryDate: formattedDate
+    })
+  } catch (err) {
+    console.error('Error enviando notificación de pago:', err)
+  }
+}
+
 export async function registerPayment(formData: FormData) {
   const user = await getAuthUser()
   const profile = await getUserProfile()
@@ -63,6 +91,9 @@ export async function registerPayment(formData: FormData) {
     period_end: periodEnd || null,
     plan_id: planId || null,
   })
+
+  // Notificar al cliente (background)
+  notifyPayment(clientId, parseFloat(amount), planId, periodEnd).catch(console.error)
 
   revalidatePath('/admin/payments')
   revalidatePath('/admin/clients')
@@ -109,6 +140,13 @@ export async function markPaymentAsPaid(paymentId: string) {
     period_end: existing.period_end,
     plan_id: existing.plan_id,
   })
+
+  // Notificar al cliente (background)
+  // Necesitamos el monto, que no estaba en el select anterior
+  const { data: fullPayment } = await supabase.from('payments').select('amount').eq('id', paymentId).single()
+  if (fullPayment) {
+    notifyPayment(existing.client_id, fullPayment.amount, existing.plan_id, existing.period_end).catch(console.error)
+  }
 
   revalidatePath('/admin/payments')
   revalidatePath('/admin/clients')
