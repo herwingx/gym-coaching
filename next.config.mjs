@@ -9,6 +9,7 @@ const withSerwist = withSerwistInit({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: { ignoreBuildErrors: false },
+  productionBrowserSourceMaps: false, // Desactivar sourcemaps para reducir tamaño
   images: {
     unoptimized: true,
     remotePatterns: [
@@ -17,20 +18,27 @@ const nextConfig = {
     ],
   },
   experimental: {
+    // Esto es CLAVE: ayuda a que solo se importe lo que usas
     optimizePackageImports: [
       'lucide-react', 
       '@radix-ui/react-icons', 
       'recharts', 
       '@tabler/icons-react',
       'date-fns',
-      'framer-motion'
+      'framer-motion',
+      '@aws-sdk/client-s3'
     ],
   },
-  // Añadimos esto para silenciar el error de Turbopack vs Webpack
   turbopack: {},
   webpack: (config, { isServer }) => {
     if (isServer) {
       config.optimization.moduleIds = 'deterministic';
+      // Evitamos duplicados pesados
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        maxInitialRequests: 25,
+        minSize: 20000,
+      };
     }
     return config;
   },
