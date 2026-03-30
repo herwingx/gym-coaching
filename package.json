@@ -8,7 +8,7 @@
     "dev:webpack": "next dev --webpack",
     "clean": "rm -rf .next node_modules/.cache",
     "build": "next build",
-    "pages:build": "npx @cloudflare/next-on-pages",
+    "pages:build": "npx @cloudflare/next-on-pages --minify",
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
