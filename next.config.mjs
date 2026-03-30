@@ -60,6 +60,9 @@ const nextConfig = {
 const isDev = process.env.NODE_ENV === "development";
 const disablePwa = process.env.DISABLE_PWA === "true";
 
+// Suppress Turbopack warning as we are in build process
+process.env.SERWIST_SUPPRESS_TURBOPACK_WARNING = "1";
+
 export default (isDev || disablePwa)
   ? nextConfig
   : withSerwistInit({
