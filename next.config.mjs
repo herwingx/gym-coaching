@@ -15,7 +15,7 @@ const nextConfig = {
   },
   
   experimental: {
-    ppr: 'incremental',
+    cacheComponents: true,
     staleTimes: {
       dynamic: 30,
       static: 180,
