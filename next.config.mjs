@@ -22,10 +22,8 @@ const nextConfig = {
       '@tabler/icons-react',
       'date-fns',
       'framer-motion',
-      '@aws-sdk/client-s3',
       'zod'
     ],
-    serverSourceMaps: false,
   },
   turbopack: {},
   

@@ -7,7 +7,7 @@ import { syncProfileRole } from '@/app/actions/auth'
 
 /**
  * Procesa el flujo implícito de Supabase: tokens en #hash.
- * El cliente setSession guarda en cookies para que el proxy/SSR funcione.
+ * El cliente setSession guarda en cookies para que el middleware/SSR funcione.
  */
 export default function AuthConfirmPage() {
   const router = useRouter()
@@ -39,7 +39,7 @@ export default function AuthConfirmPage() {
           router.replace('/auth/reset-password')
           return
         }
-        // user_metadata.role como fuente; sincronizar con profiles (proxy lee profiles)
+        // user_metadata.role como fuente; sincronizar con profiles (middleware lee profiles)
         const userId = data?.user?.id
         const roleFromMeta = data?.user?.user_metadata?.role as string | undefined
         let role = roleFromMeta ?? 'client'

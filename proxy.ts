@@ -58,7 +58,7 @@ function redirectPreservingSupabaseCookies(
   return redirect
 }
 
-export async function middleware(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   // API de validación de invitaciones: pasar directo para evitar latencia
   if (request.nextUrl.pathname === '/api/invitations/validate') {
     return NextResponse.next({ request })

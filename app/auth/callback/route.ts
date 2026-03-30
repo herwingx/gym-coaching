@@ -72,7 +72,7 @@ export async function GET(request: Request) {
     const role = data?.user?.user_metadata?.role
     const userId = data?.user?.id
 
-    // Sincronizar profiles.role con user_metadata (proxy lee de profiles)
+    // Sincronizar profiles.role con user_metadata (middleware lee de profiles)
     if (role === 'admin' && userId) {
       try {
         const admin = createAdminClient()
