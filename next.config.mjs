@@ -1,11 +1,5 @@
 import withSerwistInit from "@serwist/next";
 
-const withSerwist = withSerwistInit({
-  swSrc: "app/sw.ts",
-  swDest: "public/sw.js",
-  disable: process.env.NODE_ENV === "development" || process.env.DISABLE_PWA === "true",
-});
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: { ignoreBuildErrors: false },
@@ -60,4 +54,12 @@ const nextConfig = {
   },
 }
 
-export default withSerwist(nextConfig);
+const isDev = process.env.NODE_ENV === "development";
+const disablePwa = process.env.DISABLE_PWA === "true";
+
+export default (isDev || disablePwa)
+  ? nextConfig
+  : withSerwistInit({
+      swSrc: "app/sw.ts",
+      swDest: "public/sw.js",
+    })(nextConfig);
