@@ -3,13 +3,15 @@ import withSerwistInit from "@serwist/next";
 const withSerwist = withSerwistInit({
   swSrc: "app/sw.ts",
   swDest: "public/sw.js",
-  disable: process.env.NODE_ENV === "development",
+  disable: process.env.NODE_ENV === "development" || process.env.DISABLE_PWA === "true",
 });
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: { ignoreBuildErrors: false },
-  productionBrowserSourceMaps: false, // Desactivar sourcemaps para reducir tamaño
+  productionBrowserSourceMaps: false,
+  output: 'standalone',
+  
   images: {
     unoptimized: true,
     remotePatterns: [
@@ -17,8 +19,8 @@ const nextConfig = {
       { protocol: 'https', hostname: '*.r2.dev', pathname: '/**' },
     ],
   },
+  
   experimental: {
-    // Esto es CLAVE: ayuda a que solo se importe lo que usas
     optimizePackageImports: [
       'lucide-react', 
       '@radix-ui/react-icons', 
@@ -26,19 +28,33 @@ const nextConfig = {
       '@tabler/icons-react',
       'date-fns',
       'framer-motion',
-      '@aws-sdk/client-s3'
+      '@aws-sdk/client-s3',
+      'zod'
     ],
+    serverSourceMaps: false,
   },
   turbopack: {},
+  
   webpack: (config, { isServer }) => {
     if (isServer) {
       config.optimization.moduleIds = 'deterministic';
-      // Evitamos duplicados pesados
+      
       config.optimization.splitChunks = {
         chunks: 'all',
-        maxInitialRequests: 25,
-        minSize: 20000,
+        minSize: 10000,
+        cacheGroups: {
+          default: false,
+          vendors: false,
+          framework: {
+            name: 'framework',
+            test: /[\\/]node_modules[\\/](@aws-sdk|lucide-react|recharts|@radix-ui)[\\/]/,
+            priority: 40,
+            enforce: true,
+          },
+        },
       };
+
+      config.externalDir = true;
     }
     return config;
   },

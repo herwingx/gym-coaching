@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/select'
 import { Upload, Loader2, X, Camera, Info, CheckCircle2 } from 'lucide-react'
 import { getR2PresignedUrl } from '@/app/actions/r2-storage'
-import { R2_PUBLIC_URL } from '@/lib/r2'
+import { R2_PUBLIC_URL } from '@/lib/constants'
 import type { ProgressPhoto } from './photo-card'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'

@@ -1,8 +1,6 @@
 'use server'
 
-import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
-import { r2Client, R2_BUCKET_NAME } from '@/lib/r2'
+import { r2AwsClient, r2Endpoint, R2_BUCKET_NAME } from '@/lib/r2'
 import { getAuthUser } from '@/lib/auth-utils'
 
 /**
@@ -14,14 +12,17 @@ export async function getR2PresignedUrl(path: string, contentType: string) {
   const user = await getAuthUser()
   if (!user) throw new Error('No autorizado')
 
-  const command = new PutObjectCommand({
-    Bucket: R2_BUCKET_NAME,
-    Key: path,
-    ContentType: contentType,
+  const url = new URL(`${r2Endpoint}/${R2_BUCKET_NAME}/${path}`)
+
+  const signed = await r2AwsClient.sign(url.toString(), {
+    method: 'PUT',
+    headers: {
+      'Content-Type': contentType,
+    },
+    aws: { signQuery: true }
   })
 
-  const signedUrl = await getSignedUrl(r2Client, command, { expiresIn: 3600 })
-  return signedUrl
+  return signed.url
 }
 
 /**
@@ -32,10 +33,13 @@ export async function deleteR2Object(path: string) {
   const user = await getAuthUser()
   if (!user) throw new Error('No autorizado')
 
-  const command = new DeleteObjectCommand({
-    Bucket: R2_BUCKET_NAME,
-    Key: path,
+  const url = new URL(`${r2Endpoint}/${R2_BUCKET_NAME}/${path}`)
+
+  const res = await r2AwsClient.fetch(url.toString(), {
+    method: 'DELETE',
   })
 
-  await r2Client.send(command)
+  if (!res.ok) {
+    throw new Error('Failed to delete object from R2')
+  }
 }

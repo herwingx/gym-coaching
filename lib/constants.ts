@@ -25,3 +25,5 @@ export function getGoalLabel(goal: string | null | undefined): string {
   if (!goal) return '-'
   return GOAL_LABELS[goal] ?? goal
 }
+
+export const R2_PUBLIC_URL = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 'https://pub-25b160e13c63420783953a1098e3168c.r2.dev'

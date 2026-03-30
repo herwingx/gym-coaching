@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/select'
 import { createAdminExercise } from '@/app/actions/exercises'
 import { getR2PresignedUrl } from '@/app/actions/r2-storage'
-import { R2_PUBLIC_URL } from '@/lib/r2'
+import { R2_PUBLIC_URL } from '@/lib/constants'
 import { toast } from 'sonner'
 import { Loader2, Upload } from 'lucide-react'
 
