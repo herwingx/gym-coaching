@@ -115,7 +115,7 @@ export function AdminSidebar() {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Cerrar sesión">
-                <Link href="/auth/logout">
+                <Link href="/auth/logout" prefetch={false}>
                   <LogOut className="size-4 shrink-0" />
                   <span>Cerrar sesión</span>
                 </Link>

@@ -1,20 +1,18 @@
-// proxy.ts (En la raíz de tu proyecto o dentro de src/)
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
-const NO_STORE_SHELL = 'private, no-store, no-cache, must-revalidate, max-age=0'
-
 export async function proxy(request: NextRequest) {
   const url = request.nextUrl.pathname
-  console.log(`[Proxy] Request a: ${url}`)
-
-  // 1. Inicializamos la respuesta base
-  let supabaseResponse = NextResponse.next({
-    request,
+  
+  // 1. Respuesta base
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
   })
 
-  // 2. Creamos el cliente asegurando que las cookies se propaguen correctamente
+  // 2. Cliente Supabase con lógica de cookies robusta para Vercel
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -24,67 +22,50 @@ export async function proxy(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          console.log(`[Proxy] Seteando ${cookiesToSet.length} cookies`)
-          
-          // A) Actualizamos la petición para que los componentes del servidor vean el cambio
+          // Actualizar request (para Server Components)
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           
-          // B) Refrescamos la respuesta base para que Next.js tome los cambios internos
-          supabaseResponse = NextResponse.next({
+          // Actualizar response (para el Navegador)
+          response = NextResponse.next({
             request,
           })
-          
-          // C) Inyectamos las nuevas cookies con sus opciones completas (path, maxAge, etc.)
-          // en la respuesta que irá de vuelta al navegador
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            response.cookies.set(name, value, options)
           )
         },
       },
     }
   )
 
-  // 3. Obtenemos el usuario (aquí es donde Supabase evalúa y, si es necesario, refresca el token)
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  console.log(`[Proxy] Usuario: ${user ? user.email : 'No autenticado'}`)
+  // 3. Obtener usuario (esto dispara setAll si el token expiró)
+  const { data: { user } } = await supabase.auth.getUser()
 
   const publicPaths = ['/auth', '/welcome', '/offline', '/api/invitations', '/favicon.ico', '/manifest.json']
   const isPublicPath = publicPaths.some(path => url.startsWith(path))
 
-  // 4. Protección de rutas
+  // 4. Si no hay usuario y es ruta protegida -> Redirigir
   if (!user && !isPublicPath && url !== '/') {
-    console.log(`[Proxy] Redirigiendo a login desde ${url}`)
     const redirectUrl = request.nextUrl.clone()
     redirectUrl.pathname = '/auth/login'
-    
-    // IMPORTANTE: Creamos la redirección
     const redirectResponse = NextResponse.redirect(redirectUrl)
     
-    // TRUCO CRÍTICO PARA EVITAR GHOST LOGOUTS:
-    // Al hacer un redirect, perdemos 'supabaseResponse'. Tenemos que transferir 
-    // manualmente TODAS las cookies procesadas hacia el objeto 'redirectResponse'.
-    supabaseResponse.cookies.getAll().forEach((cookie) => {
-      // Se pasan las opciones completas para que el navegador no ignore la cookie
+    // IMPORTANTE: Copiar cookies a la redirección
+    response.cookies.getAll().forEach((cookie) => {
       redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
     })
-    
     return redirectResponse
   }
 
-  // 5. Prevenir que el navegador guarde en caché el HTML de rutas protegidas
+  // 5. Encabezados de seguridad para evitar caché de sesión
   if (!isPublicPath) {
-    supabaseResponse.headers.set('Cache-Control', NO_STORE_SHELL)
-    supabaseResponse.headers.set('Vary', 'Cookie')
+    response.headers.set('Cache-Control', 'private, no-store, no-cache, must-revalidate, max-age=0')
+    response.headers.set('Vary', 'Cookie')
   }
 
-  return supabaseResponse
+  return response
 }
 
 export const config = {
-  // Configuración del Matcher para el proxy
   matcher: [
     '/((?!_next/static|_next/image|favicon.ico|manifest\\.json|sw\\.js|offline\\.html|icons/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
