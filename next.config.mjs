@@ -5,6 +5,7 @@ const nextConfig = {
   typescript: { ignoreBuildErrors: false },
   productionBrowserSourceMaps: false,
   output: 'standalone',
+  cacheComponents: true,
   
   images: {
     unoptimized: true,
@@ -15,7 +16,6 @@ const nextConfig = {
   },
   
   experimental: {
-    cacheComponents: true,
     staleTimes: {
       dynamic: 30,
       static: 180,
