@@ -17,7 +17,6 @@ const nextConfig = {
     ],
   },
   experimental: {
-    // Añadimos más librerías para optimizar el "tree-shaking"
     optimizePackageImports: [
       'lucide-react', 
       '@radix-ui/react-icons', 
@@ -27,7 +26,8 @@ const nextConfig = {
       'framer-motion'
     ],
   },
-  // Esto ayuda a que el bundle sea más pequeño en Cloudflare
+  // Añadimos esto para silenciar el error de Turbopack vs Webpack
+  turbopack: {},
   webpack: (config, { isServer }) => {
     if (isServer) {
       config.optimization.moduleIds = 'deterministic';
