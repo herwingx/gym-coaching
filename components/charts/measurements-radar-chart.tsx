@@ -1,16 +1,16 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import {
-  Line,
-  LineChart,
-  PolarAngleAxis,
-  PolarGrid,
-  Radar,
-  RadarChart,
-  XAxis,
-  YAxis,
-} from 'recharts'
+import dynamic from 'next/dynamic'
+
+const Line = dynamic(() => import('recharts').then((mod) => mod.Line as any), { ssr: false }) as typeof import('recharts').Line
+const LineChart = dynamic(() => import('recharts').then((mod) => mod.LineChart as any), { ssr: false }) as typeof import('recharts').LineChart
+const PolarAngleAxis = dynamic(() => import('recharts').then((mod) => mod.PolarAngleAxis as any), { ssr: false }) as typeof import('recharts').PolarAngleAxis
+const PolarGrid = dynamic(() => import('recharts').then((mod) => mod.PolarGrid as any), { ssr: false }) as typeof import('recharts').PolarGrid
+const Radar = dynamic(() => import('recharts').then((mod) => mod.Radar as any), { ssr: false }) as typeof import('recharts').Radar
+const RadarChart = dynamic(() => import('recharts').then((mod) => mod.RadarChart as any), { ssr: false }) as typeof import('recharts').RadarChart
+const XAxis = dynamic(() => import('recharts').then((mod) => mod.XAxis as any), { ssr: false }) as typeof import('recharts').XAxis
+const YAxis = dynamic(() => import('recharts').then((mod) => mod.YAxis as any), { ssr: false }) as typeof import('recharts').YAxis
 
 import {
   ChartContainer,

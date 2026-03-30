@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser, getUserProfile } from '@/lib/auth-utils'
 import { revalidatePath } from 'next/cache'
-import { randomUUID } from 'crypto'
+
 
 function emptyToNull(s: string | null | undefined) {
   const t = s?.trim()
@@ -29,7 +29,7 @@ export async function createAdminExercise(formData: FormData) {
   const supabase = await createClient()
 
   const row: Record<string, unknown> = {
-    id: randomUUID(),
+    id: crypto.randomUUID(),
     name,
     primary_muscle: primaryMuscle,
     secondary_muscle: emptyToNull(formData.get('secondaryMuscle') as string),

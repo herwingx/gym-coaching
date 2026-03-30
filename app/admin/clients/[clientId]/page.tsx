@@ -88,7 +88,7 @@ export default async function ClientProfilePage({ params, searchParams }: Props)
     getBodyMeasurements(clientId, HUB_MEASUREMENTS_LIMIT),
     supabase
       .from('progress_photos')
-      .select('id, photo_url, view_type, weight_kg, taken_at, notes')
+      .select('id, photo_url, view_type, weight_kg, taken_at, notes, created_at')
       .eq('client_id', clientId)
       .order('taken_at', { ascending: false })
       .limit(30),

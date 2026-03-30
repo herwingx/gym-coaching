@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import { parseCookieHeader, serializeCookieHeader } from '@supabase/ssr'

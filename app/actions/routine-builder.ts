@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser, getUserProfile } from '@/lib/auth-utils'
-import { randomUUID } from 'crypto'
+
 
 export async function saveRoutineFromBuilder(data: {
   name: string
@@ -23,7 +23,7 @@ export async function saveRoutineFromBuilder(data: {
   }
 
   const supabase = await createClient()
-  const routineId = randomUUID()
+  const routineId = crypto.randomUUID()
 
   const { error: routineError } = await supabase.from('routines').insert({
     id: routineId,
@@ -37,7 +37,7 @@ export async function saveRoutineFromBuilder(data: {
   if (routineError) throw new Error(routineError.message)
 
   for (const day of data.days) {
-    const dayId = randomUUID()
+    const dayId = crypto.randomUUID()
     const { error: dayError } = await supabase.from('routine_days').insert({
       id: dayId,
       routine_id: routineId,
@@ -120,7 +120,7 @@ export async function updateRoutineFromBuilder(
   }
 
   for (const day of data.days) {
-    const dayId = randomUUID()
+    const dayId = crypto.randomUUID()
     const { error: dayError } = await supabase.from('routine_days').insert({
       id: dayId,
       routine_id: routineId,

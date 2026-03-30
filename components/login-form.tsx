@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils'
 export function LoginForm({
   className,
   ...props
-}: React.ComponentProps<'div'>) {
+}: React.ComponentProps<'form'>) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -86,63 +86,74 @@ export function LoginForm({
   }
 
   return (
-    <div className={cn('w-full', className)} {...props}>
-      <form onSubmit={handleLogin} className="flex flex-col justify-center">
-        <FieldGroup>
-          <Field>
-            <FieldLabel htmlFor="email">Email</FieldLabel>
-            <Input
-              id="email"
-              type="email"
-              placeholder="tu@email.com"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading}
-              className="h-11"
-            />
-          </Field>
-          <Field>
-            <div className="flex items-center">
-              <FieldLabel htmlFor="password">Contraseña</FieldLabel>
-              <Link
-                href="/auth/forgot-password"
-                className="ml-auto text-sm text-muted-foreground hover:text-primary underline-offset-2 hover:underline"
-              >
-                ¿Olvidaste tu contraseña?
-              </Link>
-            </div>
-            <PasswordInput
-              id="password"
-              placeholder="********"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading}
-            />
-          </Field>
-          <Field>
-            <Button
-              type="submit"
-              className="w-full h-11 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Iniciando…' : 'Iniciar sesión'}
-            </Button>
-          </Field>
-          <FieldDescription className="text-center">
-            ¿No tienes cuenta?{' '}
+    <form
+      onSubmit={handleLogin}
+      className={cn('flex flex-col gap-6', className)}
+      {...props}
+    >
+      <div className="flex flex-col items-center gap-2 text-center md:items-start md:text-left">
+        <h1 className="text-2xl font-bold tracking-tight">
+          Bienvenido de nuevo
+        </h1>
+        <p className="text-sm text-balance text-muted-foreground">
+          Ingresa tus credenciales para acceder a tu entrenamiento.
+        </p>
+      </div>
+
+      <FieldGroup>
+        <Field>
+          <FieldLabel htmlFor="email">Email</FieldLabel>
+          <Input
+            id="email"
+            type="email"
+            placeholder="tu@email.com"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={isLoading}
+          />
+        </Field>
+        <Field>
+          <div className="flex items-center">
+            <FieldLabel htmlFor="password">Contraseña</FieldLabel>
             <Link
-              href="/auth/sign-up"
-              className="font-medium text-primary hover:underline"
+              href="/auth/forgot-password"
+              className="ml-auto text-sm underline-offset-4 hover:underline text-muted-foreground hover:text-primary transition-colors"
             >
-              Regístrate
+              ¿Olvidaste tu contraseña?
             </Link>
-          </FieldDescription>
-        </FieldGroup>
-      </form>
-    </div>
+          </div>
+          <PasswordInput
+            id="password"
+            placeholder="********"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={isLoading}
+          />
+        </Field>
+        <Field>
+          <Button
+            type="submit"
+            className="w-full h-11 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold cursor-pointer transition-all duration-200"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Iniciando…' : 'Iniciar sesión'}
+          </Button>
+        </Field>
+
+        <FieldDescription className="text-center">
+          ¿No tienes cuenta?{' '}
+          <Link
+            href="/auth/sign-up"
+            className="font-medium text-primary underline underline-offset-4 hover:text-primary/80 transition-colors"
+          >
+            Regístrate
+          </Link>
+        </FieldDescription>
+      </FieldGroup>
+    </form>
   )
 }

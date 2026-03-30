@@ -3,20 +3,18 @@
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { ThemeToggle } from '@/components/theme-toggle'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { Dumbbell } from 'lucide-react'
+import { GalleryVerticalEnd } from 'lucide-react'
 import { PasswordInput, getPasswordRequirements, isPasswordValid } from '@/components/ui/password-input'
 
 export default function ResetPasswordPage() {
@@ -76,8 +74,8 @@ export default function ResetPasswordPage() {
 
   if (isAuthenticated === null) {
     return (
-      <div className="min-h-dvh flex items-center justify-center p-6">
-        <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" />
+      <div className="min-h-dvh flex items-center justify-center p-6 bg-background">
+        <div className="animate-spin size-8 border-2 border-primary border-t-transparent rounded-full" />
       </div>
     )
   }
@@ -85,85 +83,88 @@ export default function ResetPasswordPage() {
   if (!isAuthenticated) return null
 
   return (
-    <div className="min-h-dvh bg-background flex flex-col">
-      <header className="container flex items-center justify-between py-4">
-        <div className="flex items-center gap-2" aria-label="GymCoach - Inicio">
-          <div className="size-9 shrink-0 rounded-xl overflow-hidden shadow-sm ring-1 ring-border">
-            <img 
-              src="/android-chrome-512x512.png" 
-              alt="GymCoach Logo" 
-              className="size-full object-cover"
-            />
-          </div>
-          <span className="font-bold tracking-tight">GymCoach</span>
+    <div className="grid min-h-svh lg:grid-cols-2">
+      <div className="flex flex-col gap-4 p-6 md:p-10">
+        <div className="flex justify-center gap-2 md:justify-start">
+          <Link href="/" className="flex items-center gap-2 font-medium">
+            <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
+              <GalleryVerticalEnd className="size-4" />
+            </div>
+            GymCoach Inc.
+          </Link>
         </div>
-        <ThemeToggle />
-      </header>
+        <div className="flex flex-1 items-center justify-center">
+          <div className="w-full max-w-xs">
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-col items-center gap-2 text-center md:items-start md:text-left">
+                <h1 className="text-2xl font-bold tracking-tight">Nueva contraseña</h1>
+                <p className="text-sm text-balance text-muted-foreground">
+                  Elige una contraseña segura para proteger tu cuenta de GymCoach.
+                </p>
+              </div>
 
-      <main id="main-content" className="flex-1 flex items-center justify-center p-6" tabIndex={-1}>
-        <div className="w-full max-w-sm space-y-8">
-          <div className="text-center space-y-2">
-            <h1 className="text-3xl font-bold">Nueva contraseña</h1>
-            <p className="text-muted-foreground">
-              Elige una contraseña segura
-            </p>
-          </div>
-
-          <Card className="border-0 shadow-lg">
-            <CardHeader className="pb-4">
-              <CardTitle>Restablecer contraseña</CardTitle>
-              <CardDescription>
-                Ingresa tu nueva contraseña dos veces
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="password">Nueva contraseña</Label>
-                  <PasswordInput
-                    id="password"
-                    autoComplete="new-password"
-                    placeholder="Crea una contraseña segura"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    disabled={isLoading}
-                    showValidation
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirm">Confirmar contraseña</Label>
-                  <PasswordInput
-                    id="confirm"
-                    autoComplete="new-password"
-                    placeholder="Repite tu contraseña"
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    disabled={isLoading}
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full h-11 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
-                  disabled={isLoading || !isPasswordValid(getPasswordRequirements(password)) || password !== confirmPassword}
-                >
-                  {isLoading ? 'Guardando...' : 'Guardar contraseña'}
-                </Button>
+              <form onSubmit={handleSubmit}>
+                <FieldGroup>
+                  <Field>
+                    <FieldLabel htmlFor="password">Nueva contraseña</FieldLabel>
+                    <PasswordInput
+                      id="password"
+                      autoComplete="new-password"
+                      placeholder="Crea una contraseña segura"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      disabled={isLoading}
+                      showValidation
+                    />
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="confirm">Confirmar contraseña</FieldLabel>
+                    <PasswordInput
+                      id="confirm"
+                      autoComplete="new-password"
+                      placeholder="Repite tu contraseña"
+                      required
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      disabled={isLoading}
+                    />
+                  </Field>
+                  <Field>
+                    <Button
+                      type="submit"
+                      className="w-full h-11 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold cursor-pointer transition-all duration-200"
+                      disabled={isLoading || !isPasswordValid(getPasswordRequirements(password)) || password !== confirmPassword}
+                    >
+                      {isLoading ? 'Guardando...' : 'Guardar contraseña'}
+                    </Button>
+                  </Field>
+                </FieldGroup>
               </form>
-            </CardContent>
-          </Card>
 
-          <p className="text-center text-sm text-muted-foreground">
-            <Link
-              href="/auth/login"
-              className="font-medium text-primary hover:underline"
-            >
-              Volver al inicio de sesión
-            </Link>
-          </p>
+              <div className="text-center">
+                <Link
+                  href="/auth/login"
+                  className="text-sm font-medium text-primary underline underline-offset-4 hover:text-primary/80 transition-colors"
+                >
+                  Volver al inicio de sesión
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
-      </main>
+        <div className="flex justify-center md:justify-start">
+          <ThemeToggle />
+        </div>
+      </div>
+      <div className="relative hidden bg-muted lg:block">
+        <img
+          src="/img-login.jpg"
+          alt="GymCoach Training"
+          className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.4] dark:grayscale-[0.2] transition-all duration-500"
+        />
+        <div className="absolute inset-0 bg-linear-to-t from-background/80 via-transparent to-transparent lg:from-background/20" />
+      </div>
     </div>
   )
 }

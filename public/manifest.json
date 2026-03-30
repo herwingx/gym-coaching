@@ -2,6 +2,7 @@
   "name": "GymCoach - Entrenamiento Personal Premium",
   "short_name": "GymCoach",
   "description": "La aplicación revolucionaria para seguimiento de entrenamiento personal con IA, progresión de carga automática y gamificación",
+  "id": "/",
   "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
@@ -20,6 +21,12 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "categories": ["fitness", "health", "productivity"],

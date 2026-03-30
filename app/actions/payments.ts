@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getAuthUser, getUserProfile } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import { randomUUID } from 'crypto'
+
 
 async function syncClientPlanDatesFromPayment(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -69,7 +69,7 @@ export async function registerPayment(formData: FormData) {
     .from('payments')
     .insert([
       {
-        id: randomUUID(),
+        id: crypto.randomUUID(),
         client_id: clientId,
         amount: parseFloat(amount),
         payment_method: paymentMethod || null,

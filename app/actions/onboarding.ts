@@ -1,6 +1,6 @@
 'use server'
 
-import { randomUUID } from 'crypto'
+
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { FitnessGoal, ExperienceLevel } from '@/lib/types'
@@ -161,7 +161,7 @@ export async function completeOnboarding(data: OnboardingData) {
       const { error: clientError } = await admin
         .from('clients')
         .insert({
-          id: randomUUID(),
+          id: crypto.randomUUID(),
           user_id: data.userId,
           coach_id: coachId,
           full_name: data.fullName,

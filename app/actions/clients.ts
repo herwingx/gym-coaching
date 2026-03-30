@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getAuthUser, getUserProfile } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import { randomUUID } from 'crypto'
+
 import { sendClientInvitationEmail } from '@/lib/email'
 
 function generateAccessCode(): string {
@@ -47,7 +47,7 @@ export async function createNewClient(formData: FormData) {
 
   const notes = formData.get('notes') as string
 
-  const clientId = randomUUID()
+  const clientId = crypto.randomUUID()
 
   const { data, error } = await supabase
     .from('clients')

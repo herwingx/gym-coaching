@@ -1,5 +1,13 @@
 'use client'
 
+import dynamic from 'next/dynamic'
+
+const Bar = dynamic(() => import('recharts').then((mod) => mod.Bar as any), { ssr: false }) as typeof import('recharts').Bar
+const BarChart = dynamic(() => import('recharts').then((mod) => mod.BarChart as any), { ssr: false }) as typeof import('recharts').BarChart
+const CartesianGrid = dynamic(() => import('recharts').then((mod) => mod.CartesianGrid as any), { ssr: false }) as typeof import('recharts').CartesianGrid
+const XAxis = dynamic(() => import('recharts').then((mod) => mod.XAxis as any), { ssr: false }) as typeof import('recharts').XAxis
+const YAxis = dynamic(() => import('recharts').then((mod) => mod.YAxis as any), { ssr: false }) as typeof import('recharts').YAxis
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   ChartContainer,
@@ -7,7 +15,6 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from '@/components/ui/chart'
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 
 interface WeeklyVolumeChartProps {
   data: { day: string; volume: number }[]

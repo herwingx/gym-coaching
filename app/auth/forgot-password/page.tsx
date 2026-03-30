@@ -3,19 +3,17 @@
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { ThemeToggle } from '@/components/theme-toggle'
 import Link from 'next/link'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { Dumbbell, ArrowLeft } from 'lucide-react'
+import { GalleryVerticalEnd, ArrowLeft } from 'lucide-react'
 
 function getRedirectUrl() {
   if (typeof window !== 'undefined') {
@@ -58,92 +56,91 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-background flex flex-col">
-      <header className="container flex items-center justify-between py-4">
-        <div className="flex items-center gap-2" aria-label="GymCoach - Inicio">
-          <div className="size-9 shrink-0 rounded-xl overflow-hidden shadow-sm ring-1 ring-border">
-            <img 
-              src="/android-chrome-512x512.png" 
-              alt="GymCoach Logo" 
-              className="size-full object-cover"
-            />
-          </div>
-          <span className="font-bold tracking-tight">GymCoach</span>
+    <div className="grid min-h-svh lg:grid-cols-2">
+      <div className="flex flex-col gap-4 p-6 md:p-10">
+        <div className="flex justify-center gap-2 md:justify-start">
+          <Link href="/" className="flex items-center gap-2 font-medium">
+            <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
+              <GalleryVerticalEnd className="size-4" />
+            </div>
+            GymCoach Inc.
+          </Link>
         </div>
-        <ThemeToggle />
-      </header>
+        <div className="flex flex-1 items-center justify-center">
+          <div className="w-full max-w-xs">
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-col items-center gap-2 text-center md:items-start md:text-left">
+                <h1 className="text-2xl font-bold tracking-tight">
+                  {sent ? 'Revisa tu correo' : '¿Olvidaste tu contraseña?'}
+                </h1>
+                <p className="text-sm text-balance text-muted-foreground">
+                  {sent
+                    ? 'Te hemos enviado un enlace para restablecer tu contraseña. Revisa también la carpeta de spam.'
+                    : 'Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.'}
+                </p>
+              </div>
 
-      <main id="main-content" className="flex-1 flex items-center justify-center p-6" tabIndex={-1}>
-        <div className="w-full max-w-sm space-y-8">
-          <div className="text-center space-y-2">
-            <h1 className="text-3xl font-bold">¿Olvidaste tu contraseña?</h1>
-            <p className="text-muted-foreground">
-              Te enviamos un enlace para restablecerla
-            </p>
-          </div>
-
-          <Card className="border-0 shadow-lg">
-            <CardHeader className="pb-4">
-              <CardTitle>Restablecer contraseña</CardTitle>
-              <CardDescription>
-                {sent
-                  ? 'Revisa tu correo y haz clic en el enlace'
-                  : 'Ingresa tu email y te enviamos las instrucciones'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {sent ? (
-                <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    Si existe una cuenta con ese email, recibirás un enlace para
-                    crear una nueva contraseña. Revisa también la carpeta de
-                    spam.
-                  </p>
-                  <Button variant="outline" className="w-full" asChild>
-                    <Link href="/auth/login">
-                      <ArrowLeft className="w-4 h-4 mr-2" />
-                      Volver al inicio de sesión
-                    </Link>
-                  </Button>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      autoComplete="email"
-                      placeholder="tu@email.com"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      disabled={isLoading}
-                      className="h-11"
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    className="w-full h-11 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'Enviando...' : 'Enviar enlace'}
-                  </Button>
+              {!sent ? (
+                <form onSubmit={handleSubmit}>
+                  <FieldGroup>
+                    <Field>
+                      <FieldLabel htmlFor="email">Email</FieldLabel>
+                      <Input
+                        id="email"
+                        type="email"
+                        autoComplete="email"
+                        placeholder="tu@email.com"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        disabled={isLoading}
+                      />
+                    </Field>
+                    <Field>
+                      <Button
+                        type="submit"
+                        className="w-full h-11 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold cursor-pointer transition-all duration-200"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? 'Enviando...' : 'Enviar enlace'}
+                      </Button>
+                    </Field>
+                  </FieldGroup>
                 </form>
+              ) : (
+                <Button variant="outline" className="w-full h-11" asChild>
+                  <Link href="/auth/login">
+                    <ArrowLeft className="size-4 mr-2" />
+                    Volver al inicio de sesión
+                  </Link>
+                </Button>
               )}
-            </CardContent>
-          </Card>
 
-          <p className="text-center text-sm text-muted-foreground">
-            <Link
-              href="/auth/login"
-              className="font-medium text-primary hover:underline"
-            >
-              Volver al inicio de sesión
-            </Link>
-          </p>
+              {!sent && (
+                <div className="text-center">
+                  <Link
+                    href="/auth/login"
+                    className="text-sm font-medium text-primary underline underline-offset-4 hover:text-primary/80 transition-colors"
+                  >
+                    Volver al inicio de sesión
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </main>
+        <div className="flex justify-center md:justify-start">
+          <ThemeToggle />
+        </div>
+      </div>
+      <div className="relative hidden bg-muted lg:block">
+        <img
+          src="/img-login.jpg"
+          alt="GymCoach Training"
+          className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.4] dark:grayscale-[0.2] transition-all duration-500"
+        />
+        <div className="absolute inset-0 bg-linear-to-t from-background/80 via-transparent to-transparent lg:from-background/20" />
+      </div>
     </div>
   )
 }

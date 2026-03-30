@@ -25,6 +25,12 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# Serwist / PWA build files
+public/sw.js
+public/sw.js.map
+public/workbox-*.js
+public/fallback-*.js
+
 # Supabase CLI
 .supabase/
 
@@ -37,6 +43,11 @@ pnpm-debug.log*
 
 # Test coverage
 coverage/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
 
 # OS
 Thumbs.db

@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth-utils'
-import { randomUUID } from 'crypto'
+
 
 export async function addMeasurement(data: {
   weight?: number
@@ -34,7 +34,7 @@ export async function addMeasurement(data: {
     : new Date().toISOString().slice(0, 10)
 
   const { error } = await supabase.from('body_measurements').insert({
-    id: randomUUID(),
+    id: crypto.randomUUID(),
     client_id: client.id,
     recorded_at: recordedAt,
     weight: data.weight ?? null,

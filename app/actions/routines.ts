@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser, getUserProfile } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
-import { randomUUID } from 'crypto'
+
 
 export async function createNewRoutine(formData: FormData) {
   const user = await getAuthUser()
@@ -26,7 +26,7 @@ export async function createNewRoutine(formData: FormData) {
     .from('routines')
     .insert([
       {
-        id: randomUUID(),
+        id: crypto.randomUUID(),
         coach_id: user.id,
         name,
         description: description || null,

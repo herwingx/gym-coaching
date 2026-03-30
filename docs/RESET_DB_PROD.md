@@ -30,7 +30,7 @@
 - Esto asegura que los enlaces en correos y callbacks apunten al dominio correcto.
 
 ### b) Configuración de CORS en Supabase
-1. Ve a Supabase > Settings > API > "Allowed Headers" y "Allowed Origins".
+1. Ve a Supabase > Settings > API > "Allowed Headers" y "All/owed Origins".
 2. Agrega el dominio de producción (ejemplo: `https://tu-app.vercel.app`).
 3. Si usas varios entornos, puedes separar por comas.
 4. Guarda los cambios.

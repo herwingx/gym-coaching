@@ -1,6 +1,14 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import dynamic from 'next/dynamic'
+
+const Area = dynamic(() => import('recharts').then((mod) => mod.Area as any), { ssr: false }) as typeof import('recharts').Area
+const AreaChart = dynamic(() => import('recharts').then((mod) => mod.AreaChart as any), { ssr: false }) as typeof import('recharts').AreaChart
+const CartesianGrid = dynamic(() => import('recharts').then((mod) => mod.CartesianGrid as any), { ssr: false }) as typeof import('recharts').CartesianGrid
+const XAxis = dynamic(() => import('recharts').then((mod) => mod.XAxis as any), { ssr: false }) as typeof import('recharts').XAxis
+const YAxis = dynamic(() => import('recharts').then((mod) => mod.YAxis as any), { ssr: false }) as typeof import('recharts').YAxis
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { 
@@ -12,7 +20,6 @@ import {
   History,
   Calendar
 } from 'lucide-react'
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 import {
   ChartContainer,
   ChartTooltip,

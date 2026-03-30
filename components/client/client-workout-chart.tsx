@@ -1,7 +1,13 @@
 'use client'
 
 import * as React from 'react'
-import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts'
+import dynamic from 'next/dynamic'
+
+const Area = dynamic(() => import('recharts').then((mod) => mod.Area as any), { ssr: false }) as typeof import('recharts').Area
+const AreaChart = dynamic(() => import('recharts').then((mod) => mod.AreaChart as any), { ssr: false }) as typeof import('recharts').AreaChart
+const CartesianGrid = dynamic(() => import('recharts').then((mod) => mod.CartesianGrid as any), { ssr: false }) as typeof import('recharts').CartesianGrid
+const XAxis = dynamic(() => import('recharts').then((mod) => mod.XAxis as any), { ssr: false }) as typeof import('recharts').XAxis
+
 import { useIsMobile } from '@/hooks/use-mobile'
 import {
   Card,

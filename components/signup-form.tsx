@@ -4,13 +4,6 @@ import { createClient } from '@/lib/supabase/client'
 import { useInvitationCode } from '@/app/actions/invitations'
 import { Button } from '@/components/ui/button'
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import {
   Field,
   FieldDescription,
   FieldGroup,
@@ -26,7 +19,6 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useEffect, Suspense } from 'react'
 import { toast } from 'sonner'
-import { Ticket } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 function SignUpFormInner({
@@ -232,158 +224,145 @@ function SignUpFormInner({
 
   return (
     <div className={cn('flex flex-col gap-6', className)} {...props}>
-      {/* Invitation Code Card - shown first */}
+      {/* Invitation Code Step */}
       {!isCodeValid && (
-        <Card className="overflow-hidden border-2 border-dashed">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <Ticket className="size-5" />
-              Código de invitación
-            </CardTitle>
-            <CardDescription>
-              Tu coach te proporcionó un código único para unirte
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                handleValidateCode()
-              }}
-            >
-              <FieldGroup>
-                <Field>
-                  <FieldLabel htmlFor="invitation-code" suppressHydrationWarning>
-                    Código
-                  </FieldLabel>
-                  <Input
-                    id="invitation-code"
-                    type="text"
-                    inputMode="text"
-                    autoComplete="one-time-code"
-                    spellCheck={false}
-                    placeholder="6-8 caracteres (ej: GYMCOACH)"
-                    value={invitationCode}
-                    onChange={(e) =>
-                      setInvitationCode(
-                        e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')
-                      )
-                    }
-                    disabled={isValidating}
-                    className="h-12 text-center text-xl font-mono tracking-widest"
-                    maxLength={8}
-                  />
-                </Field>
-                <Field>
-                  <Button
-                    type="submit"
-                    className="w-full h-11 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
-                    disabled={isValidating || invitationCode.length < 6}
-                  >
-                    {isValidating ? 'Validando…' : 'Validar código'}
-                  </Button>
-                </Field>
-              </FieldGroup>
-            </form>
-          </CardContent>
-        </Card>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            handleValidateCode()
+          }}
+          className="flex flex-col gap-6"
+        >
+          <div className="flex flex-col items-center gap-2 text-center md:items-start md:text-left">
+            <h1 className="text-2xl font-bold tracking-tight">Únete a GymCoach</h1>
+            <p className="text-sm text-balance text-muted-foreground">
+              Ingresa tu código de invitación para comenzar tu transformación.
+            </p>
+          </div>
+
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="invitation-code" suppressHydrationWarning>
+                Código de invitación
+              </FieldLabel>
+              <Input
+                id="invitation-code"
+                type="text"
+                inputMode="text"
+                autoComplete="one-time-code"
+                spellCheck={false}
+                placeholder="GYMCOACH"
+                value={invitationCode}
+                onChange={(e) =>
+                  setInvitationCode(
+                    e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')
+                  )
+                }
+                disabled={isValidating}
+                className="h-12 text-center text-xl font-mono tracking-[0.3em] uppercase"
+                maxLength={8}
+              />
+              <FieldDescription>
+                Tu coach te proporcionó un código único de 6-8 caracteres.
+              </FieldDescription>
+            </Field>
+            <Field>
+              <Button
+                type="submit"
+                className="w-full h-11 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold cursor-pointer transition-all duration-200"
+                disabled={isValidating || invitationCode.length < 6}
+              >
+                {isValidating ? 'Validando…' : 'Validar código'}
+              </Button>
+            </Field>
+          </FieldGroup>
+        </form>
       )}
 
-      {/* Registration Form - after valid code */}
+      {/* Registration Form Step */}
       {isCodeValid && (
-        <Card className="overflow-hidden border-0 shadow-xl">
-          <CardHeader className="pb-4">
-            <div className="flex items-center gap-4">
-              <div className="size-14 rounded-xl overflow-hidden shadow-lg ring-1 ring-border">
-                <img 
-                  src="/android-chrome-512x512.png" 
-                  alt="GymCoach Logo" 
-                  className="size-full object-cover"
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <CardTitle className="text-xl font-bold tracking-tight">Crea tu cuenta</CardTitle>
-                <CardDescription className="truncate">
-                  Código validado. Completa tu registro
-                </CardDescription>
-              </div>
-              <div className="px-3 py-1 bg-primary/20 text-primary-foreground text-xs font-medium rounded-full shrink-0">
-                Código válido
+        <form onSubmit={handleSignUp} className="flex flex-col gap-6">
+          <div className="flex flex-col items-center gap-2 text-center md:items-start md:text-left">
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight">Crea tu cuenta</h1>
+              <div className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider rounded-full border border-primary/20">
+                Código Válido
               </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSignUp}>
-              <FieldGroup>
-                <Field>
-                  <FieldLabel htmlFor="email">Email</FieldLabel>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="tu@email.com"
-                    autoComplete="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={isLoading}
-                    className="h-11"
-                  />
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="password">Contraseña</FieldLabel>
-                  <PasswordInput
-                    id="password"
-                    autoComplete="new-password"
-                    placeholder="Crea una contraseña segura"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    disabled={isLoading}
-                    showValidation
-                  />
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="repeat-password">
-                    Confirmar contraseña
-                  </FieldLabel>
-                  <PasswordInput
-                    id="repeat-password"
-                    autoComplete="new-password"
-                    placeholder="Repite tu contraseña"
-                    required
-                    value={repeatPassword}
-                    onChange={(e) => setRepeatPassword(e.target.value)}
-                    disabled={isLoading}
-                  />
-                </Field>
-                <Field>
-                  <Button
-                    type="submit"
-                    className="w-full h-11 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
-                    disabled={
-                      isLoading ||
-                      !isPasswordValid(getPasswordRequirements(password)) ||
-                      password !== repeatPassword
-                    }
-                  >
-                    {isLoading ? 'Creando cuenta…' : 'Crear cuenta'}
-                  </Button>
-                </Field>
-              </FieldGroup>
-            </form>
-          </CardContent>
-        </Card>
+            <p className="text-sm text-balance text-muted-foreground">
+              Completa tus datos para empezar con tu plan personalizado.
+            </p>
+          </div>
+
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="email">Email</FieldLabel>
+              <Input
+                id="email"
+                type="email"
+                placeholder="tu@email.com"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="password">Contraseña</FieldLabel>
+              <PasswordInput
+                id="password"
+                autoComplete="new-password"
+                placeholder="Crea una contraseña segura"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
+                showValidation
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="repeat-password">
+                Confirmar contraseña
+              </FieldLabel>
+              <PasswordInput
+                id="repeat-password"
+                autoComplete="new-password"
+                placeholder="Repite tu contraseña"
+                required
+                value={repeatPassword}
+                onChange={(e) => setRepeatPassword(e.target.value)}
+                disabled={isLoading}
+              />
+            </Field>
+            <Field>
+              <Button
+                type="submit"
+                className="w-full h-11 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold cursor-pointer transition-all duration-200"
+                disabled={
+                  isLoading ||
+                  !isPasswordValid(getPasswordRequirements(password)) ||
+                  password !== repeatPassword
+                }
+              >
+                {isLoading ? 'Creando cuenta…' : 'Comenzar ahora'}
+              </Button>
+            </Field>
+          </FieldGroup>
+        </form>
       )}
 
-      <FieldDescription className="px-6 text-center">
-        ¿Ya tienes cuenta?{' '}
-        <Link
-          href="/auth/login"
-          className="font-medium text-primary hover:underline"
-        >
-          Inicia sesión
-        </Link>
-      </FieldDescription>
+      <div className="text-center">
+        <p className="text-sm text-muted-foreground">
+          ¿Ya tienes cuenta?{' '}
+          <Link
+            href="/auth/login"
+            className="font-medium text-primary underline underline-offset-4 hover:text-primary/80 transition-colors"
+          >
+            Inicia sesión
+          </Link>
+        </p>
+      </div>
     </div>
   )
 }

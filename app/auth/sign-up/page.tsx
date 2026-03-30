@@ -1,36 +1,37 @@
 import { SignupForm } from '@/components/signup-form'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { Dumbbell } from 'lucide-react'
+import { GalleryVerticalEnd } from 'lucide-react'
 import Link from 'next/link'
 
 export default function SignUpPage() {
   return (
-    <div className="min-h-dvh flex flex-col bg-background">
-      <header className="container flex items-center justify-between py-4">
-        <Link href="/auth/login" className="flex items-center gap-2 min-w-0" aria-label="GymCoach - Inicio">
-          <div className="size-9 shrink-0 rounded-xl overflow-hidden shadow-sm ring-1 ring-border">
-            <img 
-              src="/android-chrome-512x512.png" 
-              alt="GymCoach Logo" 
-              className="size-full object-cover"
-            />
-          </div>
-          <span className="font-bold tracking-tight">GymCoach</span>
-        </Link>
-        <ThemeToggle />
-      </header>
-
-      <main id="main-content" className="flex-1 flex items-center justify-center p-6 md:p-10" tabIndex={-1}>
-        <div className="w-full max-w-sm flex flex-col gap-6">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold">Únete a GymCoach</h1>
-            <p className="text-muted-foreground mt-1">
-              Ingresa tu código de invitación para comenzar
-            </p>
-          </div>
-          <SignupForm />
+    <div className="grid min-h-svh lg:grid-cols-2">
+      <div className="flex flex-col gap-4 p-6 md:p-10">
+        <div className="flex justify-center gap-2 md:justify-start">
+          <Link href="/" className="flex items-center gap-2 font-medium">
+            <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
+              <GalleryVerticalEnd className="size-4" />
+            </div>
+            GymCoach Inc.
+          </Link>
         </div>
-      </main>
+        <div className="flex flex-1 items-center justify-center">
+          <div className="w-full max-w-xs">
+            <SignupForm />
+          </div>
+        </div>
+        <div className="flex justify-center md:justify-start">
+          <ThemeToggle />
+        </div>
+      </div>
+      <div className="relative hidden bg-muted lg:block">
+        <img
+          src="/img-login.jpg"
+          alt="GymCoach Training"
+          className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.4] dark:grayscale-[0.2] transition-all duration-500"
+        />
+        <div className="absolute inset-0 bg-linear-to-t from-background/80 via-transparent to-transparent lg:from-background/20" />
+      </div>
     </div>
   )
 }
