@@ -1,3 +1,22 @@
+import type { Metadata, Viewport } from 'next'
+import { Geist, Geist_Mono } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/next'
+import { ThemeProvider } from '@/components/theme-provider'
+import { Toaster } from 'sonner'
+import { PWASetup } from '@/components/pwa-setup'
+import { PWAInstallCTA } from '@/components/pwa-install-cta'
+import './globals.css'
+
+const geist = Geist({ 
+  subsets: ["latin"],
+  variable: '--font-geist-sans'
+})
+
+const geistMono = Geist_Mono({ 
+  subsets: ["latin"],
+  variable: '--font-geist-mono'
+})
+
 export const metadata: Metadata = {
   title: 'RU Coach | Rodrigo Urbina - Entrenamiento Personal Premium',
   description: 'Eleva tu entrenamiento con Rodrigo Urbina. Seguimiento avanzado, progresión automática y coaching de élite en RU Coach.',
