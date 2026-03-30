@@ -109,17 +109,33 @@ export default async function proxy(request: NextRequest) {
     return applyNoStoreForSensitiveRoutes(request, supabaseResponse)
   }
 
-  // Get user profile for role and subscription check (solo cuando hay user)
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('role, subscription_status, onboarding_completed')
-    .eq('id', user.id)
-    .single()
+  // Optimize by using metadata if available to avoid DB hits
+  let role = (user?.user_metadata?.role as string) || 'client'
+  let subscriptionStatus = (user?.user_metadata?.subscription_status as string) || 'active'
+  let onboardingCompleted = (user?.user_metadata?.onboarding_completed as boolean) ?? false
+  let profileFetched = false
 
-  const role = profile?.role || (user?.user_metadata?.role as string) || 'client'
-  const subscriptionStatus = profile?.subscription_status || 'active'
-  // Si falla el fetch (ej. RLS), asumir onboarding completo para evitar loops de redirect
-  const onboardingCompleted = profileError ? true : (profile?.onboarding_completed ?? false)
+  // Solo consultamos la DB si no tenemos la info completa en el metadata
+  // O si queremos forzar una comprobación de seguridad extra en rutas críticas (ej. admin)
+  const isCriticalPath = request.nextUrl.pathname.startsWith('/admin')
+  
+  if (!user.user_metadata?.role || !user.user_metadata?.subscription_status || isCriticalPath) {
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('role, subscription_status, onboarding_completed')
+      .eq('id', user.id)
+      .single()
+
+    if (!profileError && profile) {
+      role = profile.role || role
+      subscriptionStatus = profile.subscription_status || subscriptionStatus
+      onboardingCompleted = profile.onboarding_completed ?? onboardingCompleted
+      profileFetched = true
+    } else if (profileError) {
+      // Si falla el fetch, asumimos onboarding completo para evitar bucles si es un error de RLS
+      onboardingCompleted = true
+    }
+  }
 
   // Check if user is suspended or expired
   const isBlockedStatus = subscriptionStatus === 'suspended' || subscriptionStatus === 'expired'

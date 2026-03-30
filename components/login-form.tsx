@@ -39,12 +39,15 @@ export function LoginForm({
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('role, onboarding_completed')
+        .select('role, onboarding_completed, subscription_status')
         .eq('id', data.user.id)
         .single()
 
-      const metaRole = data.user.user_metadata?.role as string | undefined
       const profileRole = profile?.role
+      const subscriptionStatus = profile?.subscription_status || 'active'
+      const onboardingCompleted = profile?.onboarding_completed ?? false
+
+      const metaRole = data.user.user_metadata?.role as string | undefined
       if (metaRole === 'admin' && profileRole !== 'admin') {
         await syncProfileRole(data.user.id, 'admin')
       }
@@ -54,7 +57,15 @@ export function LoginForm({
           : profileRole === 'receptionist'
             ? 'receptionist'
             : profileRole ?? metaRole ?? 'client'
-      const onboardingCompleted = profile?.onboarding_completed ?? false
+
+      // Update metadata so proxy doesn't need to fetch DB
+      await supabase.auth.updateUser({
+        data: {
+          role,
+          onboarding_completed: onboardingCompleted,
+          subscription_status: subscriptionStatus,
+        },
+      })
 
       toast.success('¡Bienvenido de nuevo!')
 
