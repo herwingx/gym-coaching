@@ -17,6 +17,8 @@ const geistMono = Geist_Mono({
   variable: '--font-geist-mono'
 })
 
+export const runtime = 'edge';
+
 export const metadata: Metadata = {
   title: 'RU Coach | Rodrigo Urbina - Entrenamiento Personal Premium',
   description: 'Eleva tu entrenamiento con Rodrigo Urbina. Seguimiento avanzado, progresión automática y coaching de élite en RU Coach.',
