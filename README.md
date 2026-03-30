@@ -36,7 +36,7 @@ pnpm dev
 
 ## Despliegue
 
-Optimizado para **Cloudflare Pages** usando `@cloudflare/next-on-pages`.
+Optimizado para **Vercel** de forma nativa. Solo conecta el repositorio y Vercel detectará automáticamente la configuración de Next.js.
 
 ---
 © 2026 RU Coach | Rodrigo Urbina. Todos los derechos reservados.
