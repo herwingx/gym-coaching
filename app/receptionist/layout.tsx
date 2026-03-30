@@ -1,4 +1,4 @@
-import { getAuthUser, getUserRole } from '@/lib/auth-utils'
+import { getAuthData } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
 
 export default async function ReceptionistLayout({
@@ -6,16 +6,11 @@ export default async function ReceptionistLayout({
 }: {
   children: React.ReactNode
 }) {
-  const user = await getAuthUser()
-  const role = await getUserRole()
+  const { user, role } = await getAuthData()
 
-  if (!user) {
+  if (!user || (role !== 'receptionist' && role !== 'admin')) {
     redirect('/auth/login')
   }
 
-  if (role !== 'receptionist') {
-    redirect('/auth/login')
-  }
-
-  return children
+  return <>{children}</>
 }

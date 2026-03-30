@@ -7,10 +7,15 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { user, role } = await getAuthData()
+  const { user, role, profile } = await getAuthData()
 
   if (!user || role !== 'admin') {
     redirect('/auth/login')
+  }
+
+  // Redirigir a onboarding si no está completado
+  if (profile && !profile.onboarding_completed) {
+    redirect('/admin/onboarding')
   }
 
   return (

@@ -7,10 +7,20 @@ export default async function ClientLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { user, role } = await getAuthData()
+  const { user, role, profile } = await getAuthData()
 
-  if (!user || role !== 'client') {
+  if (!user || (role !== 'client' && role !== 'admin')) {
     redirect('/auth/login')
+  }
+
+  // Redirigir si está suspendido
+  if (profile?.subscription_status === 'suspended' || profile?.subscription_status === 'expired') {
+    redirect('/suspended')
+  }
+
+  // Redirigir a onboarding si no está completado
+  if (profile && !profile.onboarding_completed) {
+    redirect('/onboarding')
   }
 
   return (
