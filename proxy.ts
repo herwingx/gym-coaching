@@ -5,7 +5,10 @@ import { createServerClient } from '@supabase/ssr'
 
 const NO_STORE_SHELL = 'private, no-store, no-cache, must-revalidate, max-age=0'
 
-export default async function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
+  const url = request.nextUrl.pathname
+  console.log(`[Proxy] Request a: ${url}`)
+
   let supabaseResponse = NextResponse.next({
     request,
   })
@@ -19,6 +22,7 @@ export default async function proxy(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
+          console.log(`[Proxy] Seteando ${cookiesToSet.length} cookies`)
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({
             request,
@@ -31,20 +35,20 @@ export default async function proxy(request: NextRequest) {
     }
   )
 
-  // IMPORTANTE: getUser() refresca la sesión si es necesario
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const publicPaths = ['/auth', '/welcome', '/offline', '/api/invitations', '/favicon.ico', '/manifest.json']
-  const isPublicPath = publicPaths.some(path => request.nextUrl.pathname.startsWith(path))
+  console.log(`[Proxy] Usuario: ${user ? user.email : 'No autenticado'}`)
 
-  // Si no hay usuario y no es ruta pública, al login
-  if (!user && !isPublicPath && request.nextUrl.pathname !== '/') {
-    const url = request.nextUrl.clone()
-    url.pathname = '/auth/login'
-    const redirect = NextResponse.redirect(url)
-    // Copiar cookies de refresco si las hay
+  const publicPaths = ['/auth', '/welcome', '/offline', '/api/invitations', '/favicon.ico', '/manifest.json']
+  const isPublicPath = publicPaths.some(path => url.startsWith(path))
+
+  if (!user && !isPublicPath && url !== '/') {
+    console.log(`[Proxy] Redirigiendo a login desde ${url}`)
+    const redirectUrl = request.nextUrl.clone()
+    redirectUrl.pathname = '/auth/login'
+    const redirect = NextResponse.redirect(redirectUrl)
     supabaseResponse.cookies.getAll().forEach(c => redirect.cookies.set(c))
     return redirect
   }

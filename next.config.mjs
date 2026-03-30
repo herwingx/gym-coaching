@@ -68,4 +68,5 @@ export default (isDev || disablePwa)
   : withSerwistInit({
       swSrc: "app/sw.ts",
       swDest: "public/sw.js",
+      exclude: [/img-login\.jpg$/],
     })(nextConfig);
