@@ -11,18 +11,18 @@ interface WelcomeEmailProps {
   clientName?: string;
 }
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://gymcoach.app";
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://ru-coach.app";
 
 export const WelcomeEmail = ({
   clientName = "Atleta",
 }: WelcomeEmailProps) => (
-  <BaseLayout previewText="¡Bienvenido a la comunidad GymCoach!">
+  <BaseLayout previewText="¡Bienvenido a la comunidad RU Coach!">
     <Heading style={h1}>¡Cuenta activada!</Heading>
     <Text style={text}>
-      Hola <strong>{clientName}</strong>, tu cuenta ha sido creada con éxito.
+      Hola <strong>{clientName}</strong>, tu cuenta en RU Coach ha sido creada con éxito.
     </Text>
     <Text style={text}>
-      Ya puedes acceder a tu dashboard para ver tus rutinas, registrar tus progresos y empezar a ganar XP.
+      Ya puedes acceder a tu dashboard para ver tus rutinas personalizadas por Rodrigo Urbina, registrar tus progresos y empezar a ganar XP.
     </Text>
 
     <Section style={btnContainer}>

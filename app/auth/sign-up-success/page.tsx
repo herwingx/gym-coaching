@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/theme-toggle'
 import Link from 'next/link'
-import { CheckCircle2, GalleryVerticalEnd, ArrowLeft } from 'lucide-react'
+import { CheckCircle2, ArrowLeft } from 'lucide-react'
 
 export default function SignUpSuccessPage() {
   return (
@@ -9,10 +9,10 @@ export default function SignUpSuccessPage() {
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex justify-center gap-2 md:justify-start">
           <Link href="/" className="flex items-center gap-2 font-medium">
-            <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <GalleryVerticalEnd className="size-4" />
+            <div className="flex size-8 items-center justify-center rounded-md overflow-hidden">
+              <img src="/android-chrome-512x512.png" alt="Logo RU Coach" className="size-full" />
             </div>
-            GymCoach Inc.
+            <div className="flex flex-col leading-none"><span className="text-xl font-black tracking-tighter uppercase">RU Coach</span><span className="text-[9px] font-medium text-muted-foreground uppercase tracking-widest mt-0.5">Rodrigo Urbina</span></div>
           </Link>
         </div>
         <div className="flex flex-1 items-center justify-center">
@@ -62,7 +62,7 @@ export default function SignUpSuccessPage() {
       <div className="relative hidden bg-muted lg:block">
         <img
           src="/img-login.jpg"
-          alt="GymCoach Training"
+          alt="RU Coach Training"
           className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.4] dark:grayscale-[0.2] transition-all duration-500"
         />
         <div className="absolute inset-0 bg-linear-to-t from-background/80 via-transparent to-transparent lg:from-background/20" />

@@ -44,7 +44,7 @@ export function AdminOnboardingFlow({ userId, gymName }: AdminOnboardingFlowProp
       })
 
       if (result.success) {
-        toast.success('¡Configuración guardada! Ya puedes gestionar tus asesorados.')
+        toast.success('¡Configuración guardada! Ya puedes gestionar tus atletas.')
         window.location.href = '/admin/dashboard'
       } else {
         toast.error('No pudimos guardar la configuración. Intenta de nuevo.')
@@ -64,9 +64,9 @@ export function AdminOnboardingFlow({ userId, gymName }: AdminOnboardingFlowProp
             <div className="size-10 rounded-xl overflow-hidden shadow-sm ring-1 ring-border shrink-0">
               <img src="/android-chrome-192x192.png" alt="Logo" className="size-full object-cover" />
             </div>
-            <div>
-              <h1 className="font-bold tracking-tight">GymCoach</h1>
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Configuración de Coach</p>
+            <div className="flex flex-col leading-tight">
+              <h1 className="font-black tracking-tighter uppercase">RU Coach</h1>
+              <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Rodrigo Urbina</p>
             </div>
           </div>
         </div>
@@ -98,17 +98,17 @@ export function AdminOnboardingFlow({ userId, gymName }: AdminOnboardingFlowProp
           {currentStep === 1 && (
             <>
               <CardHeader>
-                <CardTitle>Configuración</CardTitle>
+                <CardTitle>Configuración de Marca</CardTitle>
                 <CardDescription>
-                  Revisa y ajusta los datos de tu marca o negocio
+                  Personaliza cómo verán tus atletas tu plataforma de coaching
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-6">
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="gym_name">Tu marca o negocio</Label>
+                  <Label htmlFor="gym_name">Nombre de tu marca</Label>
                   <Input
                     id="gym_name"
-                    placeholder="Ej: Coach Juan, CrossFit Central, etc."
+                    placeholder="Ej: RU Coach Élite, Urbina Training, etc."
                     value={gymNameLocal}
                     onChange={(e) => setGymNameLocal(e.target.value)}
                   />
@@ -160,9 +160,9 @@ export function AdminOnboardingFlow({ userId, gymName }: AdminOnboardingFlowProp
           {currentStep === 2 && (
             <>
               <CardHeader>
-                <CardTitle>¡Listo para empezar!</CardTitle>
+                <CardTitle>¡Todo listo, Coach!</CardTitle>
                 <CardDescription>
-                  Tu cuenta está configurada. Crea rutinas, agrega asesorados y sigue su progreso.
+                  Tu ecosistema de entrenamiento premium está configurado.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -170,9 +170,9 @@ export function AdminOnboardingFlow({ userId, gymName }: AdminOnboardingFlowProp
                   <div className="size-20 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
                     <Check className="size-10 text-primary" />
                   </div>
-                  <h3 className="font-semibold mb-2">Bienvenido a GymCoach</h3>
+                  <h3 className="font-semibold mb-2">Bienvenido a RU Coach</h3>
                   <p className="text-sm text-muted-foreground">
-                    <strong>{gymNameLocal}</strong> está listo. Gestiona tus asesorados y cobra por tus asesorías.
+                    <strong>{gymNameLocal}</strong> está en marcha. Comienza a transformar vidas con el respaldo de Rodrigo Urbina.
                   </p>
                 </div>
               </CardContent>
@@ -180,9 +180,9 @@ export function AdminOnboardingFlow({ userId, gymName }: AdminOnboardingFlowProp
                 <Button
                   onClick={handleComplete}
                   disabled={isSubmitting}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-8 font-bold uppercase tracking-tight"
                 >
-                  {isSubmitting ? 'Guardando...' : 'Empezar a usar GymCoach'}
+                  {isSubmitting ? 'Configurando...' : 'Entrar al Panel RU Coach'}
                   <Check className="w-4 h-4 ml-1" />
                 </Button>
               </div>

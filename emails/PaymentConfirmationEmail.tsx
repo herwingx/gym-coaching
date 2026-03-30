@@ -22,7 +22,7 @@ export const PaymentConfirmationEmail = ({
   <BaseLayout previewText="¡Pago recibido con éxito!">
     <Heading style={h1}>¡Pago Confirmado!</Heading>
     <Text style={text}>
-      Hola <strong>{clientName}</strong>, hemos registrado tu pago correctamente.
+      Hola <strong>{clientName}</strong>, hemos registrado tu pago correctamente en RU Coach.
     </Text>
     
     <Section style={paymentBox}>
@@ -38,7 +38,7 @@ export const PaymentConfirmationEmail = ({
     </Section>
 
     <Text style={text}>
-      Gracias por confiar en GymCoach para tu transformación. ¡Seguimos avanzando!
+      Gracias por confiar en Rodrigo Urbina para tu transformación. ¡Seguimos avanzando!
     </Text>
   </BaseLayout>
 );

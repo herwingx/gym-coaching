@@ -18,7 +18,7 @@ type DeferredPromptEvent = Event & {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>
 }
 
-const DISMISS_KEY = 'gymcoach-pwa-install-dismissed-v1'
+const DISMISS_KEY = 'rucoach-pwa-install-dismissed-v1'
 
 function isStandalone() {
   if (typeof window === 'undefined') return false
@@ -36,7 +36,7 @@ function isIosSafari() {
   const isWebKit = /WebKit/.test(ua)
   const isCriOS = /CriOS/.test(ua)
   const isFxiOS = /FxiOS/.test(ua)
-  return isIOS && isWebKit && !isCriOS && !isFxiOS
+  return isIosSafari && isWebKit && !isCriOS && !isFxiOS
 }
 
 export function PWAInstallCTA() {
@@ -113,18 +113,18 @@ export function PWAInstallCTA() {
     <>
       <div className="pointer-events-none fixed inset-x-0 bottom-[max(1rem,env(safe-area-inset-bottom))] z-50 px-3 sm:px-4">
         <div className="pointer-events-auto mx-auto w-full max-w-xl">
-          <Alert className="border-border/80 shadow-lg ring-1 ring-primary/10">
-            <Download aria-hidden />
-            <AlertTitle>Instala GymCoach</AlertTitle>
-            <AlertDescription>
-              <p>
-                Acceso más rápido, pantalla completa y sensación de app nativa.
+          <Alert className="border-border/80 shadow-2xl ring-1 ring-primary/20 bg-card/95 backdrop-blur-md">
+            <Download className="size-5 text-primary" aria-hidden />
+            <AlertTitle className="text-base font-black uppercase tracking-tight">Instala RU Coach</AlertTitle>
+            <AlertDescription className="mt-1">
+              <p className="text-sm text-muted-foreground font-medium">
+                Acceso premium, pantalla completa y experiencia de élite en tu dispositivo.
               </p>
-              <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-                <Button onClick={() => void onInstall()} className="min-h-11">
-                  Instalar
+              <div className="mt-4 flex items-center gap-2">
+                <Button onClick={() => void onInstall()} className="flex-1 h-10 font-bold uppercase tracking-tighter bg-primary text-primary-foreground hover:bg-primary/90">
+                  Instalar App
                 </Button>
-                <Button variant="outline" onClick={onDismiss} className="min-h-11">
+                <Button variant="ghost" onClick={onDismiss} className="h-10 px-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground hover:bg-transparent">
                   Ahora no
                 </Button>
               </div>
@@ -134,27 +134,36 @@ export function PWAInstallCTA() {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Instalar en iPhone / iPad</DialogTitle>
-            <DialogDescription>
-              iOS no muestra un botón de “Instalar” automático. Para agregarla a tu inicio:
+        <DialogContent className="max-w-[90vw] sm:max-w-md rounded-2xl border-border/50 shadow-2xl">
+          <DialogHeader className="text-left">
+            <DialogTitle className="text-2xl font-black uppercase tracking-tighter">Instalar en iOS</DialogTitle>
+            <DialogDescription className="text-sm font-medium">
+              Sigue estos pasos para añadir <span className="text-foreground font-bold text-base">RU Coach</span> a tu inicio:
             </DialogDescription>
           </DialogHeader>
-          <div className="flex flex-col gap-2 text-sm text-muted-foreground">
-            <div className="flex items-start gap-2">
-              <Share2 className="mt-0.5 shrink-0" aria-hidden />
-              <p>
-                En Safari, toca <span className="font-medium text-foreground">Compartir</span>.
+          <div className="flex flex-col gap-4 py-4">
+            <div className="flex items-center gap-4 p-3 bg-muted/50 rounded-xl border border-border/50">
+              <div className="size-10 rounded-lg bg-background flex items-center justify-center shadow-sm">
+                <Share2 className="size-5 text-primary" />
+              </div>
+              <p className="text-sm font-semibold">
+                1. Toca el botón <span className="text-primary underline underline-offset-4 decoration-2">Compartir</span> en Safari.
               </p>
             </div>
-            <p>
-              Luego elige <span className="font-medium text-foreground">Añadir a pantalla de inicio</span>.
-            </p>
+            <div className="flex items-center gap-4 p-3 bg-muted/50 rounded-xl border border-border/50">
+              <div className="size-10 rounded-lg bg-background flex items-center justify-center shadow-sm">
+                <div className="size-5 border-2 border-primary rounded flex items-center justify-center">
+                  <div className="size-2 bg-primary rounded-full" />
+                </div>
+              </div>
+              <p className="text-sm font-semibold">
+                2. Selecciona <span className="text-primary underline underline-offset-4 decoration-2">Añadir a pantalla de inicio</span>.
+              </p>
+            </div>
           </div>
           <DialogFooter>
-            <Button onClick={() => setOpen(false)} className="min-h-11">
-              Entendido
+            <Button onClick={() => setOpen(false)} className="w-full h-12 font-black uppercase tracking-tighter bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl transition-all duration-300">
+              ¡Entendido!
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -162,4 +171,3 @@ export function PWAInstallCTA() {
     </>
   )
 }
-

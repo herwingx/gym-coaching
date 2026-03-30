@@ -1,7 +1,7 @@
 {
-  "name": "GymCoach - Entrenamiento Personal Premium",
-  "short_name": "GymCoach",
-  "description": "La aplicación revolucionaria para seguimiento de entrenamiento personal con IA, progresión de carga automática y gamificación",
+  "name": "RU Coach - Rodrigo Urbina Premium",
+  "short_name": "RU Coach",
+  "description": "La aplicación definitiva para el seguimiento de entrenamiento personal con Rodrigo Urbina, con IA y progresión científica.",
   "id": "/",
   "start_url": "/?source=pwa",
   "scope": "/",
@@ -23,7 +23,7 @@
       "purpose": "any"
     },
     {
-      "src": "/icon-maskable.png",
+      "src": "/android-chrome-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

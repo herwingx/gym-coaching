@@ -1,4 +1,4 @@
-// GymCoach Premium - TypeScript Types
+// RU Coach Premium - TypeScript Types
 
 export type UserRole = 'admin' | 'client' | 'receptionist'
 export type FitnessGoal = 'lose_weight' | 'gain_muscle' | 'maintain' | 'strength' | 'endurance'

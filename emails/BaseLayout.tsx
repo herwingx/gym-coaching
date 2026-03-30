@@ -16,7 +16,7 @@ interface BaseLayoutProps {
   children: React.ReactNode;
 }
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://gymcoach.app";
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://ru-coach.app";
 
 export const BaseLayout = ({ previewText, children }: BaseLayoutProps) => (
   <Html>
@@ -29,18 +29,21 @@ export const BaseLayout = ({ previewText, children }: BaseLayoutProps) => (
             src={`${baseUrl}/android-chrome-512x512.png`}
             width="64"
             height="64"
-            alt="GymCoach Logo"
+            alt="RU Coach Logo"
             style={logoImg}
           />
-          <Text style={logoText}>GymCoach</Text>
+          <div style={logoWrapper}>
+            <Text style={logoText}>RU Coach</Text>
+            <Text style={coachSubtext}>Rodrigo Urbina</Text>
+          </div>
         </Section>
         <Section style={content}>
           {children}
           <Hr style={hr} />
           <Text style={footer}>
-            © 2026 GymCoach Premium Coaching.
+            © 2026 RU Coach Premium Coaching.
             <br />
-            Entrenamiento basado en ciencia y resultados.
+            Rodrigo Urbina - Entrenamiento de Élite.
           </Text>
         </Section>
       </Container>
@@ -70,11 +73,26 @@ const logoImg = {
   borderRadius: "14px",
 };
 
+const logoWrapper = {
+  marginTop: "12px",
+};
+
 const logoText = {
   color: "#e5a84d",
-  fontSize: "20px",
-  fontWeight: "800",
-  margin: "12px 0 0",
+  fontSize: "24px",
+  fontWeight: "900",
+  margin: "0",
+  textTransform: "uppercase" as const,
+  letterSpacing: "-0.05em",
+};
+
+const coachSubtext = {
+  color: "#a1a1aa",
+  fontSize: "10px",
+  fontWeight: "600",
+  margin: "2px 0 0",
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.2em",
 };
 
 const content = {

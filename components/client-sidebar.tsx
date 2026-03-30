@@ -61,18 +61,20 @@ export function ClientSidebar() {
 
   return (
     <Sidebar side="left" collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border h-12 sm:h-14 flex flex-row items-center px-4 shrink-0 py-0">
+      <SidebarHeader className="border-b border-sidebar-border h-12 sm:h-14 flex flex-row items-center px-4 shrink-0 py-0 bg-sidebar/50 backdrop-blur-sm">
         <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:-ml-2">
-          <div className="size-8 rounded overflow-hidden flex items-center justify-center shrink-0 group-data-[collapsible=icon]:size-8">
+          <div className="size-8 rounded-lg overflow-hidden flex items-center justify-center shrink-0 group-data-[collapsible=icon]:size-8 ring-1 ring-border/50 shadow-sm">
             <img 
               src="/android-chrome-512x512.png" 
-              alt="GymCoach Logo" 
+              alt="RU Coach Logo" 
               className="size-full object-cover"
             />
           </div>
           <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-            <h1 className="text-sm font-bold truncate leading-none">GymCoach</h1>
-            <p className="text-[10px] text-muted-foreground truncate mt-0.5">Asesorado</p>
+            <h1 className="text-sm font-black tracking-tight truncate leading-none bg-gradient-to-br from-foreground to-foreground/60 bg-clip-text text-transparent uppercase">
+              RU Coach
+            </h1>
+            <p className="text-[9px] text-muted-foreground/80 truncate mt-1 font-medium uppercase tracking-wider">Rodrigo Urbina</p>
           </div>
         </div>
       </SidebarHeader>

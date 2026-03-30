@@ -16,7 +16,7 @@ function getResend() {
   return resendInstance
 }
 
-const EMAIL_FROM = process.env.EMAIL_FROM || 'GymCoach <noreply@herwingx.com>'
+const EMAIL_FROM = process.env.EMAIL_FROM || 'RU Coach <noreply@herwingx.com>'
 
 function getAppUrl(): string {
   if (process.env.NEXT_PUBLIC_APP_URL) {
@@ -25,7 +25,7 @@ function getAppUrl(): string {
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`
   }
-  return 'https://gymcoach.app'
+  return 'https://ru-coach.app'
 }
 
 export function isEmailConfigured(): boolean {
@@ -57,7 +57,7 @@ export async function sendClientInvitationEmail(params: {
     const { error } = await resend.emails.send({
       from: EMAIL_FROM,
       to: [params.to],
-      subject: `💪 Tu código de acceso a GymCoach`,
+      subject: `💪 Tu código de acceso a RU Coach`,
       html,
     })
 
@@ -89,7 +89,7 @@ export async function sendWelcomeEmail(params: {
     const { error } = await resend.emails.send({
       from: EMAIL_FROM,
       to: [params.to],
-      subject: `🚀 ¡Bienvenido a GymCoach!`,
+      subject: `🚀 ¡Bienvenido a RU Coach!`,
       html,
     })
 
@@ -159,7 +159,7 @@ export async function sendPaymentConfirmation(params: {
     const { error } = await resend.emails.send({
       from: EMAIL_FROM,
       to: [params.to],
-      subject: `✅ Pago confirmado - GymCoach`,
+      subject: `✅ Pago confirmado - RU Coach`,
       html,
     })
 

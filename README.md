@@ -1,57 +1,42 @@
 
-# GymCoach
+# RU Coach - Rodrigo Urbina Premium Coaching
 
-Plataforma premium de coaching fitness para gimnasios y entrenadores personales. Experiencia mobile-first, gamificada y sin backend propio, usando Next.js y Supabase.
+Plataforma de élite para el seguimiento de entrenamiento personal, diseñada y dirigida por Rodrigo Urbina. Una experiencia mobile-first, gamificada y de alto rendimiento.
 
-## Stack
+## Stack Tecnológico
 
-- **Next.js 16** (App Router, Server Components)
+- **Next.js 16** (Edge Runtime, App Router)
 - **React 19** + **TypeScript**
-- **Supabase** (Auth, PostgreSQL, Storage, RLS)
-- **shadcn/ui** + **Tailwind CSS v4**
+- **Supabase** (Auth, PostgreSQL, Real-time RLS)
+- **Tailwind CSS v4** + **shadcn/ui**
+- **Serwist** (PWA Moderno & Offline Support)
 
-## Estructura del Proyecto
+## Estructura
 
-- `app/`: rutas y pantallas (admin, client, auth, onboarding, receptionist)
-- `app/actions/`: server actions para lógica de negocio
-- `components/`: UI reutilizable y componentes de dominio
-- `lib/`: acceso a datos, lógica de negocio y utilidades
-- `docs/`: documentación funcional, técnica y roadmap
+- `app/`: Ecosistema de rutas (admin, client, auth, onboarding, receptionist)
+- `app/actions/`: Lógica de servidor (Server Actions) optimizada para Edge
+- `components/`: UI Premium y componentes de dominio
+- `lib/`: Núcleo de datos, utilidades y lógica de negocio
+- `docs/`: Guías maestras de migración y configuración
 
-## Características Clave
+## Características Premium
 
-- Onboarding guiado para admin y clientes
-- Sistema de invitaciones y aprobación manual
-- Builder visual de rutinas y asignación inteligente
-- Tracking automático de progresión y PRs
-- Gamificación: XP, niveles, logros, rachas
-- Dashboard inteligente para coach y clientes
-- Seguridad avanzada: RLS, control de acceso, suspensión automática
-- PWA: instalación en móvil/desktop, offline support
+- **Coaching de Élite**: Sistema diseñado para la metodología de Rodrigo Urbina.
+- **Gamificación Avanzada**: Progresión por XP, niveles dinámicos y logros de fuerza.
+- **PWA de Alto Impacto**: Instalable, ultra-rápida y con soporte offline total.
+- **Builder Científico**: Creación de rutinas basadas en progresión de carga.
+- **Seguridad de Grado Bancario**: Políticas RLS granulares en Supabase.
 
-## Desarrollo Local
+## Desarrollo
 
 ```bash
 pnpm install
-cp .env.example .env.local
-# Completa las variables de entorno: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, ADMIN_SETUP_CODE, etc.
 pnpm dev
 ```
 
 ## Despliegue
 
-1. Configura tu proyecto en Supabase y Vercel (o similar)
-2. Añade las variables de entorno necesarias
-3. Despliega con Vercel o tu plataforma preferida
-4. Accede a `/auth/admin-setup` para crear el primer admin
-
-## Documentación
-
-- Documentación completa y premium en [`docs/`](docs/README.md)
-- Arquitectura técnica en [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-- Guía de rutinas en [`docs/ROUTINES.md`](docs/ROUTINES.md)
-- Progresión y gamificación en [`docs/PROGRESSION.md`](docs/PROGRESSION.md)
+Optimizado para **Cloudflare Pages** usando `@cloudflare/next-on-pages`.
 
 ---
-
-¿Dudas? Consulta la documentación interna o contacta a soporte.
+© 2026 RU Coach | Rodrigo Urbina. Todos los derechos reservados.

@@ -14,7 +14,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { GalleryVerticalEnd } from 'lucide-react'
+
 import { PasswordInput, getPasswordRequirements, isPasswordValid } from '@/components/ui/password-input'
 
 export default function ResetPasswordPage() {
@@ -87,10 +87,10 @@ export default function ResetPasswordPage() {
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex justify-center gap-2 md:justify-start">
           <Link href="/" className="flex items-center gap-2 font-medium">
-            <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <GalleryVerticalEnd className="size-4" />
+            <div className="flex size-8 items-center justify-center rounded-md overflow-hidden">
+              <img src="/android-chrome-512x512.png" alt="Logo RU Coach" className="size-full" />
             </div>
-            GymCoach Inc.
+            <div className="flex flex-col leading-none"><span className="text-xl font-black tracking-tighter uppercase">RU Coach</span><span className="text-[9px] font-medium text-muted-foreground uppercase tracking-widest mt-0.5">Rodrigo Urbina</span></div>
           </Link>
         </div>
         <div className="flex flex-1 items-center justify-center">
@@ -99,7 +99,7 @@ export default function ResetPasswordPage() {
               <div className="flex flex-col items-center gap-2 text-center md:items-start md:text-left">
                 <h1 className="text-2xl font-bold tracking-tight">Nueva contraseña</h1>
                 <p className="text-sm text-balance text-muted-foreground">
-                  Elige una contraseña segura para proteger tu cuenta de GymCoach.
+                  Elige una contraseña segura para proteger tu cuenta de RU Coach.
                 </p>
               </div>
 
@@ -160,7 +160,7 @@ export default function ResetPasswordPage() {
       <div className="relative hidden bg-muted lg:block">
         <img
           src="/img-login.jpg"
-          alt="GymCoach Training"
+          alt="RU Coach Training"
           className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.4] dark:grayscale-[0.2] transition-all duration-500"
         />
         <div className="absolute inset-0 bg-linear-to-t from-background/80 via-transparent to-transparent lg:from-background/20" />

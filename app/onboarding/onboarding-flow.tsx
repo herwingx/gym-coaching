@@ -26,7 +26,7 @@ interface OnboardingFlowProps {
 }
 
 const STEPS = [
-  { id: 1, title: 'Datos Basicos', icon: User },
+  { id: 1, title: 'Datos Básicos', icon: User },
   { id: 2, title: 'Tu Objetivo', icon: Target },
   { id: 3, title: 'Experiencia', icon: Dumbbell },
   { id: 4, title: 'Notificaciones', icon: Bell },
@@ -34,16 +34,16 @@ const STEPS = [
 
 const FITNESS_GOALS: { value: FitnessGoal; label: string; description: string }[] = [
   { value: 'lose_weight', label: 'Perder Peso', description: 'Quemar grasa y definir' },
-  { value: 'gain_muscle', label: 'Ganar Musculo', description: 'Aumentar masa muscular' },
+  { value: 'gain_muscle', label: 'Ganar Músculo', description: 'Aumentar masa muscular' },
   { value: 'maintain', label: 'Mantenerme', description: 'Conservar mi forma actual' },
-  { value: 'strength', label: 'Fuerza', description: 'Ser mas fuerte' },
+  { value: 'strength', label: 'Fuerza', description: 'Ser más fuerte' },
   { value: 'endurance', label: 'Resistencia', description: 'Mejorar mi cardio' },
 ]
 
 const EXPERIENCE_LEVELS: { value: ExperienceLevel; label: string; description: string }[] = [
   { value: 'beginner', label: 'Principiante', description: 'Menos de 6 meses entrenando' },
-  { value: 'intermediate', label: 'Intermedio', description: '6 meses a 2 anos de experiencia' },
-  { value: 'advanced', label: 'Avanzado', description: 'Mas de 2 anos entrenando' },
+  { value: 'intermediate', label: 'Intermedio', description: '6 meses a 2 años de experiencia' },
+  { value: 'advanced', label: 'Avanzado', description: 'Más de 2 años entrenando' },
 ]
 
 export function OnboardingFlow({ userId, userEmail }: OnboardingFlowProps) {
@@ -101,7 +101,7 @@ export function OnboardingFlow({ userId, userEmail }: OnboardingFlowProps) {
       })
 
       if (result.success) {
-        toast.success('¡Bienvenido a GymCoach! Tu perfil está listo.')
+        toast.success('¡Bienvenido a RU Coach! Tu perfil está listo.')
         window.location.href = '/client/dashboard'
       } else {
         toast.error(result.error || 'No pudimos guardar tus datos. Intenta de nuevo.')
@@ -123,9 +123,9 @@ export function OnboardingFlow({ userId, userEmail }: OnboardingFlowProps) {
             <div className="size-10 rounded-xl overflow-hidden shadow-sm ring-1 ring-border shrink-0">
               <img src="/android-chrome-192x192.png" alt="Logo" className="size-full object-cover" />
             </div>
-            <div>
-              <h1 className="font-bold tracking-tight">GymCoach</h1>
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Configuración inicial</p>
+            <div className="flex flex-col leading-tight">
+              <h1 className="font-black tracking-tighter uppercase">RU Coach</h1>
+              <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Rodrigo Urbina</p>
             </div>
           </div>
         </div>
@@ -167,9 +167,9 @@ export function OnboardingFlow({ userId, userEmail }: OnboardingFlowProps) {
           {currentStep === 1 && (
             <>
               <CardHeader>
-                <CardTitle>Cuentanos sobre ti</CardTitle>
+                <CardTitle>Cuéntanos sobre ti</CardTitle>
                 <CardDescription>
-                  Empecemos con lo basico para personalizar tu experiencia
+                  Empecemos con lo básico para personalizar tu experiencia premium
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -177,7 +177,7 @@ export function OnboardingFlow({ userId, userEmail }: OnboardingFlowProps) {
                   <Label htmlFor="fullName">Nombre completo</Label>
                   <Input
                     id="fullName"
-                    placeholder="Juan Perez"
+                    placeholder="Juan Pérez"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                   />
@@ -195,7 +195,7 @@ export function OnboardingFlow({ userId, userEmail }: OnboardingFlowProps) {
                     />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Este sera tu identificador unico en la plataforma
+                    Este será tu identificador único en la plataforma RU Coach
                   </p>
                 </div>
               </CardContent>
@@ -206,9 +206,9 @@ export function OnboardingFlow({ userId, userEmail }: OnboardingFlowProps) {
           {currentStep === 2 && (
             <>
               <CardHeader>
-                <CardTitle>Cual es tu objetivo?</CardTitle>
+                <CardTitle>¿Cuál es tu objetivo?</CardTitle>
                 <CardDescription>
-                  Esto nos ayudara a personalizar tu entrenamiento
+                  Esto ayudará a Rodrigo Urbina a personalizar tu entrenamiento
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -236,7 +236,7 @@ export function OnboardingFlow({ userId, userEmail }: OnboardingFlowProps) {
               <CardHeader>
                 <CardTitle>Tu nivel de experiencia</CardTitle>
                 <CardDescription>
-                  Esto nos ayuda a sugerirte rutinas apropiadas
+                  Esto nos ayuda a sugerirte progresiones apropiadas
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -262,7 +262,7 @@ export function OnboardingFlow({ userId, userEmail }: OnboardingFlowProps) {
           {currentStep === 4 && (
             <>
               <CardHeader>
-                <CardTitle>Casi listo!</CardTitle>
+                <CardTitle>¡Casi listo!</CardTitle>
                 <CardDescription>
                   Configura tus preferencias de notificaciones
                 </CardDescription>
@@ -274,7 +274,7 @@ export function OnboardingFlow({ userId, userEmail }: OnboardingFlowProps) {
                   </div>
                   <h3 className="font-semibold mb-2">Recordatorios de entrenamiento</h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Te enviaremos recordatorios para que no pierdas tu racha
+                    Te enviaremos recordatorios para que no pierdas tu racha en RU Coach
                   </p>
                   <div className="flex justify-center gap-3">
                     <Button
@@ -304,7 +304,7 @@ export function OnboardingFlow({ userId, userEmail }: OnboardingFlowProps) {
               disabled={currentStep === 1}
             >
               <ChevronLeft className="w-4 h-4 mr-1" />
-              Atras
+              Atrás
             </Button>
             
             {currentStep < STEPS.length ? (

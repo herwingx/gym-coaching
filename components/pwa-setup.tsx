@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 
-const SW_RELOAD_GUARD_KEY = 'gymcoach-sw-reload-guard-ts'
+const SW_RELOAD_GUARD_KEY = 'rucoach-sw-reload-guard-ts'
 
 export function PWASetup() {
   useEffect(() => {

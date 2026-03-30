@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .eq('id', routineId)
     .single()
   return {
-    title: routine?.name ? `${routine.name} | GymCoach` : 'Rutina | GymCoach',
+    title: routine?.name ? `${routine.name} | RU Coach` : 'Rutina | RU Coach',
   }
 }
 

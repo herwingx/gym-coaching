@@ -234,9 +234,9 @@ function SignUpFormInner({
           className="flex flex-col gap-6"
         >
           <div className="flex flex-col items-center gap-2 text-center md:items-start md:text-left">
-            <h1 className="text-2xl font-bold tracking-tight">Únete a GymCoach</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Únete a RU Coach</h1>
             <p className="text-sm text-balance text-muted-foreground">
-              Ingresa tu código de invitación para comenzar tu transformación.
+              Ingresa tu código de invitación para comenzar tu transformación con Rodrigo Urbina.
             </p>
           </div>
 
@@ -251,7 +251,7 @@ function SignUpFormInner({
                 inputMode="text"
                 autoComplete="one-time-code"
                 spellCheck={false}
-                placeholder="GYMCOACH"
+                placeholder="RUCOACH"
                 value={invitationCode}
                 onChange={(e) =>
                   setInvitationCode(

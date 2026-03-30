@@ -19,16 +19,17 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'GymCoach | Entrena al siguiente nivel',
+  title: 'RU Coach | Rodrigo Urbina - Entrenamiento Personal Premium',
+  description: 'Eleva tu entrenamiento con Rodrigo Urbina. Seguimiento avanzado, progresión automática y coaching de élite en RU Coach.',
   manifest: '/manifest.json',
-  keywords: ['coach', 'fitness', 'coaching', 'entrenamiento', 'rutinas', 'asesorados', 'progresion'],
-  authors: [{ name: 'GymCoach' }],
+  keywords: ['Rodrigo Urbina', 'RU Coach', 'entrenamiento personal', 'fitness', 'coaching premium', 'rutinas de gimnasio', 'hipertrofia', 'fuerza'],
+  authors: [{ name: 'Rodrigo Urbina' }],
   openGraph: {
-    title: 'GymCoach - Tu plataforma de entrenamiento personal',
-    description: 'La plataforma revolucionaria para seguimiento de fitness con IA',
+    title: 'RU Coach - Rodrigo Urbina | Tu plataforma de entrenamiento personal',
+    description: 'La plataforma definitiva para el seguimiento de fitness de élite, diseñada por Rodrigo Urbina.',
     type: 'website',
-    url: 'https://gymcoach.app',
-    siteName: 'GymCoach',
+    url: 'https://ru-coach.app',
+    siteName: 'RU Coach',
   },
   icons: {
     icon: [
@@ -40,7 +41,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'GymCoach',
+    title: 'RU Coach',
   },
 }
 
@@ -65,12 +66,11 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="GymCoach" />
+        <meta name="apple-mobile-web-app-title" content="RU Coach" />
         <meta name="theme-color" content="#0A0A0A" media="(prefers-color-scheme: dark)" />
         <meta name="theme-color" content="#FAFAFA" media="(prefers-color-scheme: light)" />
         <meta name="msapplication-TileColor" content="#e5a84d" />
-        <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#e5a84d" />
-        <link rel="alternate" href="https://gymcoach.app" hrefLang="es" />
+        <link rel="alternate" href="https://ru-coach.app" hrefLang="es" />
       </head>
       <body className={`${geist.variable} ${geistMono.variable} font-sans antialiased min-h-dvh`}>
         <ThemeProvider

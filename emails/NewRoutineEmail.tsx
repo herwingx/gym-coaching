@@ -12,16 +12,16 @@ interface NewRoutineEmailProps {
   routineName?: string;
 }
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://gymcoach.app";
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://ru-coach.app";
 
 export const NewRoutineEmail = ({
   clientName = "Atleta",
   routineName = "Nueva Rutina Personalizada",
 }: NewRoutineEmailProps) => (
-  <BaseLayout previewText="¡Tienes una nueva rutina asignada!">
+  <BaseLayout previewText="¡Tienes una nueva rutina asignada en RU Coach!">
     <Heading style={h1}>¡Nueva Rutina Asignada!</Heading>
     <Text style={text}>
-      Hola <strong>{clientName}</strong>, tu coach te ha asignado un nuevo plan de entrenamiento:
+      Hola <strong>{clientName}</strong>, Rodrigo Urbina te ha asignado un nuevo plan de entrenamiento personalizado:
     </Text>
     
     <Section style={routineBox}>
@@ -39,7 +39,7 @@ export const NewRoutineEmail = ({
     </Section>
 
     <Text style={text}>
-      ¡Es hora de llevar tu entrenamiento al siguiente nivel!
+      ¡Es hora de llevar tu entrenamiento al siguiente nivel con RU Coach!
     </Text>
   </BaseLayout>
 );
