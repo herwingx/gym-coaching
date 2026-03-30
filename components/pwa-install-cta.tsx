@@ -36,16 +36,18 @@ function isIosSafari() {
   const isWebKit = /WebKit/.test(ua)
   const isCriOS = /CriOS/.test(ua)
   const isFxiOS = /FxiOS/.test(ua)
-  return isIosSafari && isWebKit && !isCriOS && !isFxiOS
+  return isIOS && isWebKit && !isCriOS && !isFxiOS
 }
 
 export function PWAInstallCTA() {
+  const [mounted, setMounted] = useState(false)
   const [open, setOpen] = useState(false)
   const [deferred, setDeferred] = useState<DeferredPromptEvent | null>(null)
   const [installed, setInstalled] = useState(false)
   const [dismissed, setDismissed] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     try {
       setInstalled(isStandalone())
       setDismissed(localStorage.getItem(DISMISS_KEY) === '1')
@@ -107,7 +109,7 @@ export function PWAInstallCTA() {
     }
   }
 
-  if (!canShowBanner) return null
+  if (!mounted || !canShowBanner) return null
 
   return (
     <>
