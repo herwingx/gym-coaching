@@ -27,6 +27,8 @@
 | Documento | Descripcion | Para |
 |-----------|-------------|------|
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | Arquitectura tecnica completa | Desarrolladores |
+| [DATABASE_GUIDE.md](./DATABASE_GUIDE.md) | Guía de configuración y migración de BD | Desarrolladores |
+| [R2_MIGRATION_GUIDE.md](./R2_MIGRATION_GUIDE.md) | Configuración y carga masiva en R2 | Desarrolladores |
 
 ---
 
