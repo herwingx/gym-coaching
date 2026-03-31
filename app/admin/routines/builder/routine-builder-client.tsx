@@ -92,8 +92,10 @@ export interface RoutineBuilderClientProps {
   };
 }
 
+const EMPTY_EXERCISES: Exercise[] = [];
+
 export function RoutineBuilderClient({
-  exercises: initialExercises = [],
+  exercises: initialExercises = EMPTY_EXERCISES,
   routineId,
   initialData,
 }: RoutineBuilderClientProps) {

@@ -3,6 +3,20 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 
+// Silenciar warnings molestos de Recharts sobre el width/height
+if (typeof console !== 'undefined') {
+  const originalConsoleWarn = console.warn
+  console.warn = (...args) => {
+    if (
+      typeof args[0] === 'string' &&
+      args[0].includes('The width(%s) and height(%s) of chart should be greater than 0')
+    ) {
+      return
+    }
+    originalConsoleWarn(...args)
+  }
+}
+
 const ResponsiveContainer = dynamic(() => import('recharts').then((mod) => mod.ResponsiveContainer as any), { ssr: false }) as typeof import('recharts').ResponsiveContainer
 const RechartsTooltip = dynamic(() => import('recharts').then((mod) => mod.Tooltip as any), { ssr: false }) as typeof import('recharts').Tooltip
 const RechartsLegend = dynamic(() => import('recharts').then((mod) => mod.Legend as any), { ssr: false }) as typeof import('recharts').Legend
@@ -66,7 +80,13 @@ function ChartContainer({
         {...props}
       >
         <ChartStyle id={chartId} config={config} />
-        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300}>
+        <ResponsiveContainer
+          width="100%"
+          height="100%"
+          minWidth={0}
+          minHeight={300}
+          initialDimension={{ width: 1, height: 1 }}
+        >
           {children}
         </ResponsiveContainer>
       </div>

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { SidebarTrigger } from '@/components/ui/sidebar'
 import { cn } from '@/lib/utils'
 
 /** Misma envolvente que Mis rutinas / logros: móvil primero, ancho hasta 7xl en desktop. */
@@ -34,51 +35,60 @@ export function ClientStackPageHeader({
   return (
     <header
       className={cn(
-        'border-b border-border bg-background',
-        sticky && 'sticky top-0 z-40 safe-area-header-pt',
+        'border-b border-border bg-background/80 backdrop-blur-md',
+        sticky && 'sticky top-0 z-50 safe-area-header-pt',
         className,
       )}
     >
       <div className="container flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:py-5">
-        <div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
+        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
           {backHref ? (
             onBackClick ? (
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="size-9 shrink-0 sm:hidden"
+                className="shrink-0"
                 aria-label={backLabel}
                 onClick={onBackClick}
               >
-                {backIcon ?? <ArrowLeft className="size-4" aria-hidden />}
+                {backIcon ?? <ArrowLeft className="size-5" aria-hidden />}
               </Button>
             ) : (
               <Button
                 variant="ghost"
                 size="icon"
                 asChild
-                className="size-9 shrink-0 sm:hidden"
+                className="shrink-0"
                 aria-label={backLabel}
               >
                 <Link href={backHref}>
-                  {backIcon ?? <ArrowLeft className="size-4" aria-hidden />}
+                  {backIcon ?? <ArrowLeft className="size-5" aria-hidden />}
                 </Link>
               </Button>
             )
-          ) : null}
+          ) : (
+            <div className="flex items-center gap-2">
+              <SidebarTrigger className="-ml-1 size-9 shrink-0 sm:size-8" />
+              <div className="flex items-center gap-2 lg:hidden">
+                <div className="size-7 rounded-lg overflow-hidden ring-1 ring-border shadow-sm shrink-0">
+                  <img src="/android-chrome-192x192.png" alt="Logo" className="size-full object-cover" />
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="min-w-0">
-            <h1 className="truncate text-xl font-semibold tracking-tight sm:text-2xl">
+            <h1 className="text-xl font-bold tracking-tight text-pretty sm:text-2xl">
               {title}
             </h1>
             {subtitle ? (
               typeof subtitle === 'string' ? (
-                <p className="mt-1 text-sm text-muted-foreground text-pretty">
+                <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground text-pretty sm:text-sm">
                   {subtitle}
                 </p>
               ) : (
-                <div className="mt-1">{subtitle}</div>
+                <div className="mt-0.5">{subtitle}</div>
               )
             ) : null}
           </div>

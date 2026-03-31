@@ -20,7 +20,7 @@ export default async function ReceptionistDashboard() {
   return (
     <div className="min-h-dvh bg-background">
       {/* Header - mobile-first */}
-      <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-xl safe-area-header-pt">
+      <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-md safe-area-header-pt">
         <div className="container flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:py-5">
           <div className="min-w-0">
             <h1 className="text-2xl font-black uppercase tracking-tighter">

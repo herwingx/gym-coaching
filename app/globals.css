@@ -150,6 +150,9 @@ html {
 @utility safe-area-pt {
   padding-top: env(safe-area-inset-top);
 }
+@utility safe-area-header-pt {
+  padding-top: env(safe-area-inset-top);
+}
 @utility safe-area-pb {
   padding-bottom: env(safe-area-inset-bottom);
 }
