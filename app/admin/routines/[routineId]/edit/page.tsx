@@ -1,50 +1,50 @@
-import { getAuthUser } from '@/lib/auth-utils'
-import { redirect, notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
-import { AdminPageHeader } from '@/components/admin/admin-page-header'
-import { RoutineBuilderClient } from '../../builder/routine-builder-client'
+import { getAuthUser } from "@/lib/auth-utils";
+import { redirect, notFound } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { RoutineBuilderClient } from "../../builder/routine-builder-client";
 
 type RoutineExerciseRow = {
-  id: string
-  exercise_id: string
-  order_index: number
-  sets: number | null
-  reps: string | number | null
-  rest_seconds: number | null
-}
+  id: string;
+  exercise_id: string;
+  order_index: number;
+  sets: number | null;
+  reps: string | number | null;
+  rest_seconds: number | null;
+};
 
 type RoutineDayRow = {
-  id: string
-  day_number: number
-  day_name: string | null
-  is_rest_day: boolean | null
-  routine_exercises: RoutineExerciseRow[] | null
-}
+  id: string;
+  day_number: number;
+  day_name: string | null;
+  is_rest_day: boolean | null;
+  routine_exercises: RoutineExerciseRow[] | null;
+};
 
 interface Props {
-  params: Promise<{ routineId: string }>
+  params: Promise<{ routineId: string }>;
 }
 
 export default async function EditRoutinePage({ params }: Props) {
-  const user = await getAuthUser()
-  const { routineId } = await params
+  const user = await getAuthUser();
+  const { routineId } = await params;
 
-  if (!user) redirect('/auth/login')
+  if (!user) redirect("/auth/login");
 
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
 
-  if (profile?.role !== 'admin') redirect('/client/dashboard')
+  if (profile?.role !== "admin") redirect("/client/dashboard");
 
-  const admin = createAdminClient()
+  const admin = createAdminClient();
   const { data: routine } = await admin
-    .from('routines')
+    .from("routines")
     .select(
       `
       *,
@@ -62,28 +62,38 @@ export default async function EditRoutinePage({ params }: Props) {
           rest_seconds
         )
       )
-    `
+    `,
     )
-    .eq('id', routineId)
-    .single()
+    .eq("id", routineId)
+    .single();
 
-  if (!routine) notFound()
+  if (!routine) notFound();
 
   if (routine.coach_id && routine.coach_id !== user.id) {
-    redirect('/admin/routines')
+    redirect("/admin/routines");
   }
 
-  const dayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
-  const existingDays: RoutineDayRow[] = ((routine.routine_days ?? []) as RoutineDayRow[])
+  const dayNames = [
+    "Lunes",
+    "Martes",
+    "Miércoles",
+    "Jueves",
+    "Viernes",
+    "Sábado",
+    "Domingo",
+  ];
+  const existingDays: RoutineDayRow[] = (
+    (routine.routine_days ?? []) as RoutineDayRow[]
+  )
     .slice()
-    .sort((a, b) => a.day_number - b.day_number)
+    .sort((a, b) => a.day_number - b.day_number);
 
   const builderInitialData = {
     name: routine.name,
-    description: routine.description || '',
+    description: routine.description || "",
     durationWeeks: routine.duration_weeks || 4,
     days: dayNames.map((name, i) => {
-      const rd = existingDays.find((d) => d.day_number === i + 1)
+      const rd = existingDays.find((d) => d.day_number === i + 1);
       if (rd) {
         return {
           id: rd.id,
@@ -97,20 +107,26 @@ export default async function EditRoutinePage({ params }: Props) {
               id: re.id,
               exerciseId: re.exercise_id,
               sets: re.sets ?? 3,
-              reps: re.reps != null ? String(re.reps) : '',
+              reps: re.reps != null ? String(re.reps) : "",
               restSeconds: re.rest_seconds ?? 60,
             })),
-        }
+        };
       }
       return {
         id: String(i + 1),
         dayNumber: i + 1,
         name,
         isRestDay: [5, 6].includes(i),
-        exercises: [] as { id: string; exerciseId: string; sets: number; reps: string; restSeconds: number }[],
-      }
+        exercises: [] as {
+          id: string;
+          exerciseId: string;
+          sets: number;
+          reps: string;
+          restSeconds: number;
+        }[],
+      };
     }),
-  }
+  };
 
   return (
     <div className="min-h-dvh bg-background">
@@ -129,5 +145,5 @@ export default async function EditRoutinePage({ params }: Props) {
         />
       </main>
     </div>
-  )
+  );
 }

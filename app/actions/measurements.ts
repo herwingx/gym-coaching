@@ -1,39 +1,38 @@
-'use server'
+"use server";
 
-import { revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
-import { getAuthUser } from '@/lib/auth-utils'
-
+import { revalidatePath } from "next/cache";
+import { createClient } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/auth-utils";
 
 export async function addMeasurement(data: {
-  weight?: number
-  body_fat_pct?: number
-  waist_cm?: number
-  hip_cm?: number
-  chest_cm?: number
-  arm_cm?: number
-  thigh_cm?: number
-  recorded_at?: string
+  weight?: number;
+  body_fat_pct?: number;
+  waist_cm?: number;
+  hip_cm?: number;
+  chest_cm?: number;
+  arm_cm?: number;
+  thigh_cm?: number;
+  recorded_at?: string;
 }) {
-  const user = await getAuthUser()
-  if (!user) return { success: false, error: 'No autenticado' }
+  const user = await getAuthUser();
+  if (!user) return { success: false, error: "No autenticado" };
 
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   const { data: client } = await supabase
-    .from('clients')
-    .select('id')
-    .eq('user_id', user.id)
-    .single()
+    .from("clients")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
 
-  if (!client) return { success: false, error: 'Cliente no encontrado' }
+  if (!client) return { success: false, error: "Cliente no encontrado" };
 
-  const recordedAtRaw = data.recorded_at
+  const recordedAtRaw = data.recorded_at;
   const recordedAt = recordedAtRaw
     ? recordedAtRaw.slice(0, 10)
-    : new Date().toISOString().slice(0, 10)
+    : new Date().toISOString().slice(0, 10);
 
-  const { error } = await supabase.from('body_measurements').insert({
+  const { error } = await supabase.from("body_measurements").insert({
     id: crypto.randomUUID(),
     client_id: client.id,
     recorded_at: recordedAt,
@@ -44,12 +43,12 @@ export async function addMeasurement(data: {
     chest_cm: data.chest_cm ?? null,
     arm_cm: data.arm_cm ?? null,
     thigh_cm: data.thigh_cm ?? null,
-  })
+  });
 
-  if (error) return { success: false, error: error.message }
+  if (error) return { success: false, error: error.message };
 
-  revalidatePath('/client/measurements')
-  revalidatePath('/client/dashboard')
+  revalidatePath("/client/measurements");
+  revalidatePath("/client/dashboard");
 
-  return { success: true }
+  return { success: true };
 }

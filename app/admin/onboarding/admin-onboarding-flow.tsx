@@ -1,14 +1,20 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Progress } from '@/components/ui/progress'
-import { Dumbbell, Check, ChevronRight } from 'lucide-react'
-import { toast } from 'sonner'
-import { completeAdminOnboarding } from '@/app/actions/admin-onboarding'
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import { Dumbbell, Check, ChevronRight } from "lucide-react";
+import { toast } from "sonner";
+import { completeAdminOnboarding } from "@/app/actions/admin-onboarding";
 
 import {
   Select,
@@ -16,24 +22,27 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from "@/components/ui/select";
 
 interface AdminOnboardingFlowProps {
-  userId: string
-  gymName: string
+  userId: string;
+  gymName: string;
 }
 
-export function AdminOnboardingFlow({ userId, gymName }: AdminOnboardingFlowProps) {
-  const [currentStep, setCurrentStep] = useState(1)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [gymNameLocal, setGymNameLocal] = useState(gymName)
-  const [timezone, setTimezone] = useState('America/Mexico_City')
-  const [currency, setCurrency] = useState('MXN')
+export function AdminOnboardingFlow({
+  userId,
+  gymName,
+}: AdminOnboardingFlowProps) {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [gymNameLocal, setGymNameLocal] = useState(gymName);
+  const [timezone, setTimezone] = useState("America/Mexico_City");
+  const [currency, setCurrency] = useState("MXN");
 
-  const progress = 50
+  const progress = 50;
 
   const handleComplete = async () => {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     try {
       const result = await completeAdminOnboarding({
@@ -41,20 +50,22 @@ export function AdminOnboardingFlow({ userId, gymName }: AdminOnboardingFlowProp
         gymName: gymNameLocal,
         timezone,
         currency,
-      })
+      });
 
       if (result.success) {
-        toast.success('¡Configuración guardada! Ya puedes gestionar tus atletas.')
-        window.location.href = '/admin/dashboard'
+        toast.success(
+          "¡Configuración guardada! Ya puedes gestionar tus atletas.",
+        );
+        window.location.href = "/admin/dashboard";
       } else {
-        toast.error('No pudimos guardar la configuración. Intenta de nuevo.')
+        toast.error("No pudimos guardar la configuración. Intenta de nuevo.");
       }
     } catch {
-      toast.error('Algo salió mal al guardar. Intenta de nuevo.')
+      toast.error("Algo salió mal al guardar. Intenta de nuevo.");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-dvh bg-background flex flex-col">
@@ -62,11 +73,19 @@ export function AdminOnboardingFlow({ userId, gymName }: AdminOnboardingFlowProp
         <div className="container py-4">
           <div className="flex items-center gap-3">
             <div className="size-10 rounded-xl overflow-hidden shadow-sm ring-1 ring-border shrink-0">
-              <img src="/android-chrome-192x192.png" alt="Logo" className="size-full object-cover" />
+              <img
+                src="/android-chrome-192x192.png"
+                alt="Logo"
+                className="size-full object-cover"
+              />
             </div>
             <div className="flex flex-col leading-tight">
-              <h1 className="font-black tracking-tighter uppercase">RU Coach</h1>
-              <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Rodrigo Urbina</p>
+              <h1 className="font-black tracking-tighter uppercase">
+                RU Coach
+              </h1>
+              <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">
+                Rodrigo Urbina
+              </p>
             </div>
           </div>
         </div>
@@ -76,15 +95,19 @@ export function AdminOnboardingFlow({ userId, gymName }: AdminOnboardingFlowProp
         <div className="flex items-center gap-2 mb-2">
           <div
             className={`size-8 rounded-full flex items-center justify-center text-sm font-medium ${
-              currentStep >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+              currentStep >= 1
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground"
             }`}
           >
-            {currentStep > 1 ? <Check className="w-4 h-4" /> : '1'}
+            {currentStep > 1 ? <Check className="w-4 h-4" /> : "1"}
           </div>
           <div className="flex-1 h-0.5 bg-muted" />
           <div
             className={`size-8 rounded-full flex items-center justify-center text-sm font-medium ${
-              currentStep >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+              currentStep >= 2
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground"
             }`}
           >
             2
@@ -120,12 +143,24 @@ export function AdminOnboardingFlow({ userId, gymName }: AdminOnboardingFlowProp
                       <SelectValue placeholder="Seleccionar zona horaria" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="America/Mexico_City">America/Mexico City</SelectItem>
-                      <SelectItem value="America/New_York">America/New York</SelectItem>
-                      <SelectItem value="America/Los_Angeles">America/Los Angeles</SelectItem>
-                      <SelectItem value="America/Bogota">America/Bogota</SelectItem>
-                      <SelectItem value="America/Argentina/Buenos_Aires">America/Argentina</SelectItem>
-                      <SelectItem value="Europe/Madrid">Europe/Madrid</SelectItem>
+                      <SelectItem value="America/Mexico_City">
+                        America/Mexico City
+                      </SelectItem>
+                      <SelectItem value="America/New_York">
+                        America/New York
+                      </SelectItem>
+                      <SelectItem value="America/Los_Angeles">
+                        America/Los Angeles
+                      </SelectItem>
+                      <SelectItem value="America/Bogota">
+                        America/Bogota
+                      </SelectItem>
+                      <SelectItem value="America/Argentina/Buenos_Aires">
+                        America/Argentina
+                      </SelectItem>
+                      <SelectItem value="Europe/Madrid">
+                        Europe/Madrid
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -172,7 +207,8 @@ export function AdminOnboardingFlow({ userId, gymName }: AdminOnboardingFlowProp
                   </div>
                   <h3 className="font-semibold mb-2">Bienvenido a RU Coach</h3>
                   <p className="text-sm text-muted-foreground">
-                    <strong>{gymNameLocal}</strong> está en marcha. Comienza a transformar vidas con el respaldo de Rodrigo Urbina.
+                    <strong>{gymNameLocal}</strong> está en marcha. Comienza a
+                    transformar vidas con el respaldo de Rodrigo Urbina.
                   </p>
                 </div>
               </CardContent>
@@ -182,7 +218,9 @@ export function AdminOnboardingFlow({ userId, gymName }: AdminOnboardingFlowProp
                   disabled={isSubmitting}
                   className="bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-8 font-bold uppercase tracking-tight"
                 >
-                  {isSubmitting ? 'Configurando...' : 'Entrar al Panel RU Coach'}
+                  {isSubmitting
+                    ? "Configurando..."
+                    : "Entrar al Panel RU Coach"}
                   <Check className="w-4 h-4 ml-1" />
                 </Button>
               </div>
@@ -191,5 +229,5 @@ export function AdminOnboardingFlow({ userId, gymName }: AdminOnboardingFlowProp
         </Card>
       </main>
     </div>
-  )
+  );
 }

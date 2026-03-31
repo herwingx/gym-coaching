@@ -66,7 +66,7 @@ function ChartContainer({
         {...props}
       >
         <ChartStyle id={chartId} config={config} />
-        <ResponsiveContainer minWidth={0} minHeight={300}>
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300}>
           {children}
         </ResponsiveContainer>
       </div>

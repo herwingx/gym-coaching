@@ -1,5 +1,5 @@
-import { ChatShellSkeleton } from '@/components/skeletons'
+import { ChatShellSkeleton } from "@/components/skeletons";
 
 export default function AdminMessagesLoading() {
-  return <ChatShellSkeleton variant="admin" />
+  return <ChatShellSkeleton variant="admin" />;
 }

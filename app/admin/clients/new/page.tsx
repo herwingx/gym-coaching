@@ -1,12 +1,12 @@
-import { getAuthUser } from '@/lib/auth-utils'
-import { redirect } from 'next/navigation'
-import { AdminPageHeader } from '@/components/admin/admin-page-header'
-import { NewClientForm } from './new-client-form'
+import { getAuthUser } from "@/lib/auth-utils";
+import { redirect } from "next/navigation";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { NewClientForm } from "./new-client-form";
 
 export default async function NewClientPage() {
-  const user = await getAuthUser()
+  const user = await getAuthUser();
 
-  if (!user) redirect('/auth/login')
+  if (!user) redirect("/auth/login");
 
   return (
     <div className="min-h-dvh bg-background">
@@ -21,5 +21,5 @@ export default async function NewClientPage() {
         <NewClientForm />
       </main>
     </div>
-  )
+  );
 }

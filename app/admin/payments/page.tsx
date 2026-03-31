@@ -1,30 +1,33 @@
-import { getAuthData } from '@/lib/auth-utils'
-import { redirect } from 'next/navigation'
-import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import Link from 'next/link'
-import { Plus, CreditCard, Hourglass, ClipboardList } from 'lucide-react'
-import { AdminKpiStatCard } from '@/components/admin/admin-kpi-stat-card'
-import { createClient } from '@/lib/supabase/server'
-import { PaymentCardsClient, type PaymentCardItem } from './payment-cards-client'
-import { AdminPageHeader } from '@/components/admin/admin-page-header'
+import { getAuthData } from "@/lib/auth-utils";
+import { redirect } from "next/navigation";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Plus, CreditCard, Hourglass, ClipboardList } from "lucide-react";
+import { AdminKpiStatCard } from "@/components/admin/admin-kpi-stat-card";
+import { createClient } from "@/lib/supabase/server";
+import {
+  PaymentCardsClient,
+  type PaymentCardItem,
+} from "./payment-cards-client";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 
 type PaymentQueryRow = {
-  id: string
-  client_id: string
-  amount: number
-  paid_at: string | null
-  payment_method: string | null
+  id: string;
+  client_id: string;
+  amount: number;
+  paid_at: string | null;
+  payment_method: string | null;
   clients:
     | { full_name: string; email?: string | null }
     | { full_name: string; email?: string | null }[]
-    | null
-}
+    | null;
+};
 
 function toPaymentCardItem(row: PaymentQueryRow): PaymentCardItem {
-  const rel = row.clients
+  const rel = row.clients;
   const clients =
-    rel == null ? null : Array.isArray(rel) ? rel[0] ?? null : rel
+    rel == null ? null : Array.isArray(rel) ? (rel[0] ?? null) : rel;
   return {
     id: row.id,
     client_id: row.client_id,
@@ -32,29 +35,29 @@ function toPaymentCardItem(row: PaymentQueryRow): PaymentCardItem {
     paid_at: row.paid_at,
     payment_method: row.payment_method,
     clients,
-  }
+  };
 }
 
 export default async function AdminPaymentsPage() {
-  const { user, role } = await getAuthData()
+  const { user, role } = await getAuthData();
 
-  if (!user || role !== 'admin') {
-    redirect('/auth/login')
+  if (!user || role !== "admin") {
+    redirect("/auth/login");
   }
 
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   const { data: coachClients } = await supabase
-    .from('clients')
-    .select('id')
-    .eq('coach_id', user.id)
+    .from("clients")
+    .select("id")
+    .eq("coach_id", user.id);
 
-  const clientIds = (coachClients ?? []).map((c) => c.id).filter(Boolean)
+  const clientIds = (coachClients ?? []).map((c) => c.id).filter(Boolean);
 
-  let payments: PaymentCardItem[] = []
+  let payments: PaymentCardItem[] = [];
   if (clientIds.length > 0) {
     const { data } = await supabase
-      .from('payments')
+      .from("payments")
       .select(
         `
         id,
@@ -65,18 +68,24 @@ export default async function AdminPaymentsPage() {
         clients (full_name, email)
       `,
       )
-      .in('client_id', clientIds)
-      .order('created_at', { ascending: false })
+      .in("client_id", clientIds)
+      .order("created_at", { ascending: false });
 
-    payments = (data ?? []).map((row) => toPaymentCardItem(row as PaymentQueryRow))
+    payments = (data ?? []).map((row) =>
+      toPaymentCardItem(row as PaymentQueryRow),
+    );
   }
 
   // Calculate statistics
-  const totalRevenue = payments.reduce((sum, p) =>
-    p.paid_at ? sum + (p.amount || 0) : sum, 0)
+  const totalRevenue = payments.reduce(
+    (sum, p) => (p.paid_at ? sum + (p.amount || 0) : sum),
+    0,
+  );
 
-  const pendingAmount = payments.reduce((sum, p) =>
-    !p.paid_at ? sum + (p.amount || 0) : sum, 0)
+  const pendingAmount = payments.reduce(
+    (sum, p) => (!p.paid_at ? sum + (p.amount || 0) : sum),
+    0,
+  );
 
   return (
     <div className="bg-background">
@@ -132,5 +141,5 @@ export default async function AdminPaymentsPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }

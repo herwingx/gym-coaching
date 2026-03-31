@@ -1,30 +1,30 @@
-import { getAuthUser, getUserRole } from '@/lib/auth-utils'
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { EditClientForm } from './edit-client-form'
-import { AdminPageHeader } from '@/components/admin/admin-page-header'
+import { getAuthUser, getUserRole } from "@/lib/auth-utils";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { EditClientForm } from "./edit-client-form";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 
 interface Props {
-  params: Promise<{ clientId: string }>
+  params: Promise<{ clientId: string }>;
 }
 
 export default async function EditClientPage({ params }: Props) {
-  const user = await getAuthUser()
-  const role = await getUserRole()
-  const { clientId } = await params
+  const user = await getAuthUser();
+  const role = await getUserRole();
+  const { clientId } = await params;
 
-  if (!user) redirect('/auth/login')
-  if (role !== 'admin') redirect('/auth/login')
+  if (!user) redirect("/auth/login");
+  if (role !== "admin") redirect("/auth/login");
 
-  const supabase = await createClient()
+  const supabase = await createClient();
   const { data: client, error } = await supabase
-    .from('clients')
-    .select('*')
-    .eq('id', clientId)
-    .eq('coach_id', user.id)
-    .single()
+    .from("clients")
+    .select("*")
+    .eq("id", clientId)
+    .eq("coach_id", user.id)
+    .single();
 
-  if (error || !client) redirect('/admin/clients')
+  if (error || !client) redirect("/admin/clients");
 
   return (
     <div className="min-h-dvh bg-background">
@@ -39,5 +39,5 @@ export default async function EditClientPage({ params }: Props) {
         <EditClientForm client={client} />
       </main>
     </div>
-  )
+  );
 }

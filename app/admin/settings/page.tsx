@@ -1,27 +1,40 @@
-import { getAuthData } from '@/lib/auth-utils'
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { GymSettingsForm } from './gym-settings-form'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Building2, Dumbbell, Globe2, Library, User, Settings } from 'lucide-react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { AdminPageHeader } from '@/components/admin/admin-page-header'
-import { CoachProfileSettings } from '@/components/admin/coach-profile-settings'
+import { getAuthData } from "@/lib/auth-utils";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { GymSettingsForm } from "./gym-settings-form";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Building2,
+  Dumbbell,
+  Globe2,
+  Library,
+  User,
+  Settings,
+} from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { CoachProfileSettings } from "@/components/admin/coach-profile-settings";
 
 export default async function AdminSettingsPage() {
-  const { user, role, profile } = await getAuthData()
+  const { user, role, profile } = await getAuthData();
 
-  if (!user || role !== 'admin') redirect('/auth/login')
+  if (!user || role !== "admin") redirect("/auth/login");
 
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   const { data: gymSettings } = await supabase
-    .from('gym_settings')
-    .select('gym_name, phone, schedule, currency, timezone')
-    .eq('admin_id', user.id)
-    .single()
+    .from("gym_settings")
+    .select("gym_name, phone, schedule, currency, timezone")
+    .eq("admin_id", user.id)
+    .single();
 
   return (
     <div className="min-h-screen bg-background">
@@ -40,8 +53,12 @@ export default async function AdminSettingsPage() {
                   <Building2 className="size-4" />
                 </div>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{gymSettings?.gym_name ?? 'Mi marca'}</p>
-                  <p className="text-xs text-muted-foreground">Nombre comercial</p>
+                  <p className="truncate text-sm font-medium">
+                    {gymSettings?.gym_name ?? "Mi marca"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Nombre comercial
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -51,7 +68,9 @@ export default async function AdminSettingsPage() {
                   <Dumbbell className="size-4" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">{gymSettings?.currency ?? 'MXN'}</p>
+                  <p className="text-sm font-medium">
+                    {gymSettings?.currency ?? "MXN"}
+                  </p>
                   <p className="text-xs text-muted-foreground">Moneda activa</p>
                 </div>
               </CardContent>
@@ -62,7 +81,9 @@ export default async function AdminSettingsPage() {
                   <Globe2 className="size-4" />
                 </div>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{gymSettings?.timezone ?? 'America/Mexico_City'}</p>
+                  <p className="truncate text-sm font-medium">
+                    {gymSettings?.timezone ?? "America/Mexico_City"}
+                  </p>
                   <p className="text-xs text-muted-foreground">Zona horaria</p>
                 </div>
               </CardContent>
@@ -71,15 +92,24 @@ export default async function AdminSettingsPage() {
 
           <Tabs defaultValue="profile" className="flex flex-col gap-6">
             <TabsList className="grid grid-cols-3 w-full sm:w-[500px] h-12 p-1 bg-muted/50 rounded-2xl border border-border/40 shadow-sm">
-              <TabsTrigger value="profile" className="rounded-xl px-4 py-2 data-[state=active]:shadow-md gap-2">
+              <TabsTrigger
+                value="profile"
+                className="rounded-xl px-4 py-2 data-[state=active]:shadow-md gap-2"
+              >
                 <User className="size-4" />
                 Mi perfil
               </TabsTrigger>
-              <TabsTrigger value="general" className="rounded-xl px-4 py-2 data-[state=active]:shadow-md gap-2">
+              <TabsTrigger
+                value="general"
+                className="rounded-xl px-4 py-2 data-[state=active]:shadow-md gap-2"
+              >
                 <Settings className="size-4" />
                 General
               </TabsTrigger>
-              <TabsTrigger value="biblioteca" className="rounded-xl px-4 py-2 data-[state=active]:shadow-md gap-2">
+              <TabsTrigger
+                value="biblioteca"
+                className="rounded-xl px-4 py-2 data-[state=active]:shadow-md gap-2"
+              >
                 <Library className="size-4" />
                 Biblioteca
               </TabsTrigger>
@@ -93,13 +123,17 @@ export default async function AdminSettingsPage() {
             </TabsContent>
             <TabsContent value="general" className="mt-0">
               <GymSettingsForm
-                initialData={gymSettings ? {
-                  gym_name: gymSettings.gym_name,
-                  phone: gymSettings.phone ?? undefined,
-                  schedule: gymSettings.schedule ?? undefined,
-                  currency: gymSettings.currency ?? 'MXN',
-                  timezone: gymSettings.timezone ?? 'America/Mexico_City',
-                } : null}
+                initialData={
+                  gymSettings
+                    ? {
+                        gym_name: gymSettings.gym_name,
+                        phone: gymSettings.phone ?? undefined,
+                        schedule: gymSettings.schedule ?? undefined,
+                        currency: gymSettings.currency ?? "MXN",
+                        timezone: gymSettings.timezone ?? "America/Mexico_City",
+                      }
+                    : null
+                }
               />
             </TabsContent>
 
@@ -107,10 +141,20 @@ export default async function AdminSettingsPage() {
               <Card className="overflow-hidden border-dashed bg-muted/30">
                 <CardHeader className="flex flex-row items-center justify-between gap-4 pb-3">
                   <div className="flex flex-col gap-1">
-                    <CardTitle className="text-lg">Biblioteca de ejercicios</CardTitle>
-                    <CardDescription>Catálogo con GIF, técnica y altas nuevas — mismo listado que en el menú lateral.</CardDescription>
+                    <CardTitle className="text-lg">
+                      Biblioteca de ejercicios
+                    </CardTitle>
+                    <CardDescription>
+                      Catálogo con GIF, técnica y altas nuevas — mismo listado
+                      que en el menú lateral.
+                    </CardDescription>
                   </div>
-                  <Button asChild variant="secondary" size="sm" className="shrink-0">
+                  <Button
+                    asChild
+                    variant="secondary"
+                    size="sm"
+                    className="shrink-0"
+                  >
                     <Link href="/admin/exercises">
                       <Library data-icon="inline-start" />
                       Abrir catálogo
@@ -120,9 +164,13 @@ export default async function AdminSettingsPage() {
                 <CardContent>
                   <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-muted-foreground/20 bg-background/50 px-4 py-6 text-center">
                     <div className="flex flex-col gap-1">
-                      <p className="text-sm font-medium text-foreground">Añade movimientos y revisa demostraciones</p>
+                      <p className="text-sm font-medium text-foreground">
+                        Añade movimientos y revisa demostraciones
+                      </p>
                       <p className="mx-auto max-w-sm text-xs text-muted-foreground">
-                        Desde el catálogo puedes abrir la ficha completa (como la ve el asesorado) y crear ejercicios con URL de GIF o imagen.
+                        Desde el catálogo puedes abrir la ficha completa (como
+                        la ve el asesorado) y crear ejercicios con URL de GIF o
+                        imagen.
                       </p>
                     </div>
                   </div>
@@ -133,5 +181,5 @@ export default async function AdminSettingsPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }

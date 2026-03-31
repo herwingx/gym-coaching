@@ -1,79 +1,85 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { DatePicker } from '@/components/ui/date-picker'
-import Link from 'next/link'
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { DatePicker } from "@/components/ui/date-picker";
+import Link from "next/link";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { FieldGroup, Field, FieldLabel } from '@/components/ui/field'
-import { updateClient } from '@/app/actions/clients'
-import { toast } from 'sonner'
+} from "@/components/ui/select";
+import { FieldGroup, Field, FieldLabel } from "@/components/ui/field";
+import { updateClient } from "@/app/actions/clients";
+import { toast } from "sonner";
 
 const STATUS_OPTIONS = [
-  { value: 'active', label: 'Activo' },
-  { value: 'expired', label: 'Vencido' },
-  { value: 'suspended', label: 'Suspendido' },
-  { value: 'inactive', label: 'Inactivo' },
-  { value: 'pending', label: 'Pendiente' },
-]
+  { value: "active", label: "Activo" },
+  { value: "expired", label: "Vencido" },
+  { value: "suspended", label: "Suspendido" },
+  { value: "inactive", label: "Inactivo" },
+  { value: "pending", label: "Pendiente" },
+];
 
 const GOALS = [
-  { value: 'muscle_gain', label: 'Ganar masa muscular' },
-  { value: 'weight_loss', label: 'Pérdida de grasa' },
-  { value: 'toning', label: 'Fuerza' },
-  { value: 'endurance', label: 'Resistencia' },
-  { value: 'maintenance', label: 'Bienestar general' },
-]
+  { value: "muscle_gain", label: "Ganar masa muscular" },
+  { value: "weight_loss", label: "Pérdida de grasa" },
+  { value: "toning", label: "Fuerza" },
+  { value: "endurance", label: "Resistencia" },
+  { value: "maintenance", label: "Bienestar general" },
+];
 
 const EXPERIENCE_LEVELS = [
-  { value: 'beginner', label: 'Principiante' },
-  { value: 'intermediate', label: 'Intermedio' },
-  { value: 'advanced', label: 'Avanzado' },
-]
+  { value: "beginner", label: "Principiante" },
+  { value: "intermediate", label: "Intermedio" },
+  { value: "advanced", label: "Avanzado" },
+];
 
-export function EditClientForm({ client }: { client: Record<string, unknown> }) {
-  const [isPending, setIsPending] = useState(false)
-  const [status, setStatus] = useState((client.status as string) || 'active')
-  const [gender, setGender] = useState((client.gender as string) || '')
-  const [goal, setGoal] = useState((client.goal as string) || '')
-  const [experienceLevel, setExperienceLevel] = useState((client.experience_level as string) || '')
+export function EditClientForm({
+  client,
+}: {
+  client: Record<string, unknown>;
+}) {
+  const [isPending, setIsPending] = useState(false);
+  const [status, setStatus] = useState((client.status as string) || "active");
+  const [gender, setGender] = useState((client.gender as string) || "");
+  const [goal, setGoal] = useState((client.goal as string) || "");
+  const [experienceLevel, setExperienceLevel] = useState(
+    (client.experience_level as string) || "",
+  );
   const [birthDate, setBirthDate] = useState<Date | undefined>(
-    client.birth_date ? new Date(client.birth_date as string) : undefined
-  )
+    client.birth_date ? new Date(client.birth_date as string) : undefined,
+  );
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setIsPending(true)
+    e.preventDefault();
+    setIsPending(true);
 
-    const formData = new FormData(e.currentTarget)
-    formData.set('status', status)
-    formData.set('gender', gender)
-    formData.set('goal', goal)
-    formData.set('experienceLevel', experienceLevel)
+    const formData = new FormData(e.currentTarget);
+    formData.set("status", status);
+    formData.set("gender", gender);
+    formData.set("goal", goal);
+    formData.set("experienceLevel", experienceLevel);
     if (birthDate) {
-      formData.set('birthDate', birthDate.toISOString().split('T')[0])
+      formData.set("birthDate", birthDate.toISOString().split("T")[0]);
     }
 
     try {
-      await updateClient(client.id as string, formData)
-      toast.success('¡Cambios guardados correctamente!')
+      await updateClient(client.id as string, formData);
+      toast.success("¡Cambios guardados correctamente!");
     } catch (error) {
-      toast.error('No pudimos guardar los cambios. Intenta de nuevo.')
-      console.error(error)
+      toast.error("No pudimos guardar los cambios. Intenta de nuevo.");
+      console.error(error);
     } finally {
-      setIsPending(false)
+      setIsPending(false);
     }
-  }
+  };
 
   return (
     <Card>
@@ -107,16 +113,15 @@ export function EditClientForm({ client }: { client: Record<string, unknown> }) 
               </Field>
               <Field>
                 <FieldLabel>Fecha de nacimiento</FieldLabel>
-                <DatePicker 
-                  date={birthDate} 
-                  setDate={setBirthDate} 
-                />
+                <DatePicker date={birthDate} setDate={setBirthDate} />
               </Field>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
               <Field>
-                <FieldLabel htmlFor="currentWeight">Peso actual (kg)</FieldLabel>
+                <FieldLabel htmlFor="currentWeight">
+                  Peso actual (kg)
+                </FieldLabel>
                 <Input
                   id="currentWeight"
                   name="currentWeight"
@@ -187,8 +192,13 @@ export function EditClientForm({ client }: { client: Record<string, unknown> }) 
                 </Select>
               </Field>
               <Field>
-                <FieldLabel htmlFor="experienceLevel">Nivel de experiencia</FieldLabel>
-                <Select value={experienceLevel} onValueChange={setExperienceLevel}>
+                <FieldLabel htmlFor="experienceLevel">
+                  Nivel de experiencia
+                </FieldLabel>
+                <Select
+                  value={experienceLevel}
+                  onValueChange={setExperienceLevel}
+                >
                   <SelectTrigger id="experienceLevel" className="w-full">
                     <SelectValue placeholder="Seleccionar..." />
                   </SelectTrigger>
@@ -218,7 +228,7 @@ export function EditClientForm({ client }: { client: Record<string, unknown> }) 
 
           <div className="flex gap-4 pt-2">
             <Button type="submit" disabled={isPending}>
-              {isPending ? 'Guardando...' : 'Guardar cambios'}
+              {isPending ? "Guardando..." : "Guardar cambios"}
             </Button>
             <Button variant="outline" asChild disabled={isPending}>
               <Link href={`/admin/clients/${client.id}`}>Cancelar</Link>
@@ -227,5 +237,5 @@ export function EditClientForm({ client }: { client: Record<string, unknown> }) 
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }

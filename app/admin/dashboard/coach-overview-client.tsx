@@ -1,12 +1,25 @@
-'use client'
+"use client";
 
-import dynamic from 'next/dynamic'
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import dynamic from "next/dynamic";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
   SelectContent,
@@ -15,28 +28,31 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { AdminDashboardCards } from '@/components/admin/admin-dashboard-cards'
-import { Skeleton } from '@/components/ui/skeleton'
+} from "@/components/ui/select";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AdminDashboardCards } from "@/components/admin/admin-dashboard-cards";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const AdminWorkoutChart = dynamic(
   () =>
-    import('@/components/admin/admin-workout-chart').then((m) => ({
+    import("@/components/admin/admin-workout-chart").then((m) => ({
       default: m.AdminWorkoutChart,
     })),
   {
     ssr: false,
     loading: () => <Skeleton className="h-[220px] w-full rounded-xl" />,
   },
-)
+);
 import {
   AdminCardWithActions,
   AdminCardHeaderWithActions,
   type AdminCardMenuSection,
-} from '@/components/admin/admin-card-with-actions'
-import { type CoachClientCard, type CoachOverviewMetrics } from './coach-overview'
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
+} from "@/components/admin/admin-card-with-actions";
+import {
+  type CoachClientCard,
+  type CoachOverviewMetrics,
+} from "./coach-overview";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
   ArrowDown,
   ArrowUp,
@@ -52,20 +68,30 @@ import {
   Clock,
   AlertCircle,
   Zap,
-} from 'lucide-react'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { cn } from '@/lib/utils'
-import { updateClientStatus } from '@/app/actions/clients'
-import { restartClientRoutine } from '@/app/actions/routine-assignment'
-import { toast } from 'sonner'
+} from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import { updateClientStatus } from "@/app/actions/clients";
+import { restartClientRoutine } from "@/app/actions/routine-assignment";
+import { toast } from "sonner";
 
 function formatRelativeDays(days: number) {
-  if (days === 0) return 'hoy'
-  if (days === 1) return 'ayer'
-  return `hace ${days} días`
+  if (days === 0) return "hoy";
+  if (days === 1) return "ayer";
+  return `hace ${days} días`;
 }
 
-function MetricHint({ label, children }: { label: string; children: ReactNode }) {
+function MetricHint({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -77,24 +103,29 @@ function MetricHint({ label, children }: { label: string; children: ReactNode })
           <Info className="size-3.5 opacity-70" aria-hidden />
         </button>
       </TooltipTrigger>
-      <TooltipContent side="top" className="max-w-[min(100vw-1rem,17rem)] text-pretty">
+      <TooltipContent
+        side="top"
+        className="max-w-[min(100vw-1rem,17rem)] text-pretty"
+      >
         {children}
       </TooltipContent>
     </Tooltip>
-  )
+  );
 }
 
 function scheduleScrollToElement(el: HTMLElement | null) {
-  if (!el) return
+  if (!el) return;
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      const reduceMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
       el.scrollIntoView({
-        behavior: reduceMotion ? 'auto' : 'smooth',
-        block: 'start',
-      })
-    })
-  })
+        behavior: reduceMotion ? "auto" : "smooth",
+        block: "start",
+      });
+    });
+  });
 }
 
 export function CoachOverviewClient({
@@ -103,78 +134,108 @@ export function CoachOverviewClient({
   planNames,
   routineNames,
 }: {
-  cards: CoachClientCard[]
-  metrics: CoachOverviewMetrics
-  planNames: string[]
-  routineNames: string[]
+  cards: CoachClientCard[];
+  metrics: CoachOverviewMetrics;
+  planNames: string[];
+  routineNames: string[];
 }) {
-  const [activeTab, setActiveTab] = useState('all')
-  const [planFilter, setPlanFilter] = useState<string>('all')
-  const [routineFilter, setRoutineFilter] = useState<string>('all')
-  const [cardsState, setCardsState] = useState(cards)
-  const clientsSectionRef = useRef<HTMLElement>(null)
+  const [activeTab, setActiveTab] = useState("all");
+  const [planFilter, setPlanFilter] = useState<string>("all");
+  const [routineFilter, setRoutineFilter] = useState<string>("all");
+  const [cardsState, setCardsState] = useState(cards);
+  const clientsSectionRef = useRef<HTMLElement>(null);
 
   const scrollToClientsSection = useCallback(() => {
-    scheduleScrollToElement(clientsSectionRef.current)
-  }, [])
+    scheduleScrollToElement(clientsSectionRef.current);
+  }, []);
 
   useEffect(() => {
-    setCardsState(cards)
-  }, [cards])
+    setCardsState(cards);
+  }, [cards]);
 
   const handleStatusChange = async (clientId: string, newStatus: string) => {
     try {
-      const result = await updateClientStatus(clientId, newStatus)
+      const result = await updateClientStatus(clientId, newStatus);
       if (result?.success) {
         setCardsState((prev) =>
-          prev.map((c) => (c.id === clientId ? { ...c, status: newStatus } : c))
-        )
-        const label = newStatus === 'active' ? 'Activo' : 'Suspendido'
-        toast.success(`Asesorado marcado como «${label}».`)
+          prev.map((c) =>
+            c.id === clientId ? { ...c, status: newStatus } : c,
+          ),
+        );
+        const label = newStatus === "active" ? "Activo" : "Suspendido";
+        toast.success(`Asesorado marcado como «${label}».`);
       } else {
-        toast.error(result?.error || 'No pudimos cambiar el estado.')
+        toast.error(result?.error || "No pudimos cambiar el estado.");
       }
     } catch {
-      toast.error('No pudimos cambiar el estado. Revisa tu conexión.')
+      toast.error("No pudimos cambiar el estado. Revisa tu conexión.");
     }
-  }
+  };
 
-  const handleRestartRoutine = async (clientRoutineId: string, fullName: string) => {
-    if (!confirm(`¿Estás seguro de que quieres reiniciar la rutina de ${fullName} a la Semana 1?`)) return
-    
+  const handleRestartRoutine = async (
+    clientRoutineId: string,
+    fullName: string,
+  ) => {
+    if (
+      !confirm(
+        `¿Estás seguro de que quieres reiniciar la rutina de ${fullName} a la Semana 1?`,
+      )
+    )
+      return;
+
     try {
-      const result = await restartClientRoutine(clientRoutineId)
+      const result = await restartClientRoutine(clientRoutineId);
       if (result?.success) {
         setCardsState((prev) =>
-          prev.map((c) => (c.clientRoutineId === clientRoutineId ? { ...c, currentWeek: 1, isRoutineCompleted: false, attentionReason: null, needsAttention: false } : c))
-        )
-        toast.success(`Rutina de ${fullName} reiniciada a la Semana 1.`)
+          prev.map((c) =>
+            c.clientRoutineId === clientRoutineId
+              ? {
+                  ...c,
+                  currentWeek: 1,
+                  isRoutineCompleted: false,
+                  attentionReason: null,
+                  needsAttention: false,
+                }
+              : c,
+          ),
+        );
+        toast.success(`Rutina de ${fullName} reiniciada a la Semana 1.`);
       } else {
-        toast.error('No pudimos reiniciar la rutina.')
+        toast.error("No pudimos reiniciar la rutina.");
       }
     } catch (err) {
-      toast.error('Error al reiniciar la rutina.')
+      toast.error("Error al reiniciar la rutina.");
     }
-  }
+  };
 
   const filteredCards = useMemo(() => {
-    return cardsState.filter((c) => {
-      if (activeTab === 'activeWeek')
-        return c.status === 'active' && c.daysSinceLastSession != null && c.daysSinceLastSession <= 6
-      if (activeTab === 'inactive3')
-        return c.status === 'active' && (c.daysSinceLastSession == null || c.daysSinceLastSession >= 3)
-      if (activeTab === 'attention') return c.needsAttention
-      if (activeTab === 'all') return true
+    return cardsState
+      .filter((c) => {
+        if (activeTab === "activeWeek")
+          return (
+            c.status === "active" &&
+            c.daysSinceLastSession != null &&
+            c.daysSinceLastSession <= 6
+          );
+        if (activeTab === "inactive3")
+          return (
+            c.status === "active" &&
+            (c.daysSinceLastSession == null || c.daysSinceLastSession >= 3)
+          );
+        if (activeTab === "attention") return c.needsAttention;
+        if (activeTab === "all") return true;
 
-      return true
-    }).filter((c) => {
-      if (planFilter === 'all') return true
-      return (c.planName || '') === planFilter
-    }).filter((c) => {
-      if (routineFilter === 'all') return true
-      return (c.assignedRoutineName || '') === routineFilter
-    })
-  }, [cardsState, activeTab, planFilter, routineFilter])
+        return true;
+      })
+      .filter((c) => {
+        if (planFilter === "all") return true;
+        return (c.planName || "") === planFilter;
+      })
+      .filter((c) => {
+        if (routineFilter === "all") return true;
+        return (c.assignedRoutineName || "") === routineFilter;
+      });
+  }, [cardsState, activeTab, planFilter, routineFilter]);
 
   return (
     <div className="flex flex-1 flex-col gap-6 lg:gap-8">
@@ -186,12 +247,13 @@ export function CoachOverviewClient({
           >
             <AlertTriangle className="size-4" aria-hidden />
             <AlertTitle className="text-sm font-semibold text-foreground sm:text-base">
-              Hay {metrics.attentionCount} asesorado{metrics.attentionCount !== 1 ? 's' : ''} que priorizar
+              Hay {metrics.attentionCount} asesorado
+              {metrics.attentionCount !== 1 ? "s" : ""} que priorizar
             </AlertTitle>
             <AlertDescription className="flex flex-col gap-3 text-xs text-muted-foreground sm:text-sm">
               <span className="text-pretty leading-relaxed">
-                Incluye planes vencidos, sin rutina o sin entrenar varios días. Usa el filtro
-                &quot;Atención&quot; para ver la lista completa.
+                Incluye planes vencidos, sin rutina o sin entrenar varios días.
+                Usa el filtro &quot;Atención&quot; para ver la lista completa.
               </span>
               <Button
                 type="button"
@@ -199,8 +261,8 @@ export function CoachOverviewClient({
                 variant="default"
                 className="w-full shadow-sm sm:w-fit"
                 onClick={() => {
-                  setActiveTab('attention')
-                  scrollToClientsSection()
+                  setActiveTab("attention");
+                  scrollToClientsSection();
                 }}
               >
                 Ver solo atención
@@ -236,17 +298,22 @@ export function CoachOverviewClient({
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <Sparkles className="size-4 text-muted-foreground" />
-            <h2 className="text-base font-semibold tracking-tight sm:text-lg">Tus asesorados</h2>
+            <h2 className="text-base font-semibold tracking-tight sm:text-lg">
+              Tus asesorados
+            </h2>
           </div>
           <p className="text-sm text-muted-foreground">
-            Filtra por comportamiento real: activos esta semana, baja actividad o casos que necesitan prioridad.
+            Filtra por comportamiento real: activos esta semana, baja actividad
+            o casos que necesitan prioridad.
           </p>
         </div>
 
         <Card className="border-muted/70 shadow-none">
           <CardHeader className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between sm:p-5">
             <div className="min-w-0 flex-1">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Filtros</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Filtros
+              </CardTitle>
               <CardDescription className="text-xs sm:text-sm">
                 Puedes combinar pestañas con plan y rutina.
               </CardDescription>
@@ -254,26 +321,38 @@ export function CoachOverviewClient({
             <Tabs
               value={activeTab}
               onValueChange={(v) => {
-                setActiveTab(v)
-                if (v === 'attention') scrollToClientsSection()
+                setActiveTab(v);
+                if (v === "attention") scrollToClientsSection();
               }}
               className="w-full sm:w-auto"
             >
               <ScrollArea className="w-full whitespace-nowrap">
                 <TabsList className="inline-flex w-auto bg-muted/50 p-1 h-11 rounded-xl border border-border/40 shadow-sm">
-                  <TabsTrigger value="all" className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs sm:text-sm">
+                  <TabsTrigger
+                    value="all"
+                    className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs sm:text-sm"
+                  >
                     <Users className="size-3.5" />
                     Todos
                   </TabsTrigger>
-                  <TabsTrigger value="activeWeek" className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs sm:text-sm">
+                  <TabsTrigger
+                    value="activeWeek"
+                    className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs sm:text-sm"
+                  >
                     <Zap className="size-3.5" />
                     Activos 7d
                   </TabsTrigger>
-                  <TabsTrigger value="inactive3" className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs sm:text-sm">
+                  <TabsTrigger
+                    value="inactive3"
+                    className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs sm:text-sm"
+                  >
                     <Clock className="size-3.5" />
                     Baja actividad
                   </TabsTrigger>
-                  <TabsTrigger value="attention" className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs sm:text-sm">
+                  <TabsTrigger
+                    value="attention"
+                    className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs sm:text-sm"
+                  >
                     <AlertCircle className="size-3.5" />
                     Atención
                   </TabsTrigger>
@@ -328,9 +407,9 @@ export function CoachOverviewClient({
                 className="h-11 w-full sm:h-10 sm:w-auto"
                 type="button"
                 onClick={() => {
-                  setActiveTab('all')
-                  setPlanFilter('all')
-                  setRoutineFilter('all')
+                  setActiveTab("all");
+                  setPlanFilter("all");
+                  setRoutineFilter("all");
                 }}
               >
                 Restablecer filtros
@@ -338,205 +417,260 @@ export function CoachOverviewClient({
             </div>
 
             <p className="text-sm font-medium tabular-nums text-muted-foreground">
-              {filteredCards.length} resultado{filteredCards.length !== 1 ? 's' : ''}
+              {filteredCards.length} resultado
+              {filteredCards.length !== 1 ? "s" : ""}
             </p>
           </CardContent>
         </Card>
 
-      {/* Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {filteredCards.map((c) => {
-          const menuSections: AdminCardMenuSection[] = [
-            {
-              items: [
-                { label: 'Ver perfil', icon: <Eye className="mr-2 size-4" />, href: `/admin/clients/${c.id}` },
-                { label: 'Editar', icon: <Edit2 className="mr-2 size-4" />, href: `/admin/clients/${c.id}/edit` },
-              ],
-            },
-            ...(c.isRoutineCompleted && c.clientRoutineId
-              ? [
+        {/* Cards */}
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {filteredCards.map((c) => {
+            const menuSections: AdminCardMenuSection[] = [
+              {
+                items: [
                   {
-                    separatorBefore: true as const,
-                    items: [
-                      {
-                        label: 'Reiniciar rutina (W1)',
-                        icon: <Sparkles className="mr-2 size-4" />,
-                        onClick: () => handleRestartRoutine(c.clientRoutineId!, c.fullName),
-                        className: 'text-primary focus:text-primary',
-                      },
-                    ],
+                    label: "Ver perfil",
+                    icon: <Eye className="mr-2 size-4" />,
+                    href: `/admin/clients/${c.id}`,
                   },
-                ]
-              : []),
-            ...((c.status === 'active' || c.status === 'suspended')
-              ? [
                   {
-                    separatorBefore: true as const,
-                    items: [
-                      c.status === 'active'
-                        ? {
-                            label: 'Suspender',
-                            icon: <UserX className="mr-2 size-4" />,
-                            onClick: () => handleStatusChange(c.id, 'suspended'),
-                            className: 'text-warning focus:text-warning',
-                          }
-                        : {
-                            label: 'Activar',
-                            icon: <UserCheck className="mr-2 size-4" />,
-                            onClick: () => handleStatusChange(c.id, 'active'),
-                            className: 'text-success focus:text-success',
-                          },
-                    ],
+                    label: "Editar",
+                    icon: <Edit2 className="mr-2 size-4" />,
+                    href: `/admin/clients/${c.id}/edit`,
                   },
-                ]
-              : []),
-          ]
+                ],
+              },
+              ...(c.isRoutineCompleted && c.clientRoutineId
+                ? [
+                    {
+                      separatorBefore: true as const,
+                      items: [
+                        {
+                          label: "Reiniciar rutina (W1)",
+                          icon: <Sparkles className="mr-2 size-4" />,
+                          onClick: () =>
+                            handleRestartRoutine(
+                              c.clientRoutineId!,
+                              c.fullName,
+                            ),
+                          className: "text-primary focus:text-primary",
+                        },
+                      ],
+                    },
+                  ]
+                : []),
+              ...(c.status === "active" || c.status === "suspended"
+                ? [
+                    {
+                      separatorBefore: true as const,
+                      items: [
+                        c.status === "active"
+                          ? {
+                              label: "Suspender",
+                              icon: <UserX className="mr-2 size-4" />,
+                              onClick: () =>
+                                handleStatusChange(c.id, "suspended"),
+                              className: "text-warning focus:text-warning",
+                            }
+                          : {
+                              label: "Activar",
+                              icon: <UserCheck className="mr-2 size-4" />,
+                              onClick: () => handleStatusChange(c.id, "active"),
+                              className: "text-success focus:text-success",
+                            },
+                      ],
+                    },
+                  ]
+                : []),
+            ];
 
-          return (
-            <AdminCardWithActions
-              key={c.id}
-              menuSections={menuSections}
-              cardClassName={cn(
-                c.needsAttention &&
-                  'border-border border-l-[3px] border-l-warning bg-warning/5 hover:bg-warning/10 hover:border-l-warning',
-              )}
-            >
-              <AdminCardHeaderWithActions menuSections={menuSections}>
-                <div className="flex items-center gap-3">
-                  <Avatar className="size-10 rounded-xl">
-                    {c.avatarUrl ? (
-                      <AvatarImage src={c.avatarUrl} alt={c.fullName} className="object-cover" />
-                    ) : null}
-                    <AvatarFallback>{c.fullName.slice(0, 2).toUpperCase()}</AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0">
-                    <CardTitle className="text-base truncate">{c.fullName}</CardTitle>
-                    <div className="text-xs text-muted-foreground truncate">
-                      {c.planName ? `Plan: ${c.planName}` : 'Sin plan'}
+            return (
+              <AdminCardWithActions
+                key={c.id}
+                menuSections={menuSections}
+                cardClassName={cn(
+                  c.needsAttention &&
+                    "border-border border-l-[3px] border-l-warning bg-warning/5 hover:bg-warning/10 hover:border-l-warning",
+                )}
+              >
+                <AdminCardHeaderWithActions menuSections={menuSections}>
+                  <div className="flex items-center gap-3">
+                    <Avatar className="size-10 rounded-xl">
+                      {c.avatarUrl ? (
+                        <AvatarImage
+                          src={c.avatarUrl}
+                          alt={c.fullName}
+                          className="object-cover"
+                        />
+                      ) : null}
+                      <AvatarFallback>
+                        {c.fullName.slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <CardTitle className="text-base truncate">
+                        {c.fullName}
+                      </CardTitle>
+                      <div className="text-xs text-muted-foreground truncate">
+                        {c.planName ? `Plan: ${c.planName}` : "Sin plan"}
+                      </div>
                     </div>
-                  </div>
-                  {c.isRoutineCompleted ? (
-                    <Badge
-                      variant="outline"
-                      className="max-w-[min(100%,12rem)] shrink-0 gap-1 border-success/35 bg-success/12 text-success sm:max-w-[240px] ml-auto [&>svg]:text-current"
-                      title="Rutina completada"
-                    >
-                      <Trophy className="size-3.5 shrink-0" aria-hidden />
-                      <span className="truncate text-xs font-bold uppercase tracking-tight">Completada</span>
-                    </Badge>
-                  ) : c.needsAttention ? (
-                    <Badge
-                      variant="outline"
-                      className="max-w-[min(100%,12rem)] shrink-0 gap-1 border-warning/35 bg-warning/12 text-warning-foreground sm:max-w-[240px] ml-auto [&>svg]:text-current"
-                      title={c.attentionReason || 'Atención'}
-                    >
-                      <AlertTriangle className="size-3.5 shrink-0" aria-hidden />
-                      <span className="truncate">{c.attentionReason || 'Atención'}</span>
-                    </Badge>
-                  ) : c.streakDays != null && c.streakDays > 0 ? (
-                    <Badge variant="outline" className="ml-auto shrink-0 tabular-nums border-primary/25 bg-primary/8">
-                      {c.streakDays}d racha
-                    </Badge>
-                  ) : (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span className="ml-auto shrink-0 cursor-help text-[11px] font-medium tabular-nums text-muted-foreground underline decoration-dotted decoration-muted-foreground/50 underline-offset-2">
-                          Racha {c.streakDays ?? '—'}d
+                    {c.isRoutineCompleted ? (
+                      <Badge
+                        variant="outline"
+                        className="max-w-[min(100%,12rem)] shrink-0 gap-1 border-success/35 bg-success/12 text-success sm:max-w-[240px] ml-auto [&>svg]:text-current"
+                        title="Rutina completada"
+                      >
+                        <Trophy className="size-3.5 shrink-0" aria-hidden />
+                        <span className="truncate text-xs font-bold uppercase tracking-tight">
+                          Completada
                         </span>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="max-w-xs text-pretty">
-                        Viene del perfil (gamificación): días seguidos con entreno. Si es 0 o «—», el usuario puede haber
-                        entrenado hoy igualmente; la racha se reinicia si pasó un día sin completar sesión.
-                      </TooltipContent>
-                    </Tooltip>
-                  )}
-                </div>
-              </AdminCardHeaderWithActions>
-              <CardContent className="flex flex-col gap-2.5 pt-2">
-                <div className="flex items-baseline justify-between gap-2 border-b border-border/40 pb-2">
-                  <span className="text-xs text-muted-foreground">Última sesión</span>
-                  <span className="text-sm font-semibold tabular-nums">
-                    {c.daysSinceLastSession != null ? formatRelativeDays(c.daysSinceLastSession) : '—'}
-                  </span>
-                </div>
-
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
-                    Objetivo semanal
-                    <MetricHint label="Cómo se calcula el objetivo semanal">
-                      Porcentaje según la rutina (días/semana esperados). La ventana son los últimos 7 días naturales, no
-                      “7 entrenos”. Ejemplo: rutina 5×/sem → meta 5 sesiones en ese lapso.
-                    </MetricHint>
-                  </span>
-                  <span className="text-right text-sm font-semibold tabular-nums">
-                    {c.compliance7dPct != null ? (
-                      <>
-                        {Math.round(c.compliance7dPct * 100)}%
-                        {c.complianceSessionsDone7d != null && c.complianceSessionsTarget != null ? (
-                          <span className="ml-1.5 text-xs font-normal text-muted-foreground">
-                            ({c.complianceSessionsDone7d}/{c.complianceSessionsTarget})
+                      </Badge>
+                    ) : c.needsAttention ? (
+                      <Badge
+                        variant="outline"
+                        className="max-w-[min(100%,12rem)] shrink-0 gap-1 border-warning/35 bg-warning/12 text-warning-foreground sm:max-w-[240px] ml-auto [&>svg]:text-current"
+                        title={c.attentionReason || "Atención"}
+                      >
+                        <AlertTriangle
+                          className="size-3.5 shrink-0"
+                          aria-hidden
+                        />
+                        <span className="truncate">
+                          {c.attentionReason || "Atención"}
+                        </span>
+                      </Badge>
+                    ) : c.streakDays != null && c.streakDays > 0 ? (
+                      <Badge
+                        variant="outline"
+                        className="ml-auto shrink-0 tabular-nums border-primary/25 bg-primary/8"
+                      >
+                        {c.streakDays}d racha
+                      </Badge>
+                    ) : (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="ml-auto shrink-0 cursor-help text-[11px] font-medium tabular-nums text-muted-foreground underline decoration-dotted decoration-muted-foreground/50 underline-offset-2">
+                            Racha {c.streakDays ?? "—"}d
                           </span>
-                        ) : null}
-                      </>
-                    ) : (
-                      '—'
+                        </TooltipTrigger>
+                        <TooltipContent
+                          side="top"
+                          className="max-w-xs text-pretty"
+                        >
+                          Viene del perfil (gamificación): días seguidos con
+                          entreno. Si es 0 o «—», el usuario puede haber
+                          entrenado hoy igualmente; la racha se reinicia si pasó
+                          un día sin completar sesión.
+                        </TooltipContent>
+                      </Tooltip>
                     )}
-                  </span>
-                </div>
+                  </div>
+                </AdminCardHeaderWithActions>
+                <CardContent className="flex flex-col gap-2.5 pt-2">
+                  <div className="flex items-baseline justify-between gap-2 border-b border-border/40 pb-2">
+                    <span className="text-xs text-muted-foreground">
+                      Última sesión
+                    </span>
+                    <span className="text-sm font-semibold tabular-nums">
+                      {c.daysSinceLastSession != null
+                        ? formatRelativeDays(c.daysSinceLastSession)
+                        : "—"}
+                    </span>
+                  </div>
 
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
-                    Volumen sesión
-                    <MetricHint label="Qué significa la tendencia de volumen">
-                      Compara el volumen total (kg) de la última sesión completada frente a la anterior. No es un PR ni
-                      mide un solo ejercicio.
-                    </MetricHint>
-                  </span>
-                  <span className="flex min-w-0 items-center justify-end gap-1.5 text-sm font-semibold">
-                    {c.trend === 'up' ? (
-                      <span className="flex items-center gap-1 text-primary">
-                        <ArrowUp className="size-3.5 shrink-0" aria-hidden />
-                        Subiendo
-                      </span>
-                    ) : c.trend === 'down' ? (
-                      <span className="flex items-center gap-1 text-destructive">
-                        <ArrowDown className="size-3.5 shrink-0" aria-hidden />
-                        Bajando
-                      </span>
-                    ) : (
-                      <span className="text-foreground/70">Sin cambio</span>
-                    )}
-                  </span>
-                </div>
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
+                      Objetivo semanal
+                      <MetricHint label="Cómo se calcula el objetivo semanal">
+                        Porcentaje según la rutina (días/semana esperados). La
+                        ventana son los últimos 7 días naturales, no “7
+                        entrenos”. Ejemplo: rutina 5×/sem → meta 5 sesiones en
+                        ese lapso.
+                      </MetricHint>
+                    </span>
+                    <span className="text-right text-sm font-semibold tabular-nums">
+                      {c.compliance7dPct != null ? (
+                        <>
+                          {Math.round(c.compliance7dPct * 100)}%
+                          {c.complianceSessionsDone7d != null &&
+                          c.complianceSessionsTarget != null ? (
+                            <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+                              ({c.complianceSessionsDone7d}/
+                              {c.complianceSessionsTarget})
+                            </span>
+                          ) : null}
+                        </>
+                      ) : (
+                        "—"
+                      )}
+                    </span>
+                  </div>
 
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
-                    Series PR · 30d
-                    <MetricHint label="Conteo de series PR">
-                      Suma series con marca PR en entrenos completados últimos 30 días y eventos en historial PR. Debería
-                      acercarse a lo que el asesorado ve en Progreso.
-                    </MetricHint>
-                  </span>
-                  <span className="tabular-nums text-sm font-semibold">
-                    {typeof c.prEvents30d === 'number' ? c.prEvents30d : '—'}
-                  </span>
-                </div>
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
+                      Volumen sesión
+                      <MetricHint label="Qué significa la tendencia de volumen">
+                        Compara el volumen total (kg) de la última sesión
+                        completada frente a la anterior. No es un PR ni mide un
+                        solo ejercicio.
+                      </MetricHint>
+                    </span>
+                    <span className="flex min-w-0 items-center justify-end gap-1.5 text-sm font-semibold">
+                      {c.trend === "up" ? (
+                        <span className="flex items-center gap-1 text-primary">
+                          <ArrowUp className="size-3.5 shrink-0" aria-hidden />
+                          Subiendo
+                        </span>
+                      ) : c.trend === "down" ? (
+                        <span className="flex items-center gap-1 text-destructive">
+                          <ArrowDown
+                            className="size-3.5 shrink-0"
+                            aria-hidden
+                          />
+                          Bajando
+                        </span>
+                      ) : (
+                        <span className="text-foreground/70">Sin cambio</span>
+                      )}
+                    </span>
+                  </div>
 
-                <div className="flex items-baseline justify-between gap-2 border-t border-border/40 pt-2">
-                  <span className="text-xs text-muted-foreground">Rutina</span>
-                  <span className="max-w-[60%] truncate text-right text-sm font-semibold">
-                    {c.assignedRoutineName ? c.assignedRoutineName : (
-                      <span className="font-normal text-muted-foreground">Sin asignar</span>
-                    )}
-                  </span>
-                </div>
-              </CardContent>
-          </AdminCardWithActions>
-          )
-        })}
-      </div>
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
+                      Series PR · 30d
+                      <MetricHint label="Conteo de series PR">
+                        Suma series con marca PR en entrenos completados últimos
+                        30 días y eventos en historial PR. Debería acercarse a
+                        lo que el asesorado ve en Progreso.
+                      </MetricHint>
+                    </span>
+                    <span className="tabular-nums text-sm font-semibold">
+                      {typeof c.prEvents30d === "number" ? c.prEvents30d : "—"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-baseline justify-between gap-2 border-t border-border/40 pt-2">
+                    <span className="text-xs text-muted-foreground">
+                      Rutina
+                    </span>
+                    <span className="max-w-[60%] truncate text-right text-sm font-semibold">
+                      {c.assignedRoutineName ? (
+                        c.assignedRoutineName
+                      ) : (
+                        <span className="font-normal text-muted-foreground">
+                          Sin asignar
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                </CardContent>
+              </AdminCardWithActions>
+            );
+          })}
+        </div>
       </section>
     </div>
-  )
+  );
 }
-

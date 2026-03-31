@@ -1,82 +1,103 @@
-import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/next'
-import { ThemeProvider } from '@/components/theme-provider'
-import { Toaster } from 'sonner'
-import { PWASetup } from '@/components/pwa-setup'
-import { PWAInstallCTA } from '@/components/pwa-install-cta'
-import './globals.css'
+import type { Metadata, Viewport } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "sonner";
+import { PWASetup } from "@/components/pwa-setup";
+import { PWAInstallCTA } from "@/components/pwa-install-cta";
+import "./globals.css";
 
-const geist = Geist({ 
+const geist = Geist({
   subsets: ["latin"],
-  variable: '--font-geist-sans'
-})
+  variable: "--font-geist-sans",
+});
 
-const geistMono = Geist_Mono({ 
+const geistMono = Geist_Mono({
   subsets: ["latin"],
-  variable: '--font-geist-mono'
-})
+  variable: "--font-geist-mono",
+});
 
 export const metadata: Metadata = {
-  title: 'RU Coach | Rodrigo Urbina - Entrenamiento Personal Premium',
-  description: 'Eleva tu entrenamiento con Rodrigo Urbina. Seguimiento avanzado, progresión automática y coaching de élite en RU Coach.',
-  manifest: '/manifest.json',
-  keywords: ['Rodrigo Urbina', 'RU Coach', 'entrenamiento personal', 'fitness', 'coaching premium', 'rutinas de gimnasio', 'hipertrofia', 'fuerza'],
-  authors: [{ name: 'Rodrigo Urbina' }],
+  title: "RU Coach | Rodrigo Urbina - Entrenamiento Personal Premium",
+  description:
+    "Eleva tu entrenamiento con Rodrigo Urbina. Seguimiento avanzado, progresión automática y coaching de élite en RU Coach.",
+  manifest: "/manifest.json",
+  keywords: [
+    "Rodrigo Urbina",
+    "RU Coach",
+    "entrenamiento personal",
+    "fitness",
+    "coaching premium",
+    "rutinas de gimnasio",
+    "hipertrofia",
+    "fuerza",
+  ],
+  authors: [{ name: "Rodrigo Urbina" }],
   openGraph: {
-    title: 'RU Coach - Rodrigo Urbina | Tu plataforma de entrenamiento personal',
-    description: 'La plataforma definitiva para el seguimiento de fitness de élite, diseñada por Rodrigo Urbina.',
-    type: 'website',
-    url: 'https://ru-coach.app',
-    siteName: 'RU Coach',
+    title:
+      "RU Coach - Rodrigo Urbina | Tu plataforma de entrenamiento personal",
+    description:
+      "La plataforma definitiva para el seguimiento de fitness de élite, diseñada por Rodrigo Urbina.",
+    type: "website",
+    url: "https://ru-coach.app",
+    siteName: "RU Coach",
   },
   icons: {
     icon: [
-      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
     ],
-    apple: '/apple-touch-icon.png',
+    apple: "/apple-touch-icon.png",
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'black-translucent',
-    title: 'RU Coach',
+    statusBarStyle: "black-translucent",
+    title: "RU Coach",
   },
-}
+};
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#FAFAFA' },
-    { media: '(prefers-color-scheme: dark)', color: '#0A0A0A' },
+    { media: "(prefers-color-scheme: light)", color: "#FAFAFA" },
+    { media: "(prefers-color-scheme: dark)", color: "#0A0A0A" },
   ],
-  width: 'device-width',
+  width: "device-width",
   initialScale: 1,
-  viewportFit: 'cover',
-}
+  viewportFit: "cover",
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta
+          name="apple-mobile-web-app-status-bar-style"
+          content="black-translucent"
+        />
         <meta name="apple-mobile-web-app-title" content="RU Coach" />
-        <meta name="theme-color" content="#0A0A0A" media="(prefers-color-scheme: dark)" />
-        <meta name="theme-color" content="#FAFAFA" media="(prefers-color-scheme: light)" />
+        <meta
+          name="theme-color"
+          content="#0A0A0A"
+          media="(prefers-color-scheme: dark)"
+        />
+        <meta
+          name="theme-color"
+          content="#FAFAFA"
+          media="(prefers-color-scheme: light)"
+        />
         <meta name="msapplication-TileColor" content="#e5a84d" />
         <link rel="alternate" href="https://ru-coach.app" hrefLang="es" />
       </head>
-      <body className={`${geist.variable} ${geistMono.variable} font-sans antialiased min-h-dvh`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-        >
+      <body
+        className={`${geist.variable} ${geistMono.variable} font-sans antialiased min-h-dvh`}
+      >
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <a
             href="#main-content"
             className="fixed left-4 z-100 -translate-y-[150%] px-4 py-3 bg-primary text-primary-foreground rounded-lg font-medium outline-none ring-2 ring-ring transition-transform duration-200 focus:translate-y-0 focus-visible:translate-y-0 top-[max(1rem,env(safe-area-inset-top))]"
@@ -84,13 +105,13 @@ export default function RootLayout({
             Saltar al contenido principal
           </a>
           {children}
-          <Toaster 
+          <Toaster
             position="top-center"
             toastOptions={{
               style: {
-                background: 'var(--card)',
-                border: '1px solid var(--border)',
-                color: 'var(--foreground)',
+                background: "var(--card)",
+                border: "1px solid var(--border)",
+                color: "var(--foreground)",
               },
             }}
           />
@@ -100,5 +121,5 @@ export default function RootLayout({
         <Analytics />
       </body>
     </html>
-  )
+  );
 }

@@ -1,150 +1,154 @@
-'use server'
+"use server";
 
-import { createClient } from '@/lib/supabase/server'
-import { getAuthUser, getUserProfile } from '@/lib/auth-utils'
-import { redirect } from 'next/navigation'
-import { revalidatePath } from 'next/cache'
+import { createClient } from "@/lib/supabase/server";
+import { getAuthUser, getUserProfile } from "@/lib/auth-utils";
+import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
-import { sendClientInvitationEmail } from '@/lib/email'
+import { sendClientInvitationEmail } from "@/lib/email";
 
 function generateAccessCode(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-  let code = ''
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
   for (let i = 0; i < 8; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length))
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
   }
-  return code
+  return code;
 }
 
 export async function createNewClient(formData: FormData) {
-  const user = await getAuthUser()
-  const profile = await getUserProfile()
+  const user = await getAuthUser();
+  const profile = await getUserProfile();
 
-  if (!user || profile?.role !== 'admin') {
-    throw new Error('No autorizado')
+  if (!user || profile?.role !== "admin") {
+    throw new Error("No autorizado");
   }
 
-  const supabase = await createClient()
+  const supabase = await createClient();
 
-  const fullName = formData.get('fullName') as string
-  const email = formData.get('email') as string
-  const phone = formData.get('phone') as string
-  const birthDate = formData.get('birthDate') as string
-  const gender = formData.get('gender') as string
-  const goalRaw = formData.get('goal') as string
+  const fullName = formData.get("fullName") as string;
+  const email = formData.get("email") as string;
+  const phone = formData.get("phone") as string;
+  const birthDate = formData.get("birthDate") as string;
+  const gender = formData.get("gender") as string;
+  const goalRaw = formData.get("goal") as string;
   const GOAL_MAP: Record<string, string> = {
-    muscle_gain: 'muscle_gain',
-    fat_loss: 'weight_loss',
-    strength: 'toning',
-    endurance: 'endurance',
-    general_fitness: 'maintenance',
-  }
-  const goal = goalRaw && GOAL_MAP[goalRaw] ? GOAL_MAP[goalRaw] : null
+    muscle_gain: "muscle_gain",
+    fat_loss: "weight_loss",
+    strength: "toning",
+    endurance: "endurance",
+    general_fitness: "maintenance",
+  };
+  const goal = goalRaw && GOAL_MAP[goalRaw] ? GOAL_MAP[goalRaw] : null;
 
-  const experienceLevelRaw = formData.get('experienceLevel') as string
-  const validExperienceLevels = ['beginner', 'intermediate', 'advanced']
-  const experienceLevel = validExperienceLevels.includes(experienceLevelRaw) ? experienceLevelRaw : null
+  const experienceLevelRaw = formData.get("experienceLevel") as string;
+  const validExperienceLevels = ["beginner", "intermediate", "advanced"];
+  const experienceLevel = validExperienceLevels.includes(experienceLevelRaw)
+    ? experienceLevelRaw
+    : null;
 
-  const notes = formData.get('notes') as string
+  const notes = formData.get("notes") as string;
 
-  const clientId = crypto.randomUUID()
+  const clientId = crypto.randomUUID();
 
   const { data, error } = await supabase
-    .from('clients')
+    .from("clients")
     .insert([
       {
         id: clientId,
         coach_id: user.id,
         email,
         full_name: fullName,
-        phone: phone || '',
+        phone: phone || "",
         birth_date: birthDate || null,
         gender: gender || null,
         goal: goal || null,
         experience_level: experienceLevel || null,
-        status: 'pending',
+        status: "pending",
         notes: notes || null,
       },
     ])
-    .select()
+    .select();
 
   if (error) {
-    console.error('Error creating client:', error)
-    throw new Error(error.message)
+    console.error("Error creating client:", error);
+    throw new Error(error.message);
   }
 
-  const code = generateAccessCode()
-  const expiresAt = new Date()
-  expiresAt.setDate(expiresAt.getDate() + 30)
+  const code = generateAccessCode();
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 30);
 
-  await supabase.from('invitation_codes').insert({
+  await supabase.from("invitation_codes").insert({
     code,
     created_by: user.id,
     email: email || null,
     client_id: clientId,
-    for_role: 'client',
+    for_role: "client",
     expires_at: expiresAt.toISOString(),
     max_uses: 1,
     times_used: 0,
     is_active: true,
-  })
+  });
 
-  let emailSent = false
+  let emailSent = false;
   if (email?.trim()) {
     const result = await sendClientInvitationEmail({
       to: email.trim(),
       clientName: fullName,
       code,
-    })
-    emailSent = result.success
+    });
+    emailSent = result.success;
     if (!result.success) {
-      console.warn('No se pudo enviar el correo de invitación:', result.error)
+      console.warn("No se pudo enviar el correo de invitación:", result.error);
     }
   }
 
-  const params = new URLSearchParams({ accessCode: code })
-  if (email?.trim()) params.set('emailSent', emailSent ? '1' : '0')
-  redirect(`/admin/clients/${clientId}?${params.toString()}`)
+  const params = new URLSearchParams({ accessCode: code });
+  if (email?.trim()) params.set("emailSent", emailSent ? "1" : "0");
+  redirect(`/admin/clients/${clientId}?${params.toString()}`);
 }
 
 export async function updateClient(clientId: string, formData: FormData) {
-  const user = await getAuthUser()
-  const profile = await getUserProfile()
+  const user = await getAuthUser();
+  const profile = await getUserProfile();
 
-  if (!user || profile?.role !== 'admin') {
-    throw new Error('No autorizado')
+  if (!user || profile?.role !== "admin") {
+    throw new Error("No autorizado");
   }
 
-  const supabase = await createClient()
+  const supabase = await createClient();
 
-  const fullName = formData.get('fullName') as string
-  const phone = formData.get('phone') as string
-  const birthDate = formData.get('birthDate') as string
-  const gender = formData.get('gender') as string
-  const status = formData.get('status') as string
-  const goalRaw = formData.get('goal') as string
+  const fullName = formData.get("fullName") as string;
+  const phone = formData.get("phone") as string;
+  const birthDate = formData.get("birthDate") as string;
+  const gender = formData.get("gender") as string;
+  const status = formData.get("status") as string;
+  const goalRaw = formData.get("goal") as string;
   const GOAL_MAP: Record<string, string> = {
-    muscle_gain: 'muscle_gain',
-    fat_loss: 'weight_loss',
-    weight_loss: 'weight_loss',
-    strength: 'toning',
-    toning: 'toning',
-    endurance: 'endurance',
-    general_fitness: 'maintenance',
-    maintenance: 'maintenance',
-  }
-  const goal = goalRaw && GOAL_MAP[goalRaw] ? GOAL_MAP[goalRaw] : null
+    muscle_gain: "muscle_gain",
+    fat_loss: "weight_loss",
+    weight_loss: "weight_loss",
+    strength: "toning",
+    toning: "toning",
+    endurance: "endurance",
+    general_fitness: "maintenance",
+    maintenance: "maintenance",
+  };
+  const goal = goalRaw && GOAL_MAP[goalRaw] ? GOAL_MAP[goalRaw] : null;
 
-  const experienceLevelRaw = formData.get('experienceLevel') as string
-  const validExperienceLevels = ['beginner', 'intermediate', 'advanced']
-  const experienceLevel = validExperienceLevels.includes(experienceLevelRaw) ? experienceLevelRaw : null
+  const experienceLevelRaw = formData.get("experienceLevel") as string;
+  const validExperienceLevels = ["beginner", "intermediate", "advanced"];
+  const experienceLevel = validExperienceLevels.includes(experienceLevelRaw)
+    ? experienceLevelRaw
+    : null;
 
-  const notes = formData.get('notes') as string
-  const currentWeight = formData.get('currentWeight') as string
-  const height = formData.get('height') as string
+  const notes = formData.get("notes") as string;
+  const currentWeight = formData.get("currentWeight") as string;
+  const height = formData.get("height") as string;
 
   const { error } = await supabase
-    .from('clients')
+    .from("clients")
     .update({
       full_name: fullName,
       phone: phone || null,
@@ -158,65 +162,69 @@ export async function updateClient(clientId: string, formData: FormData) {
       height: height ? parseFloat(height) : null,
       updated_at: new Date().toISOString(),
     })
-    .eq('id', clientId)
-    .eq('coach_id', user.id)
+    .eq("id", clientId)
+    .eq("coach_id", user.id);
 
   if (error) {
-    console.error('Error updating client:', error)
-    throw new Error(error.message)
+    console.error("Error updating client:", error);
+    throw new Error(error.message);
   }
 
   // Nota: La sincronización con la tabla 'profiles' se maneja automáticamente
   // mediante un trigger de base de datos (tr_sync_client_status_to_profile).
 
-  redirect(`/admin/clients/${clientId}`)
+  redirect(`/admin/clients/${clientId}`);
 }
 
 export async function deleteClient(clientId: string) {
-  const user = await getAuthUser()
-  const profile = await getUserProfile()
+  const user = await getAuthUser();
+  const profile = await getUserProfile();
 
-  if (!user || profile?.role !== 'admin') {
-    return { success: false, error: 'No autorizado' }
+  if (!user || profile?.role !== "admin") {
+    return { success: false, error: "No autorizado" };
   }
 
-  const supabase = await createClient()
+  const supabase = await createClient();
 
-  const { error } = await supabase.from('clients').delete().eq('id', clientId).eq('coach_id', user.id)
+  const { error } = await supabase
+    .from("clients")
+    .delete()
+    .eq("id", clientId)
+    .eq("coach_id", user.id);
 
   if (error) {
-    return { success: false, error: error.message }
+    return { success: false, error: error.message };
   }
 
-  return { success: true }
+  return { success: true };
 }
 
 export async function updateClientStatus(clientId: string, status: string) {
-  const user = await getAuthUser()
-  const profile = await getUserProfile()
+  const user = await getAuthUser();
+  const profile = await getUserProfile();
 
-  if (!user || profile?.role !== 'admin') {
-    return { success: false, error: 'No autorizado' }
+  if (!user || profile?.role !== "admin") {
+    return { success: false, error: "No autorizado" };
   }
 
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   const { error } = await supabase
-    .from('clients')
-    .update({ 
+    .from("clients")
+    .update({
       status,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     })
-    .eq('id', clientId)
-    .eq('coach_id', user.id)
+    .eq("id", clientId)
+    .eq("coach_id", user.id);
 
   if (error) {
-    return { success: false, error: error.message }
+    return { success: false, error: error.message };
   }
 
   // Si el cliente tiene un usuario vinculado, el trigger se encargará de sincronizar con profiles.
   // Pero necesitamos revalidar el path
-  revalidatePath('/admin/clients')
-  
-  return { success: true }
+  revalidatePath("/admin/clients");
+
+  return { success: true };
 }

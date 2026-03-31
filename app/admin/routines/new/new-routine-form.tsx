@@ -1,46 +1,46 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { FieldGroup, Field } from '@/components/ui/field'
-import Link from 'next/link'
-import { createNewRoutine } from '@/app/actions/routines'
-import { toast } from 'sonner'
+} from "@/components/ui/select";
+import { FieldGroup, Field } from "@/components/ui/field";
+import Link from "next/link";
+import { createNewRoutine } from "@/app/actions/routines";
+import { toast } from "sonner";
 
 export function NewRoutineForm() {
-  const router = useRouter()
-  const [isPending, setIsPending] = React.useState(false)
-  const [level, setLevel] = React.useState<string>('')
+  const router = useRouter();
+  const [isPending, setIsPending] = React.useState(false);
+  const [level, setLevel] = React.useState<string>("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setIsPending(true)
+    e.preventDefault();
+    setIsPending(true);
 
-    const formData = new FormData(e.currentTarget)
-    formData.set('level', level)
+    const formData = new FormData(e.currentTarget);
+    formData.set("level", level);
 
     try {
-      await createNewRoutine(formData)
-      toast.success('¡Rutina creada correctamente!')
+      await createNewRoutine(formData);
+      toast.success("¡Rutina creada correctamente!");
     } catch (error) {
-      toast.error('No pudimos crear la rutina. Intenta de nuevo.')
-      console.error(error)
+      toast.error("No pudimos crear la rutina. Intenta de nuevo.");
+      console.error(error);
     } finally {
-      setIsPending(false)
+      setIsPending(false);
     }
-  }
+  };
 
   return (
     <Card>
@@ -121,14 +121,20 @@ export function NewRoutineForm() {
 
           <div className="flex gap-4">
             <Button type="submit" className="flex-1" disabled={isPending}>
-              {isPending ? 'Creando...' : 'Crear Rutina'}
+              {isPending ? "Creando..." : "Crear Rutina"}
             </Button>
-            <Button type="button" variant="outline" className="flex-1" disabled={isPending} asChild>
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              disabled={isPending}
+              asChild
+            >
               <Link href="/admin/routines">Cancelar</Link>
             </Button>
           </div>
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }

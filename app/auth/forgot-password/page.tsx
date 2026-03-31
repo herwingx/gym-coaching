@@ -1,59 +1,62 @@
-'use client'
+"use client";
 
-import { createClient } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/button'
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
 import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel,
-} from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
-import { ThemeToggle } from '@/components/theme-toggle'
-import Link from 'next/link'
-import { useState } from 'react'
-import { toast } from 'sonner'
-import { ArrowLeft } from 'lucide-react'
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { ThemeToggle } from "@/components/theme-toggle";
+import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
+import { ArrowLeft } from "lucide-react";
 
 function getRedirectUrl() {
-  if (typeof window !== 'undefined') {
-    return `${window.location.origin}/auth/callback`
+  if (typeof window !== "undefined") {
+    return `${window.location.origin}/auth/callback`;
   }
   return process.env.NEXT_PUBLIC_APP_URL
     ? `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`
-    : 'http://localhost:3000/auth/callback'
+    : "http://localhost:3000/auth/callback";
 }
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [sent, setSent] = useState(false)
+  const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [sent, setSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const supabase = createClient()
-    setIsLoading(true)
+    e.preventDefault();
+    const supabase = createClient();
+    setIsLoading(true);
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: getRedirectUrl(),
-      })
+      });
 
-      if (error) throw error
-      setSent(true)
-      toast.success('Revisa tu correo. Te enviamos un enlace para restablecer tu contraseña.')
+      if (error) throw error;
+      setSent(true);
+      toast.success(
+        "Revisa tu correo. Te enviamos un enlace para restablecer tu contraseña.",
+      );
     } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : ''
-      const isRateLimit = msg.toLowerCase().includes('rate limit') || msg.includes('429')
+      const msg = error instanceof Error ? error.message : "";
+      const isRateLimit =
+        msg.toLowerCase().includes("rate limit") || msg.includes("429");
       toast.error(
         isRateLimit
-          ? 'Demasiados intentos. Espera un minuto e intenta de nuevo.'
-          : 'No pudimos enviar el correo. Revisa el correo e intenta de nuevo.'
-      )
+          ? "Demasiados intentos. Espera un minuto e intenta de nuevo."
+          : "No pudimos enviar el correo. Revisa el correo e intenta de nuevo.",
+      );
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
@@ -61,9 +64,20 @@ export default function ForgotPasswordPage() {
         <div className="flex justify-center gap-2 md:justify-start">
           <Link href="/" className="flex items-center gap-2 font-medium">
             <div className="flex size-8 items-center justify-center rounded-md overflow-hidden">
-              <img src="/android-chrome-512x512.png" alt="Logo RU Coach" className="size-full" />
+              <img
+                src="/android-chrome-512x512.png"
+                alt="Logo RU Coach"
+                className="size-full"
+              />
             </div>
-            <div className="flex flex-col leading-none"><span className="text-xl font-black tracking-tighter uppercase">RU Coach</span><span className="text-[9px] font-medium text-muted-foreground uppercase tracking-widest mt-0.5">Rodrigo Urbina</span></div>
+            <div className="flex flex-col leading-none">
+              <span className="text-xl font-black tracking-tighter uppercase">
+                RU Coach
+              </span>
+              <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-widest mt-0.5">
+                Rodrigo Urbina
+              </span>
+            </div>
           </Link>
         </div>
         <div className="flex flex-1 items-center justify-center">
@@ -71,12 +85,12 @@ export default function ForgotPasswordPage() {
             <div className="flex flex-col gap-6">
               <div className="flex flex-col items-center gap-2 text-center md:items-start md:text-left">
                 <h1 className="text-2xl font-bold tracking-tight">
-                  {sent ? 'Revisa tu correo' : '¿Olvidaste tu contraseña?'}
+                  {sent ? "Revisa tu correo" : "¿Olvidaste tu contraseña?"}
                 </h1>
                 <p className="text-sm text-balance text-muted-foreground">
                   {sent
-                    ? 'Te hemos enviado un enlace para restablecer tu contraseña. Revisa también la carpeta de spam.'
-                    : 'Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.'}
+                    ? "Te hemos enviado un enlace para restablecer tu contraseña. Revisa también la carpeta de spam."
+                    : "Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña."}
                 </p>
               </div>
 
@@ -102,7 +116,7 @@ export default function ForgotPasswordPage() {
                         className="w-full h-11 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold cursor-pointer transition-all duration-200"
                         disabled={isLoading}
                       >
-                        {isLoading ? 'Enviando...' : 'Enviar enlace'}
+                        {isLoading ? "Enviando..." : "Enviar enlace"}
                       </Button>
                     </Field>
                   </FieldGroup>
@@ -142,5 +156,5 @@ export default function ForgotPasswordPage() {
         <div className="absolute inset-0 bg-linear-to-t from-background/80 via-transparent to-transparent lg:from-background/20" />
       </div>
     </div>
-  )
+  );
 }

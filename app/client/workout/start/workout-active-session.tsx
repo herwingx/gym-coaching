@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { CircularProgress } from "@/components/ui/circular-progress"
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { CircularProgress } from "@/components/ui/circular-progress";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,7 +15,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
 import {
   X,
   Play,
@@ -30,61 +30,68 @@ import {
   Timer,
   PlayCircle,
   Trash2,
-} from "lucide-react"
-import { useRouter } from "next/navigation"
-import { toast } from "sonner"
-import { calculate1RM } from "@/lib/types"
-import type { RoutineDay, RoutineExercise, PersonalRecord, Exercise } from "@/lib/types"
-import { ExerciseDetailDrawer } from "@/components/client/exercise-detail-drawer"
-import { ExerciseMedia } from "@/components/client/exercise-media"
-import { Badge } from "@/components/ui/badge"
-import { completeWorkoutSession } from "@/app/actions/workout"
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { calculate1RM } from "@/lib/types";
+import type {
+  RoutineDay,
+  RoutineExercise,
+  PersonalRecord,
+  Exercise,
+} from "@/lib/types";
+import { ExerciseDetailDrawer } from "@/components/client/exercise-detail-drawer";
+import { ExerciseMedia } from "@/components/client/exercise-media";
+import { Badge } from "@/components/ui/badge";
+import { completeWorkoutSession } from "@/app/actions/workout";
 import {
   isPRBeatingBaseline,
   mergePRBaselines,
   suggestWeightForTargetReps,
-} from "@/lib/progression"
-import { ClientStackPageHeader } from "@/components/client/client-app-page-parts"
-import { cn } from "@/lib/utils"
-import { exerciseUsesExternalLoad } from "@/lib/exercise-tracking"
-import { AchievementUnlockModal } from "@/components/client/achievement-unlock-modal"
-import type { Achievement } from "@/lib/types"
+} from "@/lib/progression";
+import { ClientStackPageHeader } from "@/components/client/client-app-page-parts";
+import { cn } from "@/lib/utils";
+import { exerciseUsesExternalLoad } from "@/lib/exercise-tracking";
+import { AchievementUnlockModal } from "@/components/client/achievement-unlock-modal";
+import type { Achievement } from "@/lib/types";
 
 function formatElapsed(totalSeconds: number) {
-  const s = Math.max(0, totalSeconds)
-  const m = Math.floor(s / 60)
-  const sec = s % 60
-  return `${m}:${sec.toString().padStart(2, "0")}`
+  const s = Math.max(0, totalSeconds);
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m}:${sec.toString().padStart(2, "0")}`;
 }
 
 interface WorkoutActiveSessionProps {
-  clientId: string
-  routineDay: RoutineDay & { routine_exercises: (RoutineExercise & { exercises: any })[] }
-  routineName: string
-  previousByExercise: Record<string, { weight_kg: number; reps: number }>
-  personalRecords: PersonalRecord[]
+  clientId: string;
+  routineDay: RoutineDay & {
+    routine_exercises: (RoutineExercise & { exercises: any })[];
+  };
+  routineName: string;
+  previousByExercise: Record<string, { weight_kg: number; reps: number }>;
+  personalRecords: PersonalRecord[];
 }
 
 interface SetLog {
-  setNumber: number
-  weight: number
-  reps: number
-  rpe?: number
-  completed: boolean
-  isPR: boolean
+  setNumber: number;
+  weight: number;
+  reps: number;
+  rpe?: number;
+  completed: boolean;
+  isPR: boolean;
 }
 
 function workoutDraftStorageKey(routineDayId: string) {
-  return `gym-workout-draft:${routineDayId}`
+  return `gym-workout-draft:${routineDayId}`;
 }
 
 interface WorkoutDraftV1 {
-  v: 1
-  routineDayId: string
-  currentExerciseIndex: number
-  workoutNote: string
-  sets: Record<string, SetLog[]>
-  workoutStartTime: number
+  v: 1;
+  routineDayId: string;
+  currentExerciseIndex: number;
+  workoutNote: string;
+  sets: Record<string, SetLog[]>;
+  workoutStartTime: number;
 }
 
 export function WorkoutActiveSession({
@@ -94,12 +101,12 @@ export function WorkoutActiveSession({
   previousByExercise,
   personalRecords,
 }: WorkoutActiveSessionProps) {
-  const router = useRouter()
-  const exercises = routineDay.routine_exercises || []
+  const router = useRouter();
+  const exercises = routineDay.routine_exercises || [];
   const loadPolicyByExerciseId = useMemo(() => {
-    const m = new Map<string, boolean>()
+    const m = new Map<string, boolean>();
     for (const re of exercises) {
-      const ex = re.exercises
+      const ex = re.exercises;
       m.set(
         re.exercise_id,
         exerciseUsesExternalLoad(
@@ -107,55 +114,59 @@ export function WorkoutActiveSession({
           ex?.uses_external_load,
           ex?.equipment,
         ),
-      )
+      );
     }
-    return m
-  }, [exercises])
-  const draftKey = workoutDraftStorageKey(routineDay.id)
+    return m;
+  }, [exercises]);
+  const draftKey = workoutDraftStorageKey(routineDay.id);
 
-  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0)
-  const [sets, setSets] = useState<Map<string, SetLog[]>>(new Map())
-  const [isResting, setIsResting] = useState(false)
-  const [restTime, setRestTime] = useState(0)
-  const [totalRestTime, setTotalRestTime] = useState(90)
-  const [workoutStartTime, setWorkoutStartTime] = useState(() => Date.now())
-  const [elapsedSec, setElapsedSec] = useState(0)
-  const [isPaused, setIsPaused] = useState(false)
-  const [isFinishing, setIsFinishing] = useState(false)
-  const [newlyUnlocked, setNewlyUnlocked] = useState<Achievement[]>([])
-  const [workoutNote, setWorkoutNote] = useState("")
-  const [jumpTargetIndex, setJumpTargetIndex] = useState<number | null>(null)
+  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
+  const [sets, setSets] = useState<Map<string, SetLog[]>>(new Map());
+  const [isResting, setIsResting] = useState(false);
+  const [restTime, setRestTime] = useState(0);
+  const [totalRestTime, setTotalRestTime] = useState(90);
+  const [workoutStartTime, setWorkoutStartTime] = useState(() => Date.now());
+  const [elapsedSec, setElapsedSec] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isFinishing, setIsFinishing] = useState(false);
+  const [newlyUnlocked, setNewlyUnlocked] = useState<Achievement[]>([]);
+  const [workoutNote, setWorkoutNote] = useState("");
+  const [jumpTargetIndex, setJumpTargetIndex] = useState<number | null>(null);
 
-  const [detailOpen, setDetailOpen] = useState(false)
-  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(
+    null,
+  );
 
   /** Tras comprobar sessionStorage: sin borrador → listo; con borrador → esperando diálogo recuperar/descartar */
-  const [draftCheckpoint, setDraftCheckpoint] = useState<"pending" | "ready">("pending")
-  const [restoreDraft, setRestoreDraft] = useState<WorkoutDraftV1 | null>(null)
-  const [restoreOpen, setRestoreOpen] = useState(false)
-  const [leaveOpen, setLeaveOpen] = useState(false)
+  const [draftCheckpoint, setDraftCheckpoint] = useState<"pending" | "ready">(
+    "pending",
+  );
+  const [restoreDraft, setRestoreDraft] = useState<WorkoutDraftV1 | null>(null);
+  const [restoreOpen, setRestoreOpen] = useState(false);
+  const [leaveOpen, setLeaveOpen] = useState(false);
 
-  const carouselRef = useRef<HTMLDivElement>(null)
-  const thumbRefs = useRef<(HTMLButtonElement | null)[]>([])
-  const restoreDismissRef = useRef<"apply" | "discard" | null>(null)
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const thumbRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const restoreDismissRef = useRef<"apply" | "discard" | null>(null);
 
-  const currentExercise = exercises[currentExerciseIndex]
-  const currentSets = sets.get(currentExercise?.id?.toString()) || []
+  const currentExercise = exercises[currentExerciseIndex];
+  const currentSets = sets.get(currentExercise?.id?.toString()) || [];
 
   const isDirty = useMemo(() => {
-    if (workoutNote.trim().length > 0) return true
-    if (currentExerciseIndex !== 0) return true
+    if (workoutNote.trim().length > 0) return true;
+    if (currentExerciseIndex !== 0) return true;
     for (const list of sets.values()) {
-      if (list.some((s) => s.completed)) return true
+      if (list.some((s) => s.completed)) return true;
     }
-    return false
-  }, [workoutNote, currentExerciseIndex, sets])
+    return false;
+  }, [workoutNote, currentExerciseIndex, sets]);
 
   const getSuggestedWeight = useCallback(
     (exerciseId: string, targetReps: number): number => {
-      if (!loadPolicyByExerciseId.get(exerciseId)) return 0
-      const prev = previousByExercise[exerciseId]
-      const pr = personalRecords.find((p) => p.exercise_id === exerciseId)
+      if (!loadPolicyByExerciseId.get(exerciseId)) return 0;
+      const prev = previousByExercise[exerciseId];
+      const pr = personalRecords.find((p) => p.exercise_id === exerciseId);
 
       return suggestWeightForTargetReps({
         estimated1RM: pr?.estimated_1rm,
@@ -164,44 +175,44 @@ export function WorkoutActiveSession({
         targetReps,
         incrementKg: 2.5,
         defaultWeightKg: 20,
-      }).weight
+      }).weight;
     },
     [previousByExercise, personalRecords, loadPolicyByExerciseId],
-  )
+  );
 
   useEffect(() => {
     const t = window.setInterval(() => {
-      setElapsedSec(Math.floor((Date.now() - workoutStartTime) / 1000))
-    }, 1000)
-    return () => window.clearInterval(t)
-  }, [workoutStartTime])
+      setElapsedSec(Math.floor((Date.now() - workoutStartTime) / 1000));
+    }, 1000);
+    return () => window.clearInterval(t);
+  }, [workoutStartTime]);
 
   useEffect(() => {
     try {
-      const raw = sessionStorage.getItem(draftKey)
+      const raw = sessionStorage.getItem(draftKey);
       if (!raw) {
-        setDraftCheckpoint("ready")
-        return
+        setDraftCheckpoint("ready");
+        return;
       }
-      const data = JSON.parse(raw) as WorkoutDraftV1
+      const data = JSON.parse(raw) as WorkoutDraftV1;
       if (data.v !== 1 || data.routineDayId !== routineDay.id) {
-        sessionStorage.removeItem(draftKey)
-        setDraftCheckpoint("ready")
-        return
+        sessionStorage.removeItem(draftKey);
+        setDraftCheckpoint("ready");
+        return;
       }
-      setRestoreDraft(data)
-      setRestoreOpen(true)
+      setRestoreDraft(data);
+      setRestoreOpen(true);
     } catch {
-      sessionStorage.removeItem(draftKey)
-      setDraftCheckpoint("ready")
+      sessionStorage.removeItem(draftKey);
+      setDraftCheckpoint("ready");
     }
-  }, [draftKey, routineDay.id])
+  }, [draftKey, routineDay.id]);
 
   useEffect(() => {
-    if (draftCheckpoint !== "ready") return
+    if (draftCheckpoint !== "ready") return;
     if (!isDirty) {
-      sessionStorage.removeItem(draftKey)
-      return
+      sessionStorage.removeItem(draftKey);
+      return;
     }
     const payload: WorkoutDraftV1 = {
       v: 1,
@@ -210,15 +221,15 @@ export function WorkoutActiveSession({
       workoutNote,
       sets: Object.fromEntries(sets),
       workoutStartTime,
-    }
+    };
     const id = window.setTimeout(() => {
       try {
-        sessionStorage.setItem(draftKey, JSON.stringify(payload))
+        sessionStorage.setItem(draftKey, JSON.stringify(payload));
       } catch {
         // quota / private mode
       }
-    }, 450)
-    return () => window.clearTimeout(id)
+    }, 450);
+    return () => window.clearTimeout(id);
   }, [
     draftCheckpoint,
     draftKey,
@@ -228,68 +239,75 @@ export function WorkoutActiveSession({
     workoutNote,
     sets,
     workoutStartTime,
-  ])
+  ]);
 
   useEffect(() => {
-    if (!isDirty) return
+    if (!isDirty) return;
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault()
-      e.returnValue = ""
-    }
-    window.addEventListener("beforeunload", onBeforeUnload)
-    return () => window.removeEventListener("beforeunload", onBeforeUnload)
-  }, [isDirty])
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [isDirty]);
 
   useEffect(() => {
-    if (!currentExercise) return
-    const id = currentExercise.id.toString()
+    if (!currentExercise) return;
+    const id = currentExercise.id.toString();
     setSets((prev) => {
-      if (prev.has(id)) return prev
-      const targetReps = parseInt(currentExercise.reps || "10", 10)
-      const initialSets: SetLog[] = Array.from({ length: currentExercise.sets }, (_, i) => ({
-        setNumber: i + 1,
-        weight: getSuggestedWeight(currentExercise.exercise_id, targetReps),
-        reps: targetReps,
-        completed: false,
-        isPR: false,
-      }))
-      return new Map(prev).set(id, initialSets)
-    })
-  }, [currentExercise, getSuggestedWeight])
+      if (prev.has(id)) return prev;
+      const targetReps = parseInt(currentExercise.reps || "10", 10);
+      const initialSets: SetLog[] = Array.from(
+        { length: currentExercise.sets },
+        (_, i) => ({
+          setNumber: i + 1,
+          weight: getSuggestedWeight(currentExercise.exercise_id, targetReps),
+          reps: targetReps,
+          completed: false,
+          isPR: false,
+        }),
+      );
+      return new Map(prev).set(id, initialSets);
+    });
+  }, [currentExercise, getSuggestedWeight]);
 
   useEffect(() => {
-    if (!currentExercise) return
-    if (loadPolicyByExerciseId.get(currentExercise.exercise_id)) return
-    const id = currentExercise.id.toString()
+    if (!currentExercise) return;
+    if (loadPolicyByExerciseId.get(currentExercise.exercise_id)) return;
+    const id = currentExercise.id.toString();
     setSets((prev) => {
-      const list = prev.get(id)
-      if (!list?.length) return prev
-      if (!list.some((s) => s.weight !== 0)) return prev
+      const list = prev.get(id);
+      if (!list?.length) return prev;
+      if (!list.some((s) => s.weight !== 0)) return prev;
       return new Map(prev).set(
         id,
         list.map((s) => ({ ...s, weight: 0, isPR: false })),
-      )
-    })
-  }, [currentExercise, loadPolicyByExerciseId])
+      );
+    });
+  }, [currentExercise, loadPolicyByExerciseId]);
 
   useEffect(() => {
-    const el = thumbRefs.current[currentExerciseIndex]
-    el?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" })
-  }, [currentExerciseIndex])
+    const el = thumbRefs.current[currentExerciseIndex];
+    el?.scrollIntoView({
+      behavior: "smooth",
+      inline: "center",
+      block: "nearest",
+    });
+  }, [currentExerciseIndex]);
 
   useEffect(() => {
-    let interval: ReturnType<typeof setInterval>
+    let interval: ReturnType<typeof setInterval>;
     if (isResting && restTime > 0 && !isPaused) {
       interval = setInterval(() => {
-        setRestTime((t) => t - 1)
-      }, 1000)
+        setRestTime((t) => t - 1);
+      }, 1000);
     } else if (restTime === 0 && isResting) {
-      setIsResting(false)
-      if (navigator.vibrate) navigator.vibrate([200, 100, 200])
-      toast.success("Descanso terminado. ¡Siguiente serie!")
+      setIsResting(false);
+      if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+      toast.success("Descanso terminado. ¡Siguiente serie!");
     }
-    return () => clearInterval(interval)
-  }, [isResting, restTime, isPaused])
+    return () => clearInterval(interval);
+  }, [isResting, restTime, isPaused]);
 
   const checkForPR = (
     exerciseId: string,
@@ -298,8 +316,10 @@ export function WorkoutActiveSession({
     sameExerciseSets: SetLog[],
     setIndex: number,
   ): boolean => {
-    if (!loadPolicyByExerciseId.get(exerciseId)) return false
-    const currentPR = personalRecords.find((pr) => pr.exercise_id === exerciseId)
+    if (!loadPolicyByExerciseId.get(exerciseId)) return false;
+    const currentPR = personalRecords.find(
+      (pr) => pr.exercise_id === exerciseId,
+    );
     const dbBaseline =
       currentPR && currentPR.weight_kg > 0 && currentPR.reps > 0
         ? {
@@ -310,193 +330,204 @@ export function WorkoutActiveSession({
                 ? currentPR.estimated_1rm
                 : calculate1RM(currentPR.weight_kg, currentPR.reps),
           }
-        : null
+        : null;
 
-    let baseline = dbBaseline
+    let baseline = dbBaseline;
     for (let i = 0; i < sameExerciseSets.length; i++) {
-      if (i === setIndex) continue
-      const s = sameExerciseSets[i]
-      if (!s.completed) continue
+      if (i === setIndex) continue;
+      const s = sameExerciseSets[i];
+      if (!s.completed) continue;
       const cand = {
         weight: s.weight,
         reps: s.reps,
         estimated_1rm: calculate1RM(s.weight, s.reps),
-      }
-      baseline = mergePRBaselines(baseline, cand)
+      };
+      baseline = mergePRBaselines(baseline, cand);
     }
 
-    return isPRBeatingBaseline(weight, reps, baseline)
-  }
+    return isPRBeatingBaseline(weight, reps, baseline);
+  };
 
   const completeSet = (setIndex: number) => {
-    if (!currentExercise) return
-    const id = currentExercise.id.toString()
+    if (!currentExercise) return;
+    const id = currentExercise.id.toString();
 
-    let prToast: { weight: number; reps: number } | null = null
-    let shouldRest = false
-    const restSec = currentExercise.rest_seconds || 90
+    let prToast: { weight: number; reps: number } | null = null;
+    let shouldRest = false;
+    const restSec = currentExercise.rest_seconds || 90;
 
     setSets((prev) => {
-      const list = prev.get(id)
-      if (!list) return prev
-      const updatedSets = [...list]
-      const set = updatedSets[setIndex]
+      const list = prev.get(id);
+      if (!list) return prev;
+      const updatedSets = [...list];
+      const set = updatedSets[setIndex];
       const isPR = checkForPR(
         currentExercise.exercise_id,
         set.weight,
         set.reps,
         updatedSets,
         setIndex,
-      )
-      set.completed = true
-      set.isPR = isPR
+      );
+      set.completed = true;
+      set.isPR = isPR;
       if (isPR && loadPolicyByExerciseId.get(currentExercise.exercise_id)) {
-        prToast = { weight: set.weight, reps: set.reps }
+        prToast = { weight: set.weight, reps: set.reps };
       }
-      shouldRest = setIndex < updatedSets.length - 1
-      return new Map(prev).set(id, updatedSets)
-    })
+      shouldRest = setIndex < updatedSets.length - 1;
+      return new Map(prev).set(id, updatedSets);
+    });
 
     queueMicrotask(() => {
       if (prToast) {
         toast.success("¡Nuevo récord personal!", {
           description: `${prToast.weight} kg × ${prToast.reps} repeticiones`,
           icon: <Trophy className="h-5 w-5 text-primary" />,
-        })
+        });
       }
       if (shouldRest) {
-        setRestTime(restSec)
-        setTotalRestTime(restSec)
-        setIsResting(true)
+        setRestTime(restSec);
+        setTotalRestTime(restSec);
+        setIsResting(true);
       }
-    })
-  }
+    });
+  };
 
-  const updateSetValue = (setIndex: number, field: "weight" | "reps", delta: number) => {
-    if (!currentExercise) return
-    const id = currentExercise.id.toString()
+  const updateSetValue = (
+    setIndex: number,
+    field: "weight" | "reps",
+    delta: number,
+  ) => {
+    if (!currentExercise) return;
+    const id = currentExercise.id.toString();
     setSets((prev) => {
-      const list = prev.get(id)
-      if (!list) return prev
-      const updatedSets = [...list]
-      const set = updatedSets[setIndex]
+      const list = prev.get(id);
+      if (!list) return prev;
+      const updatedSets = [...list];
+      const set = updatedSets[setIndex];
       if (field === "weight") {
-        set.weight = Math.max(0, set.weight + delta)
+        set.weight = Math.max(0, set.weight + delta);
       } else {
-        set.reps = Math.max(1, set.reps + delta)
+        set.reps = Math.max(1, set.reps + delta);
       }
-      return new Map(prev).set(id, updatedSets)
-    })
-  }
+      return new Map(prev).set(id, updatedSets);
+    });
+  };
 
   const addSet = () => {
-    if (!currentExercise) return
-    const id = currentExercise.id.toString()
-    const targetReps = parseInt(currentExercise.reps || "10", 10)
+    if (!currentExercise) return;
+    const id = currentExercise.id.toString();
+    const targetReps = parseInt(currentExercise.reps || "10", 10);
     setSets((prev) => {
-      const list = prev.get(id) || []
-      const last = list[list.length - 1]
+      const list = prev.get(id) || [];
+      const last = list[list.length - 1];
       const nextSet: SetLog = {
         setNumber: list.length + 1,
-        weight: last?.weight ?? getSuggestedWeight(currentExercise.exercise_id, targetReps),
+        weight:
+          last?.weight ??
+          getSuggestedWeight(currentExercise.exercise_id, targetReps),
         reps: last?.reps ?? targetReps,
         completed: false,
         isPR: false,
-      }
-      return new Map(prev).set(id, [...list, nextSet])
-    })
-  }
+      };
+      return new Map(prev).set(id, [...list, nextSet]);
+    });
+  };
 
   /** Solo se pueden quitar series añadidas con «Añadir serie» (por encima del plan). */
   const removeSet = (setIndex: number) => {
-    if (!currentExercise) return
-    const id = currentExercise.id.toString()
-    const prescribed = Math.max(1, currentExercise.sets)
+    if (!currentExercise) return;
+    const id = currentExercise.id.toString();
+    const prescribed = Math.max(1, currentExercise.sets);
     setSets((prev) => {
-      const list = prev.get(id)
-      if (!list || list.length <= prescribed) return prev
-      if (setIndex < prescribed) return prev
+      const list = prev.get(id);
+      if (!list || list.length <= prescribed) return prev;
+      if (setIndex < prescribed) return prev;
       const next = list
         .filter((_, i) => i !== setIndex)
-        .map((s, i) => ({ ...s, setNumber: i + 1 }))
-      return new Map(prev).set(id, next)
-    })
-  }
+        .map((s, i) => ({ ...s, setNumber: i + 1 }));
+      return new Map(prev).set(id, next);
+    });
+  };
 
   const goToExercise = (index: number) => {
-    setCurrentExerciseIndex(index)
-    setIsResting(false)
-    setJumpTargetIndex(null)
-  }
+    setCurrentExerciseIndex(index);
+    setIsResting(false);
+    setJumpTargetIndex(null);
+  };
 
   const requestGoToExercise = (index: number) => {
-    if (index === currentExerciseIndex) return
+    if (index === currentExerciseIndex) return;
     const incomplete =
-      currentSets.length > 0 && currentSets.some((s) => !s.completed)
+      currentSets.length > 0 && currentSets.some((s) => !s.completed);
     if (incomplete) {
-      setJumpTargetIndex(index)
-      return
+      setJumpTargetIndex(index);
+      return;
     }
-    goToExercise(index)
-  }
+    goToExercise(index);
+  };
 
   const nextExercise = () => {
     if (currentExerciseIndex < exercises.length - 1) {
-      goToExercise(currentExerciseIndex + 1)
+      goToExercise(currentExerciseIndex + 1);
     }
-  }
+  };
 
   const prevExercise = () => {
     if (currentExerciseIndex > 0) {
-      goToExercise(currentExerciseIndex - 1)
+      goToExercise(currentExerciseIndex - 1);
     }
-  }
+  };
 
   const finishWorkout = async () => {
-    if (isFinishing) return
-    setIsFinishing(true)
+    if (isFinishing) return;
+    setIsFinishing(true);
 
-    let totalVolume = 0
+    let totalVolume = 0;
     sets.forEach((exerciseSets) => {
       exerciseSets.forEach((set) => {
         if (set.completed) {
-          totalVolume += set.weight * set.reps
+          totalVolume += set.weight * set.reps;
         }
-      })
-    })
+      });
+    });
 
-    const duration = Math.max(1, Math.round((Date.now() - workoutStartTime) / 60000))
+    const duration = Math.max(
+      1,
+      Math.round((Date.now() - workoutStartTime) / 60000),
+    );
 
     try {
       const allCompletedSets: {
-        exerciseId: string
-        setNumber: number
-        weight: number
-        reps: number
-        isPR?: boolean
-      }[] = []
+        exerciseId: string;
+        setNumber: number;
+        weight: number;
+        reps: number;
+        isPR?: boolean;
+      }[] = [];
 
       sets.forEach((exerciseSets, routineExerciseId) => {
-        const exercise = exercises.find((e) => e.id.toString() === routineExerciseId)
-        const exerciseId = exercise?.exercise_id
-        if (!exerciseId) return
+        const exercise = exercises.find(
+          (e) => e.id.toString() === routineExerciseId,
+        );
+        const exerciseId = exercise?.exercise_id;
+        if (!exerciseId) return;
 
         exerciseSets.forEach((set) => {
-          if (!set.completed) return
+          if (!set.completed) return;
           allCompletedSets.push({
             exerciseId,
             setNumber: set.setNumber,
             weight: set.weight,
             reps: set.reps,
             isPR: set.isPR,
-          })
-        })
-      })
+          });
+        });
+      });
 
       if (allCompletedSets.length === 0) {
-        toast.error("Marca al menos una serie completada antes de terminar")
-        setIsFinishing(false)
-        return
+        toast.error("Marca al menos una serie completada antes de terminar");
+        setIsFinishing(false);
+        return;
       }
 
       const result = await completeWorkoutSession({
@@ -505,78 +536,84 @@ export function WorkoutActiveSession({
         sets: allCompletedSets,
         durationMinutes: duration,
         notes: workoutNote.trim() || undefined,
-      })
+      });
 
       if (!result.success) {
         toast.error("No se pudo guardar el entrenamiento", {
           description: result.error,
-        })
-        return
+        });
+        return;
       }
 
       try {
-        sessionStorage.removeItem(draftKey)
+        sessionStorage.removeItem(draftKey);
       } catch {
         /* noop */
       }
 
       toast.success("¡Entrenamiento guardado!", {
         description: `${duration} min · ${Math.round(totalVolume)} kg volumen · ${result.stats?.prsCount ?? 0} PRs`,
-      })
+      });
 
-      if (result.stats?.newAchievements && result.stats.newAchievements.length > 0) {
-        sessionStorage.setItem('last_session_id', result.sessionId)
-        setNewlyUnlocked(result.stats.newAchievements as Achievement[])
+      if (
+        result.stats?.newAchievements &&
+        result.stats.newAchievements.length > 0
+      ) {
+        sessionStorage.setItem("last_session_id", result.sessionId);
+        setNewlyUnlocked(result.stats.newAchievements as Achievement[]);
       } else {
-        router.push(`/client/workout/summary?sessionId=${result.sessionId}`)
+        router.push(`/client/workout/summary?sessionId=${result.sessionId}`);
       }
     } catch (err) {
-      toast.error("Error inesperado guardando el entrenamiento")
-      console.error(err)
+      toast.error("Error inesperado guardando el entrenamiento");
+      console.error(err);
     } finally {
-      setIsFinishing(false)
+      setIsFinishing(false);
     }
-  }
+  };
 
   const skipRest = () => {
-    setIsResting(false)
-    setRestTime(0)
-  }
+    setIsResting(false);
+    setRestTime(0);
+  };
 
   const applyWorkoutDraft = useCallback(() => {
-    if (!restoreDraft) return
-    restoreDismissRef.current = "apply"
-    setWorkoutStartTime(restoreDraft.workoutStartTime)
+    if (!restoreDraft) return;
+    restoreDismissRef.current = "apply";
+    setWorkoutStartTime(restoreDraft.workoutStartTime);
     setCurrentExerciseIndex(
-      Math.min(Math.max(0, restoreDraft.currentExerciseIndex), Math.max(0, exercises.length - 1)),
-    )
-    setWorkoutNote(restoreDraft.workoutNote)
-    setSets(new Map(Object.entries(restoreDraft.sets)))
-    setRestoreDraft(null)
-    setRestoreOpen(false)
-    setDraftCheckpoint("ready")
-  }, [restoreDraft, exercises.length])
+      Math.min(
+        Math.max(0, restoreDraft.currentExerciseIndex),
+        Math.max(0, exercises.length - 1),
+      ),
+    );
+    setWorkoutNote(restoreDraft.workoutNote);
+    setSets(new Map(Object.entries(restoreDraft.sets)));
+    setRestoreDraft(null);
+    setRestoreOpen(false);
+    setDraftCheckpoint("ready");
+  }, [restoreDraft, exercises.length]);
 
   const discardWorkoutDraft = useCallback(() => {
-    restoreDismissRef.current = "discard"
+    restoreDismissRef.current = "discard";
     try {
-      sessionStorage.removeItem(draftKey)
+      sessionStorage.removeItem(draftKey);
     } catch {
       /* noop */
     }
-    setRestoreDraft(null)
-    setRestoreOpen(false)
-    setDraftCheckpoint("ready")
-  }, [draftKey])
+    setRestoreDraft(null);
+    setRestoreOpen(false);
+    setDraftCheckpoint("ready");
+  }, [draftKey]);
 
   const confirmLeaveWorkout = useCallback(() => {
-    setLeaveOpen(false)
-    router.push("/client/dashboard")
-  }, [router])
+    setLeaveOpen(false);
+    router.push("/client/dashboard");
+  }, [router]);
 
-  const completedSetsCount = currentSets.filter((s) => s.completed).length
+  const completedSetsCount = currentSets.filter((s) => s.completed).length;
   const allSetsCompleted =
-    completedSetsCount === currentSets.length && currentSets.length > 0
+    completedSetsCount === currentSets.length && currentSets.length > 0;
 
   const usesExternalLoad = currentExercise
     ? exerciseUsesExternalLoad(
@@ -584,19 +621,19 @@ export function WorkoutActiveSession({
         currentExercise.exercises?.uses_external_load,
         currentExercise.exercises?.equipment,
       )
-    : true
+    : true;
 
   const previewLabel = (() => {
-    if (!currentExercise) return "—"
-    const prev = previousByExercise[currentExercise.exercise_id]
-    if (!prev) return "—"
+    if (!currentExercise) return "—";
+    const prev = previousByExercise[currentExercise.exercise_id];
+    if (!prev) return "—";
     if (usesExternalLoad) {
-      return prev.weight_kg > 0 ? `${prev.weight_kg}×${prev.reps}` : "—"
+      return prev.weight_kg > 0 ? `${prev.weight_kg}×${prev.reps}` : "—";
     }
-    return prev.reps > 0 ? `${prev.reps} rep.` : "—"
-  })()
+    return prev.reps > 0 ? `${prev.reps} rep.` : "—";
+  })();
 
-  const restSeconds = currentExercise?.rest_seconds || 90
+  const restSeconds = currentExercise?.rest_seconds || 90;
 
   return (
     <div
@@ -613,8 +650,8 @@ export function WorkoutActiveSession({
         backLabel="Salir del entreno"
         backIcon={<X className="size-4" aria-hidden />}
         onBackClick={() => {
-          if (isDirty) setLeaveOpen(true)
-          else router.push("/client/dashboard")
+          if (isDirty) setLeaveOpen(true);
+          else router.push("/client/dashboard");
         }}
         actions={
           <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
@@ -651,25 +688,26 @@ export function WorkoutActiveSession({
       <AlertDialog
         open={restoreOpen}
         onOpenChange={(open) => {
-          if (open) return
-          const reason = restoreDismissRef.current
-          restoreDismissRef.current = null
-          if (reason === "apply" || reason === "discard") return
+          if (open) return;
+          const reason = restoreDismissRef.current;
+          restoreDismissRef.current = null;
+          if (reason === "apply" || reason === "discard") return;
           try {
-            sessionStorage.removeItem(draftKey)
+            sessionStorage.removeItem(draftKey);
           } catch {
             /* noop */
           }
-          setRestoreDraft(null)
-          setDraftCheckpoint("ready")
+          setRestoreDraft(null);
+          setDraftCheckpoint("ready");
         }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>¿Recuperar tu progreso?</AlertDialogTitle>
             <AlertDialogDescription>
-              Había un entreno sin terminar guardado en este dispositivo. Puedes restaurar series, nota y tiempo
-              o empezar de cero. Nada se envía al servidor hasta que pulses Terminar.
+              Había un entreno sin terminar guardado en este dispositivo. Puedes
+              restaurar series, nota y tiempo o empezar de cero. Nada se envía
+              al servidor hasta que pulses Terminar.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -688,8 +726,9 @@ export function WorkoutActiveSession({
           <AlertDialogHeader>
             <AlertDialogTitle>¿Salir del entreno?</AlertDialogTitle>
             <AlertDialogDescription>
-              Si sales sin pulsar Terminar, la sesión no se guarda en el servidor. En este dispositivo guardamos
-              un borrador por si vuelves a abrir el mismo día (puedes recuperarlo o borrarlo al entrar).
+              Si sales sin pulsar Terminar, la sesión no se guarda en el
+              servidor. En este dispositivo guardamos un borrador por si vuelves
+              a abrir el mismo día (puedes recuperarlo o borrarlo al entrar).
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -712,14 +751,16 @@ export function WorkoutActiveSession({
           <AlertDialogHeader>
             <AlertDialogTitle>¿Cambiar de ejercicio?</AlertDialogTitle>
             <AlertDialogDescription>
-              Tienes series sin marcar en este ejercicio. Si cambias ahora, podrás volver después; los datos
-              escritos se conservan.
+              Tienes series sin marcar en este ejercicio. Si cambias ahora,
+              podrás volver después; los datos escritos se conservan.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Seguir aquí</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => jumpTargetIndex !== null && goToExercise(jumpTargetIndex)}
+              onClick={() =>
+                jumpTargetIndex !== null && goToExercise(jumpTargetIndex)
+              }
             >
               Cambiar igualmente
             </AlertDialogAction>
@@ -742,8 +783,16 @@ export function WorkoutActiveSession({
             </div>
           </CircularProgress>
           <div className="mt-8 flex gap-4">
-            <Button variant="outline" size="lg" onClick={() => setIsPaused(!isPaused)}>
-              {isPaused ? <Play className="h-5 w-5" /> : <Pause className="h-5 w-5" />}
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => setIsPaused(!isPaused)}
+            >
+              {isPaused ? (
+                <Play className="h-5 w-5" />
+              ) : (
+                <Pause className="h-5 w-5" />
+              )}
             </Button>
             <Button
               variant="default"
@@ -798,14 +847,14 @@ export function WorkoutActiveSession({
                 aria-label="Ejercicios del día"
               >
                 {exercises.map((re, idx) => {
-                  const ex = re.exercises as Exercise | undefined
-                  const active = idx === currentExerciseIndex
+                  const ex = re.exercises as Exercise | undefined;
+                  const active = idx === currentExerciseIndex;
                   return (
                     <button
                       key={re.id}
                       type="button"
                       ref={(el) => {
-                        thumbRefs.current[idx] = el
+                        thumbRefs.current[idx] = el;
                       }}
                       role="tab"
                       aria-selected={active}
@@ -832,7 +881,7 @@ export function WorkoutActiveSession({
                         {idx + 1}
                       </span>
                     </button>
-                  )
+                  );
                 })}
               </div>
 
@@ -841,13 +890,16 @@ export function WorkoutActiveSession({
                   type="button"
                   className="relative flex w-full flex-col outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   onClick={() => {
-                    setSelectedExercise(currentExercise.exercises)
-                    setDetailOpen(true)
+                    setSelectedExercise(currentExercise.exercises);
+                    setDetailOpen(true);
                   }}
                 >
                   <div className="relative aspect-4/3 w-full bg-muted/80 dark:bg-muted/50">
                     <ExerciseMedia
-                      src={currentExercise.exercises?.gif_url || currentExercise.exercises?.image_url}
+                      src={
+                        currentExercise.exercises?.gif_url ||
+                        currentExercise.exercises?.image_url
+                      }
                       alt={currentExercise.exercises?.name ?? "Ejercicio"}
                       variant="fill"
                       className="absolute inset-0 size-full"
@@ -862,8 +914,8 @@ export function WorkoutActiveSession({
                     size="sm"
                     className="min-h-10 gap-2"
                     onClick={() => {
-                      setSelectedExercise(currentExercise.exercises)
-                      setDetailOpen(true)
+                      setSelectedExercise(currentExercise.exercises);
+                      setDetailOpen(true);
                     }}
                   >
                     <PlayCircle className="size-4 text-primary" aria-hidden />
@@ -892,12 +944,13 @@ export function WorkoutActiveSession({
                   {currentExercise.exercises?.name}
                 </h2>
                 <p className="mt-1 text-sm font-medium text-primary">
-                  Plan: {currentExercise.sets} series × {currentExercise.reps || "var."} reps
+                  Plan: {currentExercise.sets} series ×{" "}
+                  {currentExercise.reps || "var."} reps
                 </p>
                 {!usesExternalLoad ? (
                   <p className="mt-2 text-xs leading-snug text-muted-foreground text-pretty">
-                    Sin peso en barra/máquina: registra solo las repeticiones (o el trabajo del plan). El volumen en kg
-                    no aplica.
+                    Sin peso en barra/máquina: registra solo las repeticiones (o
+                    el trabajo del plan). El volumen en kg no aplica.
                   </p>
                 ) : null}
               </div>
@@ -930,9 +983,10 @@ export function WorkoutActiveSession({
                 </div>
 
                 {currentSets.map((set, index) => {
-                  const prescribedSets = Math.max(1, currentExercise.sets)
+                  const prescribedSets = Math.max(1, currentExercise.sets);
                   const canRemoveRow =
-                    index >= prescribedSets && currentSets.length > prescribedSets
+                    index >= prescribedSets &&
+                    currentSets.length > prescribedSets;
 
                   return (
                     <Card
@@ -959,7 +1013,11 @@ export function WorkoutActiveSession({
                                 )}
                                 aria-hidden
                               >
-                                {set.completed ? <Check className="h-5 w-5" aria-hidden /> : set.setNumber}
+                                {set.completed ? (
+                                  <Check className="h-5 w-5" aria-hidden />
+                                ) : (
+                                  set.setNumber
+                                )}
                               </div>
                               <div className="min-w-0">
                                 <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -1012,7 +1070,9 @@ export function WorkoutActiveSession({
                                   variant="outline"
                                   size="icon"
                                   className="size-11 shrink-0"
-                                  onClick={() => updateSetValue(index, "weight", -2.5)}
+                                  onClick={() =>
+                                    updateSetValue(index, "weight", -2.5)
+                                  }
                                   disabled={set.completed}
                                   aria-label="Menos peso"
                                 >
@@ -1023,15 +1083,18 @@ export function WorkoutActiveSession({
                                   inputMode="decimal"
                                   value={set.weight}
                                   onChange={(e) => {
-                                    const val = parseFloat(e.target.value) || 0
+                                    const val = parseFloat(e.target.value) || 0;
                                     setSets((prev) => {
-                                      const id = currentExercise.id.toString()
-                                      const list = prev.get(id)
-                                      if (!list) return prev
-                                      const copy = [...list]
-                                      copy[index] = { ...copy[index], weight: val }
-                                      return new Map(prev).set(id, copy)
-                                    })
+                                      const id = currentExercise.id.toString();
+                                      const list = prev.get(id);
+                                      if (!list) return prev;
+                                      const copy = [...list];
+                                      copy[index] = {
+                                        ...copy[index],
+                                        weight: val,
+                                      };
+                                      return new Map(prev).set(id, copy);
+                                    });
                                   }}
                                   className="min-h-11 min-w-0 flex-1 px-2 text-center text-base font-bold tabular-nums"
                                   disabled={set.completed}
@@ -1042,7 +1105,9 @@ export function WorkoutActiveSession({
                                   variant="outline"
                                   size="icon"
                                   className="size-11 shrink-0"
-                                  onClick={() => updateSetValue(index, "weight", 2.5)}
+                                  onClick={() =>
+                                    updateSetValue(index, "weight", 2.5)
+                                  }
                                   disabled={set.completed}
                                   aria-label="Más peso"
                                 >
@@ -1062,7 +1127,9 @@ export function WorkoutActiveSession({
                                 variant="outline"
                                 size="icon"
                                 className="size-11 shrink-0"
-                                onClick={() => updateSetValue(index, "reps", -1)}
+                                onClick={() =>
+                                  updateSetValue(index, "reps", -1)
+                                }
                                 disabled={set.completed}
                                 aria-label="Menos repeticiones"
                               >
@@ -1073,15 +1140,15 @@ export function WorkoutActiveSession({
                                 inputMode="numeric"
                                 value={set.reps}
                                 onChange={(e) => {
-                                  const val = parseInt(e.target.value, 10) || 1
+                                  const val = parseInt(e.target.value, 10) || 1;
                                   setSets((prev) => {
-                                    const id = currentExercise.id.toString()
-                                    const list = prev.get(id)
-                                    if (!list) return prev
-                                    const copy = [...list]
-                                    copy[index] = { ...copy[index], reps: val }
-                                    return new Map(prev).set(id, copy)
-                                  })
+                                    const id = currentExercise.id.toString();
+                                    const list = prev.get(id);
+                                    if (!list) return prev;
+                                    const copy = [...list];
+                                    copy[index] = { ...copy[index], reps: val };
+                                    return new Map(prev).set(id, copy);
+                                  });
                                 }}
                                 className="min-h-11 min-w-0 flex-1 px-2 text-center text-base font-bold tabular-nums"
                                 disabled={set.completed}
@@ -1119,7 +1186,11 @@ export function WorkoutActiveSession({
                                 : "bg-muted text-foreground",
                             )}
                           >
-                            {set.completed ? <Check className="h-5 w-5" aria-hidden /> : set.setNumber}
+                            {set.completed ? (
+                              <Check className="h-5 w-5" aria-hidden />
+                            ) : (
+                              set.setNumber
+                            )}
                           </div>
 
                           <p className="text-center text-sm font-medium tabular-nums text-muted-foreground">
@@ -1133,7 +1204,9 @@ export function WorkoutActiveSession({
                                 variant="outline"
                                 size="icon"
                                 className="size-9 shrink-0 xl:size-11"
-                                onClick={() => updateSetValue(index, "weight", -2.5)}
+                                onClick={() =>
+                                  updateSetValue(index, "weight", -2.5)
+                                }
                                 disabled={set.completed}
                                 aria-label="Menos peso"
                               >
@@ -1144,15 +1217,18 @@ export function WorkoutActiveSession({
                                 inputMode="decimal"
                                 value={set.weight}
                                 onChange={(e) => {
-                                  const val = parseFloat(e.target.value) || 0
+                                  const val = parseFloat(e.target.value) || 0;
                                   setSets((prev) => {
-                                    const id = currentExercise.id.toString()
-                                    const list = prev.get(id)
-                                    if (!list) return prev
-                                    const copy = [...list]
-                                    copy[index] = { ...copy[index], weight: val }
-                                    return new Map(prev).set(id, copy)
-                                  })
+                                    const id = currentExercise.id.toString();
+                                    const list = prev.get(id);
+                                    if (!list) return prev;
+                                    const copy = [...list];
+                                    copy[index] = {
+                                      ...copy[index],
+                                      weight: val,
+                                    };
+                                    return new Map(prev).set(id, copy);
+                                  });
                                 }}
                                 className="h-10 min-w-0 flex-1 px-1 text-center text-sm font-bold tabular-nums xl:h-12 xl:text-lg"
                                 disabled={set.completed}
@@ -1163,7 +1239,9 @@ export function WorkoutActiveSession({
                                 variant="outline"
                                 size="icon"
                                 className="size-9 shrink-0 xl:size-11"
-                                onClick={() => updateSetValue(index, "weight", 2.5)}
+                                onClick={() =>
+                                  updateSetValue(index, "weight", 2.5)
+                                }
                                 disabled={set.completed}
                                 aria-label="Más peso"
                               >
@@ -1189,15 +1267,15 @@ export function WorkoutActiveSession({
                               inputMode="numeric"
                               value={set.reps}
                               onChange={(e) => {
-                                const val = parseInt(e.target.value, 10) || 1
+                                const val = parseInt(e.target.value, 10) || 1;
                                 setSets((prev) => {
-                                  const id = currentExercise.id.toString()
-                                  const list = prev.get(id)
-                                  if (!list) return prev
-                                  const copy = [...list]
-                                  copy[index] = { ...copy[index], reps: val }
-                                  return new Map(prev).set(id, copy)
-                                })
+                                  const id = currentExercise.id.toString();
+                                  const list = prev.get(id);
+                                  if (!list) return prev;
+                                  const copy = [...list];
+                                  copy[index] = { ...copy[index], reps: val };
+                                  return new Map(prev).set(id, copy);
+                                });
                               }}
                               className="h-10 min-w-0 flex-1 px-1 text-center text-sm font-bold tabular-nums xl:h-12 xl:text-lg"
                               disabled={set.completed}
@@ -1250,12 +1328,14 @@ export function WorkoutActiveSession({
                         {set.isPR ? (
                           <div className="mt-3 flex items-center gap-2 border-t border-border/60 pt-3 text-primary sm:mt-2 sm:border-0 sm:pt-2">
                             <Trophy className="h-4 w-4 shrink-0" aria-hidden />
-                            <span className="text-sm font-medium">¡Nuevo récord personal!</span>
+                            <span className="text-sm font-medium">
+                              ¡Nuevo récord personal!
+                            </span>
                           </div>
                         ) : null}
                       </CardContent>
                     </Card>
-                  )
+                  );
                 })}
               </div>
 
@@ -1271,34 +1351,37 @@ export function WorkoutActiveSession({
                 </Button>
                 {currentSets.length > Math.max(1, currentExercise.sets) ? (
                   <p className="px-0.5 text-center text-xs text-muted-foreground">
-                    Las series extra muestran la papelera; no puedes bajar por debajo del plan (
-                    {Math.max(1, currentExercise.sets)} series).
+                    Las series extra muestran la papelera; no puedes bajar por
+                    debajo del plan ({Math.max(1, currentExercise.sets)}{" "}
+                    series).
                   </p>
                 ) : null}
               </div>
 
-              {allSetsCompleted && currentExerciseIndex < exercises.length - 1 && (
-                <Button
-                  className="min-h-12 w-full bg-primary text-primary-foreground hover:bg-primary/90"
-                  size="lg"
-                  onClick={nextExercise}
-                >
-                  Siguiente ejercicio
-                  <ChevronRight className="ml-2 h-5 w-5" />
-                </Button>
-              )}
+              {allSetsCompleted &&
+                currentExerciseIndex < exercises.length - 1 && (
+                  <Button
+                    className="min-h-12 w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                    size="lg"
+                    onClick={nextExercise}
+                  >
+                    Siguiente ejercicio
+                    <ChevronRight className="ml-2 h-5 w-5" />
+                  </Button>
+                )}
 
-              {allSetsCompleted && currentExerciseIndex === exercises.length - 1 && (
-                <Button
-                  className="min-h-12 w-full bg-primary text-primary-foreground hover:bg-primary/90"
-                  size="lg"
-                  onClick={finishWorkout}
-                  disabled={isFinishing}
-                >
-                  Finalizar entrenamiento
-                  <Trophy className="ml-2 h-5 w-5" />
-                </Button>
-              )}
+              {allSetsCompleted &&
+                currentExerciseIndex === exercises.length - 1 && (
+                  <Button
+                    className="min-h-12 w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                    size="lg"
+                    onClick={finishWorkout}
+                    disabled={isFinishing}
+                  >
+                    Finalizar entrenamiento
+                    <Trophy className="ml-2 h-5 w-5" />
+                  </Button>
+                )}
             </div>
           </div>
         )}
@@ -1314,13 +1397,13 @@ export function WorkoutActiveSession({
       <AchievementUnlockModal
         achievements={newlyUnlocked}
         onClose={() => {
-          const sessionId = sessionStorage.getItem('last_session_id')
-          setNewlyUnlocked([])
+          const sessionId = sessionStorage.getItem("last_session_id");
+          setNewlyUnlocked([]);
           if (sessionId) {
-            router.push(`/client/workout/summary?sessionId=${sessionId}`)
+            router.push(`/client/workout/summary?sessionId=${sessionId}`);
           }
         }}
       />
     </div>
-  )
+  );
 }

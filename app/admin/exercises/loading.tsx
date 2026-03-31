@@ -1,5 +1,5 @@
-import { Skeleton } from '@/components/ui/skeleton'
-import { AdminExercisesCatalogSkeleton } from '@/components/admin/exercises/admin-exercises-catalog-skeleton'
+import { Skeleton } from "@/components/ui/skeleton";
+import { AdminExercisesCatalogSkeleton } from "@/components/admin/exercises/admin-exercises-catalog-skeleton";
 
 export default function AdminExercisesLoading() {
   return (
@@ -18,5 +18,5 @@ export default function AdminExercisesLoading() {
         <AdminExercisesCatalogSkeleton />
       </main>
     </div>
-  )
+  );
 }

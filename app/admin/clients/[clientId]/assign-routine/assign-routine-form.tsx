@@ -1,62 +1,62 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Textarea } from '@/components/ui/textarea'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Label } from '@/components/ui/label'
-import { toast } from 'sonner'
-import { assignRoutineToClient } from '@/app/actions/routine-assignment'
-import { Dumbbell } from 'lucide-react'
-import Link from 'next/link'
-import { AdminPageHeader } from '@/components/admin/admin-page-header'
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { assignRoutineToClient } from "@/app/actions/routine-assignment";
+import { Dumbbell } from "lucide-react";
+import Link from "next/link";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 
 interface Routine {
-  id: string
-  name: string
-  description?: string | null
-  duration_weeks?: number | null
-  days_per_week?: number | null
+  id: string;
+  name: string;
+  description?: string | null;
+  duration_weeks?: number | null;
+  days_per_week?: number | null;
 }
 
 interface Props {
-  clientId: string
-  clientName: string
-  routines: Routine[]
+  clientId: string;
+  clientName: string;
+  routines: Routine[];
 }
 
 export function AssignRoutineForm({ clientId, clientName, routines }: Props) {
-  const router = useRouter()
-  const [routineId, setRoutineId] = useState('')
-  const [notes, setNotes] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter();
+  const [routineId, setRoutineId] = useState("");
+  const [notes, setNotes] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleAssign = async () => {
     if (!routineId) {
-      toast.error('Selecciona una rutina para asignar.')
-      return
+      toast.error("Selecciona una rutina para asignar.");
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      await assignRoutineToClient(clientId, routineId, notes || undefined)
-      toast.success('Rutina asignada. Tu asesorado ya puede verla.')
-      router.push(`/admin/clients/${clientId}`)
+      await assignRoutineToClient(clientId, routineId, notes || undefined);
+      toast.success("Rutina asignada. Tu asesorado ya puede verla.");
+      router.push(`/admin/clients/${clientId}`);
     } catch (error) {
-      toast.error('No pudimos asignar la rutina. Intenta de nuevo.')
-      console.error(error)
+      toast.error("No pudimos asignar la rutina. Intenta de nuevo.");
+      console.error(error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-dvh bg-background">
@@ -75,7 +75,8 @@ export function AssignRoutineForm({ clientId, clientName, routines }: Props) {
               Seleccionar rutina
             </CardTitle>
             <p className="text-sm text-muted-foreground">
-              Elige la rutina que seguirá el asesorado. Podrás modificarla más adelante.
+              Elige la rutina que seguirá el asesorado. Podrás modificarla más
+              adelante.
             </p>
           </CardHeader>
           <CardContent className="flex flex-col gap-6">
@@ -95,7 +96,7 @@ export function AssignRoutineForm({ clientId, clientName, routines }: Props) {
                       <SelectItem key={r.id} value={r.id}>
                         {r.name}
                         {(r.duration_weeks || r.days_per_week) &&
-                          ` · ${r.duration_weeks ?? '-'} sem, ${r.days_per_week ?? '-'} días/sem`}
+                          ` · ${r.duration_weeks ?? "-"} sem, ${r.days_per_week ?? "-"} días/sem`}
                       </SelectItem>
                     ))
                   )}
@@ -115,11 +116,8 @@ export function AssignRoutineForm({ clientId, clientName, routines }: Props) {
             </div>
 
             <div className="flex gap-4 pt-2">
-              <Button
-                onClick={handleAssign}
-                disabled={!routineId || isLoading}
-              >
-                {isLoading ? 'Asignando...' : 'Asignar rutina'}
+              <Button onClick={handleAssign} disabled={!routineId || isLoading}>
+                {isLoading ? "Asignando..." : "Asignar rutina"}
               </Button>
               <Button variant="outline" asChild>
                 <Link href={`/admin/clients/${clientId}`}>Cancelar</Link>
@@ -129,5 +127,5 @@ export function AssignRoutineForm({ clientId, clientName, routines }: Props) {
         </Card>
       </main>
     </div>
-  )
+  );
 }

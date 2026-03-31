@@ -1,38 +1,38 @@
-import { getAuthUser } from '@/lib/auth-utils'
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { NewPaymentForm } from './new-payment-form'
-import { AdminPageHeader } from '@/components/admin/admin-page-header'
+import { getAuthUser } from "@/lib/auth-utils";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { NewPaymentForm } from "./new-payment-form";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 
 type MembershipPlanRow = {
-  id: string
-  name: string
-  price: number
-  duration_days: number
-}
+  id: string;
+  name: string;
+  price: number;
+  duration_days: number;
+};
 
 export default async function NewPaymentPage() {
-  const user = await getAuthUser()
+  const user = await getAuthUser();
 
   if (!user) {
-    redirect('/auth/login')
+    redirect("/auth/login");
   }
 
   // Get list of clients
-  const supabase = await createClient()
+  const supabase = await createClient();
   const { data: clients } = await supabase
-    .from('clients')
-    .select('id, full_name, email')
-    .eq('coach_id', user.id)
-    .eq('status', 'active')
-    .order('full_name')
+    .from("clients")
+    .select("id, full_name, email")
+    .eq("coach_id", user.id)
+    .eq("status", "active")
+    .order("full_name");
 
   // Get membership plans
   const { data: plans } = await supabase
-    .from('membership_plans')
-    .select('id, name, price, duration_days')
-    .eq('is_active', true)
-    .order('name')
+    .from("membership_plans")
+    .select("id, name, price, duration_days")
+    .eq("is_active", true)
+    .order("name");
 
   return (
     <div className="bg-background">
@@ -51,5 +51,5 @@ export default async function NewPaymentPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }

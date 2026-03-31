@@ -1,5 +1,5 @@
-import { PageSkeleton } from '@/components/skeletons'
+import { PageSkeleton } from "@/components/skeletons";
 
 export default function AuthLoading() {
-  return <PageSkeleton />
+  return <PageSkeleton />;
 }

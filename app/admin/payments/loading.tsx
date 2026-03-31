@@ -1,5 +1,5 @@
-import { AdminPaymentsSkeleton } from '@/components/skeletons'
+import { AdminPaymentsSkeleton } from "@/components/skeletons";
 
 export default function PaymentsLoading() {
-  return <AdminPaymentsSkeleton />
+  return <AdminPaymentsSkeleton />;
 }

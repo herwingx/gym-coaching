@@ -1,50 +1,51 @@
-import { getAuthUser } from '@/lib/auth-utils'
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from "@/lib/auth-utils";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 import {
   getNextRoutineDayIndex,
   sortRoutineDaysByDayNumber,
-} from '@/lib/next-routine-day'
-import type { RoutineDay, RoutineExercise } from '@/lib/types'
-import { WorkoutActiveSession } from './workout-active-session'
+} from "@/lib/next-routine-day";
+import type { RoutineDay, RoutineExercise } from "@/lib/types";
+import { WorkoutActiveSession } from "./workout-active-session";
 
 export default async function WorkoutStartPage() {
-  const user = await getAuthUser()
+  const user = await getAuthUser();
 
   if (!user) {
-    redirect('/auth/login')
+    redirect("/auth/login");
   }
 
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   // Get client
   const { data: client } = await supabase
-    .from('clients')
-    .select('*')
-    .eq('user_id', user.id)
-    .single()
+    .from("clients")
+    .select("*")
+    .eq("user_id", user.id)
+    .single();
 
-  if (!client) redirect('/client/dashboard')
+  if (!client) redirect("/client/dashboard");
 
   // Obtener routine_id: de clients.assigned_routine_id o de client_routines activa
-  let routineId = (client as any).assigned_routine_id
+  let routineId = (client as any).assigned_routine_id;
   if (!routineId) {
     const { data: activeRoutine } = await supabase
-      .from('client_routines')
-      .select('routine_id')
-      .eq('client_id', client.id)
-      .eq('is_active', true)
+      .from("client_routines")
+      .select("routine_id")
+      .eq("client_id", client.id)
+      .eq("is_active", true)
       .limit(1)
-      .single()
-    routineId = activeRoutine?.routine_id
+      .single();
+    routineId = activeRoutine?.routine_id;
   }
 
-  if (!routineId) redirect('/client/dashboard')
+  if (!routineId) redirect("/client/dashboard");
 
   // Get routine with all data
   const { data: routine } = await supabase
-    .from('routines')
-    .select(`
+    .from("routines")
+    .select(
+      `
       *,
       routine_days (
         *,
@@ -53,83 +54,94 @@ export default async function WorkoutStartPage() {
           exercises (*)
         )
       )
-    `)
-    .eq('id', routineId)
-    .single()
+    `,
+    )
+    .eq("id", routineId)
+    .single();
 
   if (!routine) {
-    redirect('/client/dashboard')
+    redirect("/client/dashboard");
   }
 
   // Check if routine is completed
   const { data: activeLink } = await supabase
-    .from('client_routines')
-    .select('current_week')
-    .eq('client_id', client.id)
-    .eq('routine_id', routineId)
-    .eq('is_active', true)
-    .maybeSingle()
+    .from("client_routines")
+    .select("current_week")
+    .eq("client_id", client.id)
+    .eq("routine_id", routineId)
+    .eq("is_active", true)
+    .maybeSingle();
 
-  if (activeLink && routine.duration_weeks && activeLink.current_week > routine.duration_weeks) {
-    redirect('/client/dashboard')
+  if (
+    activeLink &&
+    routine.duration_weeks &&
+    activeLink.current_week > routine.duration_weeks
+  ) {
+    redirect("/client/dashboard");
   }
 
-  const routineDays = sortRoutineDaysByDayNumber(routine.routine_days || [])
+  const routineDays = sortRoutineDaysByDayNumber(routine.routine_days || []);
 
   const { data: lastSession } = await supabase
-    .from('workout_sessions')
-    .select('id, routine_day_id')
-    .eq('client_id', client.id)
-    .eq('status', 'completed')
-    .order('created_at', { ascending: false })
+    .from("workout_sessions")
+    .select("id, routine_day_id")
+    .eq("client_id", client.id)
+    .eq("status", "completed")
+    .order("created_at", { ascending: false })
     .limit(1)
-    .maybeSingle()
+    .maybeSingle();
 
   const currentDayIndex = getNextRoutineDayIndex(
     routineDays,
     lastSession?.routine_day_id,
-  )
+  );
   const currentDayRaw =
-    currentDayIndex !== null ? routineDays[currentDayIndex] : undefined
+    currentDayIndex !== null ? routineDays[currentDayIndex] : undefined;
   if (!currentDayRaw) {
-    redirect('/client/dashboard')
+    redirect("/client/dashboard");
   }
   const currentDay = currentDayRaw as RoutineDay & {
-    routine_exercises: (RoutineExercise & { exercises: unknown })[]
-  }
+    routine_exercises: (RoutineExercise & { exercises: unknown })[];
+  };
 
   /** Última serie de cada ejercicio en la sesión anterior (previa en UI + sugerencia de peso). */
-  const previousByExercise: Record<string, { weight_kg: number; reps: number }> = {}
+  const previousByExercise: Record<
+    string,
+    { weight_kg: number; reps: number }
+  > = {};
 
   if (lastSession?.id) {
     const { data: rawLogs } = await supabase
-      .from('exercise_logs')
-      .select('exercise_id, weight_kg, reps, set_number')
-      .eq('workout_session_id', lastSession.id)
+      .from("exercise_logs")
+      .select("exercise_id, weight_kg, reps, set_number")
+      .eq("workout_session_id", lastSession.id);
 
-    const best = new Map<string, { weight_kg: number; reps: number; set_number: number }>()
+    const best = new Map<
+      string,
+      { weight_kg: number; reps: number; set_number: number }
+    >();
     for (const row of rawLogs || []) {
-      const eid = row.exercise_id as string
-      const sn = Number(row.set_number ?? 0)
-      const cur = best.get(eid)
+      const eid = row.exercise_id as string;
+      const sn = Number(row.set_number ?? 0);
+      const cur = best.get(eid);
       if (!cur || sn >= cur.set_number) {
         best.set(eid, {
           weight_kg: Number(row.weight_kg ?? 0),
           reps: Number(row.reps ?? 0),
           set_number: sn,
-        })
+        });
       }
     }
     for (const [eid, v] of best) {
-      previousByExercise[eid] = { weight_kg: v.weight_kg, reps: v.reps }
+      previousByExercise[eid] = { weight_kg: v.weight_kg, reps: v.reps };
     }
   }
 
   // Get PRs for comparison
   const { data: personalRecords } = await supabase
-    .from('personal_records')
-    .select('*')
-    .eq('client_id', client.id)
+    .from("personal_records")
+    .select("*")
+    .eq("client_id", client.id);
 
   return (
     <WorkoutActiveSession
@@ -139,5 +151,5 @@ export default async function WorkoutStartPage() {
       previousByExercise={previousByExercise}
       personalRecords={personalRecords || []}
     />
-  )
+  );
 }

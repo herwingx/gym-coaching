@@ -1,7 +1,7 @@
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
-import { CLIENT_DATA_PAGE_SHELL } from '@/components/client/client-app-page-parts'
-import { ClientStackPageHeaderSkeleton } from '@/components/client/client-data-pages-skeleton'
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { CLIENT_DATA_PAGE_SHELL } from "@/components/client/client-app-page-parts";
+import { ClientStackPageHeaderSkeleton } from "@/components/client/client-data-pages-skeleton";
 
 /** Alineado con `WorkoutSummaryClient`: main 7 · aside 5 sticky (métricas + progresión). */
 export default function Loading() {
@@ -79,5 +79,5 @@ export default function Loading() {
         </div>
       </div>
     </>
-  )
+  );
 }

@@ -1,58 +1,59 @@
-'use server'
+"use server";
 
-
-import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
-import type { FitnessGoal, ExperienceLevel } from '@/lib/types'
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import type { FitnessGoal, ExperienceLevel } from "@/lib/types";
 
 /** Mapea FitnessGoal (onboarding) a clients.goal (DB) */
 const GOAL_MAP: Record<FitnessGoal, string> = {
-  lose_weight: 'weight_loss',
-  gain_muscle: 'muscle_gain',
-  maintain: 'maintenance',
-  strength: 'toning',
-  endurance: 'endurance',
-}
+  lose_weight: "weight_loss",
+  gain_muscle: "muscle_gain",
+  maintain: "maintenance",
+  strength: "toning",
+  endurance: "endurance",
+};
 
 /** Mapea clients.goal (DB) a FitnessGoal (profiles) */
 const GOAL_REVERSE: Record<string, FitnessGoal> = {
-  weight_loss: 'lose_weight',
-  muscle_gain: 'gain_muscle',
-  maintenance: 'maintain',
-  toning: 'strength',
-  endurance: 'endurance',
-}
+  weight_loss: "lose_weight",
+  muscle_gain: "gain_muscle",
+  maintenance: "maintain",
+  toning: "strength",
+  endurance: "endurance",
+};
 
 interface OnboardingData {
-  userId: string
-  fullName: string
-  username: string
-  fitnessGoal: FitnessGoal
-  experienceLevel: ExperienceLevel
-  notificationsEnabled?: boolean
+  userId: string;
+  fullName: string;
+  username: string;
+  fitnessGoal: FitnessGoal;
+  experienceLevel: ExperienceLevel;
+  notificationsEnabled?: boolean;
 }
 
 export async function completeOnboarding(data: OnboardingData) {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   // Verificar que el usuario autenticado sea el que actualiza su propio perfil
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user || user.id !== data.userId) {
-    return { success: false, error: 'No autorizado' }
+    return { success: false, error: "No autorizado" };
   }
 
-  const admin = createAdminClient()
+  const admin = createAdminClient();
 
   // Check if username is available
   const { data: existingUser } = await admin
-    .from('profiles')
-    .select('id')
-    .eq('username', data.username)
-    .neq('id', data.userId)
-    .single()
+    .from("profiles")
+    .select("id")
+    .eq("username", data.username)
+    .neq("id", data.userId)
+    .single();
 
   if (existingUser) {
-    return { success: false, error: 'Este nombre de usuario ya esta en uso' }
+    return { success: false, error: "Este nombre de usuario ya esta en uso" };
   }
 
   // Update profile (admin bypassa RLS, evita recursión)
@@ -65,153 +66,162 @@ export async function completeOnboarding(data: OnboardingData) {
     xp_points: 0,
     level: 1,
     streak_days: 0,
-  }
-  if (typeof data.notificationsEnabled === 'boolean') {
-    profileUpdate.notifications_enabled = data.notificationsEnabled
+  };
+  if (typeof data.notificationsEnabled === "boolean") {
+    profileUpdate.notifications_enabled = data.notificationsEnabled;
   }
   const { error: profileError } = await admin
-    .from('profiles')
+    .from("profiles")
     .update(profileUpdate)
-    .eq('id', data.userId)
+    .eq("id", data.userId);
 
   if (profileError) {
-    console.error('Profile update error:', profileError)
-    return { success: false, error: 'Error al actualizar el perfil' }
+    console.error("Profile update error:", profileError);
+    return { success: false, error: "Error al actualizar el perfil" };
   }
 
   // Enviar email de bienvenida (en background, no bloqueante)
   if (user.email) {
-    const { sendWelcomeEmail } = await import('@/lib/email')
+    const { sendWelcomeEmail } = await import("@/lib/email");
     sendWelcomeEmail({
       to: user.email,
-      clientName: data.fullName
-    }).catch(err => console.error('Error enviando email bienvenida:', err))
+      clientName: data.fullName,
+    }).catch((err) => console.error("Error enviando email bienvenida:", err));
   }
 
-  const clientGoal = GOAL_MAP[data.fitnessGoal] ?? 'maintenance'
+  const clientGoal = GOAL_MAP[data.fitnessGoal] ?? "maintenance";
 
   // Buscar cliente ya vinculado a este usuario
   let { data: existingClient } = await admin
-    .from('clients')
-    .select('id')
-    .eq('user_id', data.userId)
-    .maybeSingle()
+    .from("clients")
+    .select("id")
+    .eq("user_id", data.userId)
+    .maybeSingle();
 
   if (!existingClient && user.email) {
     // Fallback: cliente pre-creado por admin con mismo email pero sin user_id
     // (useInvitationCode pudo fallar si no hubo sesión en signup)
     const { data: clientByEmail } = await admin
-      .from('clients')
-      .select('id, coach_id')
-      .eq('email', user.email)
-      .is('user_id', null)
+      .from("clients")
+      .select("id, coach_id")
+      .eq("email", user.email)
+      .is("user_id", null)
       .limit(1)
-      .maybeSingle()
+      .maybeSingle();
 
     if (clientByEmail) {
       const { data: clientData } = await admin
-        .from('clients')
-        .select('goal, experience_level, full_name')
-        .eq('id', clientByEmail.id)
-        .single()
+        .from("clients")
+        .select("goal, experience_level, full_name")
+        .eq("id", clientByEmail.id)
+        .single();
 
-      const preserveAdminData = clientData?.goal && clientData?.experience_level
+      const preserveAdminData =
+        clientData?.goal && clientData?.experience_level;
       const updatePayload: Record<string, unknown> = {
         user_id: data.userId,
         full_name: data.fullName,
         onboarding_completed: true,
-      }
+      };
       if (!preserveAdminData) {
-        updatePayload.goal = clientGoal
-        updatePayload.experience_level = data.experienceLevel
+        updatePayload.goal = clientGoal;
+        updatePayload.experience_level = data.experienceLevel;
       }
 
       const { error: linkError } = await admin
-        .from('clients')
+        .from("clients")
         .update(updatePayload)
-        .eq('id', clientByEmail.id)
+        .eq("id", clientByEmail.id);
 
       if (linkError) {
-        console.error('[completeOnboarding] Error vinculando cliente por email:', linkError)
+        console.error(
+          "[completeOnboarding] Error vinculando cliente por email:",
+          linkError,
+        );
       } else {
-        existingClient = { id: clientByEmail.id }
+        existingClient = { id: clientByEmail.id };
       }
     }
   }
 
   if (!existingClient) {
     const { data: profile } = await admin
-      .from('profiles')
-      .select('invited_by')
-      .eq('id', data.userId)
-      .single()
+      .from("profiles")
+      .select("invited_by")
+      .eq("id", data.userId)
+      .single();
 
-    let coachId = profile?.invited_by as string | null
+    let coachId = profile?.invited_by as string | null;
     if (!coachId) {
       const { data: firstAdmin } = await admin
-        .from('profiles')
-        .select('id')
-        .eq('role', 'admin')
+        .from("profiles")
+        .select("id")
+        .eq("role", "admin")
         .limit(1)
-        .maybeSingle()
-      coachId = firstAdmin?.id ?? null
+        .maybeSingle();
+      coachId = firstAdmin?.id ?? null;
     }
 
     if (coachId) {
-      const { error: clientError } = await admin
-        .from('clients')
-        .insert({
-          id: crypto.randomUUID(),
-          user_id: data.userId,
-          coach_id: coachId,
-          full_name: data.fullName,
-          phone: '',
-          email: user.email || '',
-          goal: clientGoal,
-          experience_level: data.experienceLevel,
-          status: 'active',
-          onboarding_completed: true,
-        })
+      const { error: clientError } = await admin.from("clients").insert({
+        id: crypto.randomUUID(),
+        user_id: data.userId,
+        coach_id: coachId,
+        full_name: data.fullName,
+        phone: "",
+        email: user.email || "",
+        goal: clientGoal,
+        experience_level: data.experienceLevel,
+        status: "active",
+        onboarding_completed: true,
+      });
 
       if (clientError) {
-        console.error('Client creation error:', clientError)
+        console.error("Client creation error:", clientError);
       }
     }
   }
 
-  return { success: true }
+  return { success: true };
 }
 
 /**
  * Si el cliente fue pre-creado por el admin con preferencias (goal, experience_level),
  * marca onboarding como completado sin exigir el flujo. Retorna true si se omitió.
  */
-export async function trySkipOnboardingForPreCreatedClient(userId: string): Promise<{
-  skipped: boolean
-  fitnessGoal?: FitnessGoal
-  experienceLevel?: ExperienceLevel
-  fullName?: string
+export async function trySkipOnboardingForPreCreatedClient(
+  userId: string,
+): Promise<{
+  skipped: boolean;
+  fitnessGoal?: FitnessGoal;
+  experienceLevel?: ExperienceLevel;
+  fullName?: string;
 }> {
-  const admin = createAdminClient()
+  const admin = createAdminClient();
 
   const { data: client } = await admin
-    .from('clients')
-    .select('id, full_name, goal, experience_level')
-    .eq('user_id', userId)
-    .maybeSingle()
+    .from("clients")
+    .select("id, full_name, goal, experience_level")
+    .eq("user_id", userId)
+    .maybeSingle();
 
   if (!client || !client.goal || !client.experience_level) {
-    return { skipped: false }
+    return { skipped: false };
   }
 
-  const fitnessGoal = GOAL_REVERSE[client.goal] ?? 'maintain'
-  const experienceLevel = (client.experience_level || 'beginner') as ExperienceLevel
+  const fitnessGoal = GOAL_REVERSE[client.goal] ?? "maintain";
+  const experienceLevel = (client.experience_level ||
+    "beginner") as ExperienceLevel;
 
-  const slug = (client.full_name || 'user').toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '')
-  const username = (slug || 'user') + '_' + Math.random().toString(36).slice(2, 6)
+  const slug = (client.full_name || "user")
+    .toLowerCase()
+    .replace(/\s+/g, "_")
+    .replace(/[^a-z0-9_]/g, "");
+  const username =
+    (slug || "user") + "_" + Math.random().toString(36).slice(2, 6);
 
   const profileUpdate: Record<string, unknown> = {
-    full_name: client.full_name || 'Usuario',
+    full_name: client.full_name || "Usuario",
     username,
     fitness_goal: fitnessGoal,
     experience_level: experienceLevel,
@@ -219,27 +229,27 @@ export async function trySkipOnboardingForPreCreatedClient(userId: string): Prom
     xp_points: 0,
     level: 1,
     streak_days: 0,
-  }
+  };
 
   const { error } = await admin
-    .from('profiles')
+    .from("profiles")
     .update(profileUpdate)
-    .eq('id', userId)
+    .eq("id", userId);
 
   if (error) {
-    console.error('[trySkipOnboarding] Error:', error)
-    return { skipped: false }
+    console.error("[trySkipOnboarding] Error:", error);
+    return { skipped: false };
   }
 
   await admin
-    .from('clients')
+    .from("clients")
     .update({ onboarding_completed: true })
-    .eq('id', client.id)
+    .eq("id", client.id);
 
   return {
     skipped: true,
     fitnessGoal,
     experienceLevel,
     fullName: client.full_name || undefined,
-  }
+  };
 }

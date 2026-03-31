@@ -1,69 +1,71 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
-import { DatePicker } from '@/components/ui/date-picker'
-import Link from 'next/link'
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { DatePicker } from "@/components/ui/date-picker";
+import Link from "next/link";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { FieldGroup, Field, FieldLabel } from '@/components/ui/field'
-import { unstable_rethrow } from 'next/navigation'
-import { createNewClient } from '@/app/actions/clients'
-import { toast } from 'sonner'
+} from "@/components/ui/select";
+import { FieldGroup, Field, FieldLabel } from "@/components/ui/field";
+import { unstable_rethrow } from "next/navigation";
+import { createNewClient } from "@/app/actions/clients";
+import { toast } from "sonner";
 
 const GOALS = [
-  { value: 'muscle_gain', label: 'Ganar masa muscular' },
-  { value: 'fat_loss', label: 'Pérdida de grasa' },
-  { value: 'strength', label: 'Fuerza' },
-  { value: 'endurance', label: 'Resistencia' },
-  { value: 'general_fitness', label: 'Bienestar general' },
-]
+  { value: "muscle_gain", label: "Ganar masa muscular" },
+  { value: "fat_loss", label: "Pérdida de grasa" },
+  { value: "strength", label: "Fuerza" },
+  { value: "endurance", label: "Resistencia" },
+  { value: "general_fitness", label: "Bienestar general" },
+];
 
 const EXPERIENCE_LEVELS = [
-  { value: 'beginner', label: 'Principiante' },
-  { value: 'intermediate', label: 'Intermedio' },
-  { value: 'advanced', label: 'Avanzado' },
-]
+  { value: "beginner", label: "Principiante" },
+  { value: "intermediate", label: "Intermedio" },
+  { value: "advanced", label: "Avanzado" },
+];
 
 export function NewClientForm() {
-  const [isPending, setIsPending] = useState(false)
-  const [gender, setGender] = useState('')
-  const [goal, setGoal] = useState('')
-  const [experienceLevel, setExperienceLevel] = useState('')
-  const [birthDate, setBirthDate] = useState<Date>()
+  const [isPending, setIsPending] = useState(false);
+  const [gender, setGender] = useState("");
+  const [goal, setGoal] = useState("");
+  const [experienceLevel, setExperienceLevel] = useState("");
+  const [birthDate, setBirthDate] = useState<Date>();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setIsPending(true)
+    e.preventDefault();
+    setIsPending(true);
 
-    const formData = new FormData(e.currentTarget)
-    formData.set('gender', gender)
-    formData.set('goal', goal)
-    formData.set('experienceLevel', experienceLevel)
+    const formData = new FormData(e.currentTarget);
+    formData.set("gender", gender);
+    formData.set("goal", goal);
+    formData.set("experienceLevel", experienceLevel);
     if (birthDate) {
-      formData.set('birthDate', birthDate.toISOString().split('T')[0])
+      formData.set("birthDate", birthDate.toISOString().split("T")[0]);
     }
 
     try {
-      await createNewClient(formData)
-      toast.success('¡Asesorado creado correctamente!')
+      await createNewClient(formData);
+      toast.success("¡Asesorado creado correctamente!");
     } catch (error) {
-      unstable_rethrow(error)
-      toast.error('No pudimos crear el asesorado. Revisa los datos e intenta de nuevo.')
-      console.error(error)
+      unstable_rethrow(error);
+      toast.error(
+        "No pudimos crear el asesorado. Revisa los datos e intenta de nuevo.",
+      );
+      console.error(error);
     } finally {
-      setIsPending(false)
+      setIsPending(false);
     }
-  }
+  };
 
   return (
     <Card>
@@ -101,18 +103,11 @@ export function NewClientForm() {
             <div className="grid gap-4 md:grid-cols-2">
               <Field>
                 <FieldLabel htmlFor="phone">Teléfono</FieldLabel>
-                <Input
-                  id="phone"
-                  name="phone"
-                  placeholder="+34 612 345 678"
-                />
+                <Input id="phone" name="phone" placeholder="+34 612 345 678" />
               </Field>
               <Field>
                 <FieldLabel>Fecha de nacimiento</FieldLabel>
-                <DatePicker 
-                  date={birthDate} 
-                  setDate={setBirthDate} 
-                />
+                <DatePicker date={birthDate} setDate={setBirthDate} />
               </Field>
             </div>
 
@@ -148,9 +143,17 @@ export function NewClientForm() {
             </div>
 
             <Field>
-              <FieldLabel htmlFor="experienceLevel">Nivel de experiencia</FieldLabel>
-              <Select value={experienceLevel} onValueChange={setExperienceLevel}>
-                <SelectTrigger id="experienceLevel" className="w-full md:max-w-xs">
+              <FieldLabel htmlFor="experienceLevel">
+                Nivel de experiencia
+              </FieldLabel>
+              <Select
+                value={experienceLevel}
+                onValueChange={setExperienceLevel}
+              >
+                <SelectTrigger
+                  id="experienceLevel"
+                  className="w-full md:max-w-xs"
+                >
                   <SelectValue placeholder="Seleccionar..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -177,14 +180,19 @@ export function NewClientForm() {
 
           <div className="flex gap-4 pt-2">
             <Button type="submit" className="flex-1" disabled={isPending}>
-              {isPending ? 'Creando...' : 'Crear asesorado'}
+              {isPending ? "Creando..." : "Crear asesorado"}
             </Button>
-            <Button type="button" variant="outline" asChild disabled={isPending}>
+            <Button
+              type="button"
+              variant="outline"
+              asChild
+              disabled={isPending}
+            >
               <Link href="/admin/clients">Cancelar</Link>
             </Button>
           </div>
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }

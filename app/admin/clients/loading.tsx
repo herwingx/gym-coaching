@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function KpiTileSkeleton() {
   return (
@@ -12,12 +12,16 @@ function KpiTileSkeleton() {
         <Skeleton className="h-3 w-24" />
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export default function AdminClientsLoading() {
   return (
-    <div className="min-h-dvh bg-background" aria-busy="true" aria-label="Cargando asesorados">
+    <div
+      className="min-h-dvh bg-background"
+      aria-busy="true"
+      aria-label="Cargando asesorados"
+    >
       <header className="sticky top-0 z-40 border-b bg-background safe-area-header-pt">
         <div className="container flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0 space-y-1">
@@ -40,14 +44,20 @@ export default function AdminClientsLoading() {
             <Skeleton className="h-10 w-full max-w-sm rounded-md" />
             <div className="flex w-full flex-wrap gap-1 sm:w-auto">
               {[1, 2, 3, 4, 5].map((i) => (
-                <Skeleton key={i} className="h-9 flex-1 rounded-md sm:h-9 sm:w-20 sm:flex-none" />
+                <Skeleton
+                  key={i}
+                  className="h-9 flex-1 rounded-md sm:h-9 sm:w-20 sm:flex-none"
+                />
               ))}
             </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Card key={i} className="overflow-hidden border-muted/70 shadow-none">
+              <Card
+                key={i}
+                className="overflow-hidden border-muted/70 shadow-none"
+              >
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-3">
                     <Skeleton className="size-12 shrink-0 rounded-xl" />
@@ -74,5 +84,5 @@ export default function AdminClientsLoading() {
         </div>
       </main>
     </div>
-  )
+  );
 }

@@ -1,9 +1,15 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -11,90 +17,87 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { FieldGroup, Field, FieldLabel } from '@/components/ui/field'
-import { toast } from 'sonner'
-import { updateGymSettings } from '@/app/actions/gym-settings'
-import { 
-  Building2, 
-  Phone, 
-  Clock, 
-  Globe2, 
-  Coins,
-  Save
-} from 'lucide-react'
-import { Separator } from '@/components/ui/separator'
-import { 
-  InputGroup, 
-  InputGroupAddon, 
-  InputGroupInput 
-} from '@/components/ui/input-group'
+} from "@/components/ui/select";
+import { FieldGroup, Field, FieldLabel } from "@/components/ui/field";
+import { toast } from "sonner";
+import { updateGymSettings } from "@/app/actions/gym-settings";
+import { Building2, Phone, Clock, Globe2, Coins, Save } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 
 interface GymSettingsFormProps {
   initialData: {
-    gym_name: string
-    phone?: string
-    schedule?: string
-    currency: string
-    timezone: string
-  } | null
+    gym_name: string;
+    phone?: string;
+    schedule?: string;
+    currency: string;
+    timezone: string;
+  } | null;
 }
 
 const CURRENCIES = [
-  { value: 'MXN', label: 'MXN ($)' },
-  { value: 'USD', label: 'USD ($)' },
-  { value: 'EUR', label: 'EUR (€)' },
-]
+  { value: "MXN", label: "MXN ($)" },
+  { value: "USD", label: "USD ($)" },
+  { value: "EUR", label: "EUR (€)" },
+];
 
 const TIMEZONES = [
-  { value: 'America/Mexico_City', label: 'Ciudad de México' },
-  { value: 'America/New_York', label: 'Nueva York' },
-  { value: 'America/Los_Angeles', label: 'Los Ángeles' },
-  { value: 'America/Chicago', label: 'Chicago' },
-  { value: 'Europe/Madrid', label: 'Madrid' },
-]
+  { value: "America/Mexico_City", label: "Ciudad de México" },
+  { value: "America/New_York", label: "Nueva York" },
+  { value: "America/Los_Angeles", label: "Los Ángeles" },
+  { value: "America/Chicago", label: "Chicago" },
+  { value: "Europe/Madrid", label: "Madrid" },
+];
 
 export function GymSettingsForm({ initialData }: GymSettingsFormProps) {
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [gymName, setGymName] = useState(initialData?.gym_name ?? 'Mi marca')
-  const [phone, setPhone] = useState(initialData?.phone ?? '')
-  const [schedule, setSchedule] = useState(initialData?.schedule ?? '')
-  const [currency, setCurrency] = useState(initialData?.currency ?? 'MXN')
-  const [timezone, setTimezone] = useState(initialData?.timezone ?? 'America/Mexico_City')
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [gymName, setGymName] = useState(initialData?.gym_name ?? "Mi marca");
+  const [phone, setPhone] = useState(initialData?.phone ?? "");
+  const [schedule, setSchedule] = useState(initialData?.schedule ?? "");
+  const [currency, setCurrency] = useState(initialData?.currency ?? "MXN");
+  const [timezone, setTimezone] = useState(
+    initialData?.timezone ?? "America/Mexico_City",
+  );
 
   useEffect(() => {
     if (initialData) {
-      setGymName(initialData.gym_name)
-      setPhone(initialData.phone ?? '')
-      setSchedule(initialData.schedule ?? '')
-      setCurrency(initialData.currency ?? 'MXN')
-      setTimezone(initialData.timezone ?? 'America/Mexico_City')
+      setGymName(initialData.gym_name);
+      setPhone(initialData.phone ?? "");
+      setSchedule(initialData.schedule ?? "");
+      setCurrency(initialData.currency ?? "MXN");
+      setTimezone(initialData.timezone ?? "America/Mexico_City");
     }
-  }, [initialData])
+  }, [initialData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!gymName.trim()) {
-      toast.error('El nombre de tu marca o gimnasio es obligatorio.')
-      return
+      toast.error("El nombre de tu marca o gimnasio es obligatorio.");
+      return;
     }
-    setLoading(true)
+    setLoading(true);
     const result = await updateGymSettings({
       gym_name: gymName.trim(),
       phone: phone.trim() || undefined,
       schedule: schedule.trim() || undefined,
       currency,
       timezone,
-    })
-    setLoading(false)
+    });
+    setLoading(false);
     if (result.success) {
-      toast.success('¡Configuración guardada correctamente!')
-      router.refresh()
+      toast.success("¡Configuración guardada correctamente!");
+      router.refresh();
     } else {
-      toast.error('No pudimos guardar los cambios. Revisa los datos e intenta de nuevo.')
+      toast.error(
+        "No pudimos guardar los cambios. Revisa los datos e intenta de nuevo.",
+      );
     }
-  }
+  };
 
   return (
     <Card className="border-muted/60 shadow-sm">
@@ -113,7 +116,9 @@ export function GymSettingsForm({ initialData }: GymSettingsFormProps) {
                 Identidad de marca
               </h3>
               <Field>
-                <FieldLabel htmlFor="gym_name">Nombre de tu Marca o Gimnasio</FieldLabel>
+                <FieldLabel htmlFor="gym_name">
+                  Nombre de tu Marca o Gimnasio
+                </FieldLabel>
                 <InputGroup>
                   <InputGroupAddon>
                     <Building2 data-icon="inline-start" />
@@ -150,7 +155,9 @@ export function GymSettingsForm({ initialData }: GymSettingsFormProps) {
                   </InputGroup>
                 </Field>
                 <Field>
-                  <FieldLabel htmlFor="schedule">Horario de Servicio</FieldLabel>
+                  <FieldLabel htmlFor="schedule">
+                    Horario de Servicio
+                  </FieldLabel>
                   <InputGroup>
                     <InputGroupAddon>
                       <Clock data-icon="inline-start" />
@@ -216,7 +223,11 @@ export function GymSettingsForm({ initialData }: GymSettingsFormProps) {
           </FieldGroup>
 
           <div className="border-t pt-4">
-            <Button type="submit" disabled={loading} className="w-full gap-2 sm:w-auto">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full gap-2 sm:w-auto"
+            >
               {loading ? (
                 <>Guardando...</>
               ) : (
@@ -230,5 +241,5 @@ export function GymSettingsForm({ initialData }: GymSettingsFormProps) {
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }

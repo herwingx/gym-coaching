@@ -1,4 +1,4 @@
-import { Skeleton } from '@/components/ui/skeleton'
+import { Skeleton } from "@/components/ui/skeleton";
 
 /** Alineado con `WorkoutActiveSession`: cabecera con timer + Terminar, grid lg 5+7, carrusel, hero, tabla de series. */
 export default function WorkoutStartLoading() {
@@ -36,7 +36,10 @@ export default function WorkoutStartLoading() {
 
             <div className="-mx-1 flex gap-2 overflow-hidden px-1 pb-1">
               {[0, 1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="flex shrink-0 flex-col items-center gap-1">
+                <div
+                  key={i}
+                  className="flex shrink-0 flex-col items-center gap-1"
+                >
                   <Skeleton className="size-14 rounded-full sm:size-16" />
                   <Skeleton className="h-2 w-4" />
                 </div>
@@ -64,7 +67,10 @@ export default function WorkoutStartLoading() {
 
             <div className="flex flex-col gap-2">
               {[0, 1, 2].map((i) => (
-                <Skeleton key={i} className="h-[4.5rem] w-full rounded-xl sm:h-24" />
+                <Skeleton
+                  key={i}
+                  className="h-[4.5rem] w-full rounded-xl sm:h-24"
+                />
               ))}
             </div>
 
@@ -73,5 +79,5 @@ export default function WorkoutStartLoading() {
         </div>
       </main>
     </div>
-  )
+  );
 }

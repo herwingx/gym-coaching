@@ -1,58 +1,64 @@
-'use client'
+"use client";
 
-import { useState, useCallback } from 'react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { PhotoUpload } from '@/components/photos/photo-upload'
-import { PhotoGallery } from '@/components/photos/photo-gallery'
-import { PhotoCompare } from '@/components/photos/photo-compare'
-import type { ProgressPhoto } from '@/components/photos/photo-card'
-import { LayoutGrid, Diff, UploadCloud } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
-import { useToast } from '@/hooks/use-toast'
+import { useState, useCallback } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PhotoUpload } from "@/components/photos/photo-upload";
+import { PhotoGallery } from "@/components/photos/photo-gallery";
+import { PhotoCompare } from "@/components/photos/photo-compare";
+import type { ProgressPhoto } from "@/components/photos/photo-card";
+import { LayoutGrid, Diff, UploadCloud } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export function PhotosContent({
   clientId,
   initialPhotos,
 }: {
-  clientId: string
-  initialPhotos: ProgressPhoto[]
+  clientId: string;
+  initialPhotos: ProgressPhoto[];
 }) {
-  const [photos, setPhotos] = useState<ProgressPhoto[]>(initialPhotos)
-  const [activeTab, setActiveTab] = useState('gallery')
-  const { toast } = useToast()
+  const [photos, setPhotos] = useState<ProgressPhoto[]>(initialPhotos);
+  const [activeTab, setActiveTab] = useState("gallery");
+  const { toast } = useToast();
 
-  const onUploadSuccess = useCallback((newPhoto: ProgressPhoto) => {
-    setPhotos((prev) => [newPhoto, ...prev])
-    setActiveTab('gallery')
-    toast({
-      title: '¡Foto guardada!',
-      description: 'Tu progreso ha sido actualizado correctamente.',
-    })
-  }, [toast])
-
-  const onDeleteSuccess = useCallback(async (deletedId: string) => {
-    try {
-      const supabase = createClient()
-      const { error } = await supabase
-        .from('progress_photos')
-        .delete()
-        .eq('id', deletedId)
-
-      if (error) throw error
-
-      setPhotos((prev) => prev.filter((p) => p.id !== deletedId))
+  const onUploadSuccess = useCallback(
+    (newPhoto: ProgressPhoto) => {
+      setPhotos((prev) => [newPhoto, ...prev]);
+      setActiveTab("gallery");
       toast({
-        title: 'Foto eliminada',
-        variant: 'destructive',
-      })
-    } catch (err) {
-      toast({
-        title: 'Error al eliminar',
-        description: 'No se pudo eliminar la foto de la base de datos.',
-        variant: 'destructive',
-      })
-    }
-  }, [toast])
+        title: "¡Foto guardada!",
+        description: "Tu progreso ha sido actualizado correctamente.",
+      });
+    },
+    [toast],
+  );
+
+  const onDeleteSuccess = useCallback(
+    async (deletedId: string) => {
+      try {
+        const supabase = createClient();
+        const { error } = await supabase
+          .from("progress_photos")
+          .delete()
+          .eq("id", deletedId);
+
+        if (error) throw error;
+
+        setPhotos((prev) => prev.filter((p) => p.id !== deletedId));
+        toast({
+          title: "Foto eliminada",
+          variant: "destructive",
+        });
+      } catch (err) {
+        toast({
+          title: "Error al eliminar",
+          description: "No se pudo eliminar la foto de la base de datos.",
+          variant: "destructive",
+        });
+      }
+    },
+    [toast],
+  );
 
   return (
     <div className="space-y-8">
@@ -73,10 +79,7 @@ export function PhotosContent({
         </TabsList>
 
         <TabsContent value="gallery" className="focus-visible:outline-none">
-          <PhotoGallery
-            photos={photos}
-            onDeleteSuccess={onDeleteSuccess}
-          />
+          <PhotoGallery photos={photos} onDeleteSuccess={onDeleteSuccess} />
         </TabsContent>
 
         <TabsContent value="compare" className="focus-visible:outline-none">
@@ -88,5 +91,5 @@ export function PhotosContent({
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

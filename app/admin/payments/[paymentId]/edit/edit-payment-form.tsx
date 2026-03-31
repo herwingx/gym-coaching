@@ -1,82 +1,86 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { DatePicker } from '@/components/ui/date-picker'
-import { FieldGroup, Field, FieldLabel } from '@/components/ui/field'
-import { updatePayment } from '@/app/actions/payments'
-import { toast } from 'sonner'
-import { format } from 'date-fns'
+} from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
+import { FieldGroup, Field, FieldLabel } from "@/components/ui/field";
+import { updatePayment } from "@/app/actions/payments";
+import { toast } from "sonner";
+import { format } from "date-fns";
 
 type PaymentWithClient = {
-  id: string
-  amount: number
-  paid_at: string | null
-  payment_method: string | null
-  period_start: string | null
-  period_end: string | null
-  reference: string | null
-  clients: { full_name: string; email?: string | null } | null
-}
+  id: string;
+  amount: number;
+  paid_at: string | null;
+  payment_method: string | null;
+  period_start: string | null;
+  period_end: string | null;
+  reference: string | null;
+  clients: { full_name: string; email?: string | null } | null;
+};
 
 export function EditPaymentForm({ payment }: { payment: PaymentWithClient }) {
-  const router = useRouter()
-  const [isPending, setIsPending] = useState(false)
-  const [amount, setAmount] = useState(payment.amount?.toString() ?? '')
-  const [paymentMethod, setPaymentMethod] = useState(payment.payment_method ?? 'cash')
+  const router = useRouter();
+  const [isPending, setIsPending] = useState(false);
+  const [amount, setAmount] = useState(payment.amount?.toString() ?? "");
+  const [paymentMethod, setPaymentMethod] = useState(
+    payment.payment_method ?? "cash",
+  );
   const [paidAt, setPaidAt] = useState<Date | undefined>(
-    payment.paid_at ? new Date(payment.paid_at) : undefined
-  )
+    payment.paid_at ? new Date(payment.paid_at) : undefined,
+  );
   const [periodStart, setPeriodStart] = useState<Date | undefined>(
-    payment.period_start ? new Date(payment.period_start) : undefined
-  )
+    payment.period_start ? new Date(payment.period_start) : undefined,
+  );
   const [periodEnd, setPeriodEnd] = useState<Date | undefined>(
-    payment.period_end ? new Date(payment.period_end) : undefined
-  )
-  const [reference, setReference] = useState(payment.reference ?? '')
+    payment.period_end ? new Date(payment.period_end) : undefined,
+  );
+  const [reference, setReference] = useState(payment.reference ?? "");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const numAmount = parseFloat(amount)
+    e.preventDefault();
+    const numAmount = parseFloat(amount);
     if (Number.isNaN(numAmount) || numAmount < 0) {
-      toast.error('Monto inválido')
-      return
+      toast.error("Monto inválido");
+      return;
     }
 
-    setIsPending(true)
+    setIsPending(true);
     try {
       const result = await updatePayment(payment.id, {
         amount: numAmount,
-        paid_at: paidAt ? format(paidAt, 'yyyy-MM-dd') : undefined,
+        paid_at: paidAt ? format(paidAt, "yyyy-MM-dd") : undefined,
         payment_method: paymentMethod,
-        period_start: periodStart ? format(periodStart, 'yyyy-MM-dd') : undefined,
-        period_end: periodEnd ? format(periodEnd, 'yyyy-MM-dd') : undefined,
+        period_start: periodStart
+          ? format(periodStart, "yyyy-MM-dd")
+          : undefined,
+        period_end: periodEnd ? format(periodEnd, "yyyy-MM-dd") : undefined,
         reference: reference || undefined,
-      })
+      });
       if (result.success) {
-        toast.success('Pago actualizado correctamente')
-        router.push('/admin/payments')
-        router.refresh()
+        toast.success("Pago actualizado correctamente");
+        router.push("/admin/payments");
+        router.refresh();
       } else {
-        toast.error(result.error || 'No se pudo actualizar')
+        toast.error(result.error || "No se pudo actualizar");
       }
     } catch {
-      toast.error('Error al actualizar. Intenta de nuevo.')
+      toast.error("Error al actualizar. Intenta de nuevo.");
     } finally {
-      setIsPending(false)
+      setIsPending(false);
     }
-  }
+  };
 
   return (
     <Card>
@@ -138,7 +142,7 @@ export function EditPaymentForm({ payment }: { payment: PaymentWithClient }) {
           </FieldGroup>
           <div className="flex gap-2">
             <Button type="submit" disabled={isPending}>
-              {isPending ? 'Guardando...' : 'Guardar cambios'}
+              {isPending ? "Guardando..." : "Guardar cambios"}
             </Button>
             <Button type="button" variant="outline" asChild>
               <a href="/admin/payments">Cancelar</a>
@@ -147,6 +151,5 @@ export function EditPaymentForm({ payment }: { payment: PaymentWithClient }) {
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }
-

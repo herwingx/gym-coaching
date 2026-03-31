@@ -4,20 +4,25 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import Link from 'next/link'
-import { AlertCircle } from 'lucide-react'
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { AlertCircle } from "lucide-react";
 
 export default async function AuthErrorPage({
   searchParams,
 }: {
-  searchParams: Promise<{ message?: string }>
+  searchParams: Promise<{ message?: string }>;
 }) {
-  const { message } = await searchParams
+  const { message } = await searchParams;
 
   return (
-    <div id="main-content" role="main" className="flex min-h-dvh w-full items-center justify-center p-6 md:p-10 bg-gradient-to-br from-background to-muted" tabIndex={-1}>
+    <div
+      id="main-content"
+      role="main"
+      className="flex min-h-dvh w-full items-center justify-center p-6 md:p-10 bg-gradient-to-br from-background to-muted"
+      tabIndex={-1}
+    >
       <div className="w-full max-w-sm">
         <div className="flex flex-col gap-6">
           <Card>
@@ -33,18 +38,15 @@ export default async function AuthErrorPage({
             <CardContent>
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  {message || 'No pudimos procesar tu solicitud de autenticación. Por favor, intenta de nuevo o contacta al soporte si el problema persiste.'}
+                  {message ||
+                    "No pudimos procesar tu solicitud de autenticación. Por favor, intenta de nuevo o contacta al soporte si el problema persiste."}
                 </p>
                 <div className="pt-4 flex flex-col gap-2">
                   <Button asChild className="w-full">
-                    <Link href="/auth/login">
-                      Volver a Iniciar Sesión
-                    </Link>
+                    <Link href="/auth/login">Volver a Iniciar Sesión</Link>
                   </Button>
                   <Button variant="outline" asChild className="w-full">
-                    <Link href="/auth/sign-up">
-                      Crear Nueva Cuenta
-                    </Link>
+                    <Link href="/auth/sign-up">Crear Nueva Cuenta</Link>
                   </Button>
                 </div>
               </div>
@@ -53,5 +55,5 @@ export default async function AuthErrorPage({
         </div>
       </div>
     </div>
-  )
+  );
 }

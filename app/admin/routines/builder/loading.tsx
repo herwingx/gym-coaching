@@ -1,5 +1,5 @@
-import { Skeleton } from '@/components/ui/skeleton'
-import { RoutineBuilderContentSkeleton } from '@/components/skeletons'
+import { Skeleton } from "@/components/ui/skeleton";
+import { RoutineBuilderContentSkeleton } from "@/components/skeletons";
 
 export default function RoutineBuilderLoading() {
   return (
@@ -17,5 +17,5 @@ export default function RoutineBuilderLoading() {
         <RoutineBuilderContentSkeleton />
       </main>
     </div>
-  )
+  );
 }

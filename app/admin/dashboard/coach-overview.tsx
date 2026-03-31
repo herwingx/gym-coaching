@@ -1,77 +1,77 @@
-import { getAuthUser, getUserRole } from '@/lib/auth-utils'
-import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
-import { COACH_OVERVIEW_SESSIONS_CAP } from '@/lib/performance-limits'
-import { fetchLatestCompletedSessionByClients } from '@/lib/admin-client-rollups'
-import { diffWholeDaysFromNow } from '@/lib/calendar-date'
-import { CoachOverviewClient } from './coach-overview-client'
+import { getAuthUser, getUserRole } from "@/lib/auth-utils";
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { COACH_OVERVIEW_SESSIONS_CAP } from "@/lib/performance-limits";
+import { fetchLatestCompletedSessionByClients } from "@/lib/admin-client-rollups";
+import { diffWholeDaysFromNow } from "@/lib/calendar-date";
+import { CoachOverviewClient } from "./coach-overview-client";
 
 export type CoachOverviewMetrics = {
-  totalTrainingsThisWeek: number
-  prsThisMonth: number
+  totalTrainingsThisWeek: number;
+  prsThisMonth: number;
   /** Para tendencia MoM en el KPI (misma lógica que `prsThisMonth`). */
-  prsLastMonth: number
-  mostActiveClientId: string | null
-  mostActiveClientName: string | null
-  attentionClientId: string | null
-  attentionClientName: string | null
-  attentionReason: string | null
-  trainingsLastWeek: number
-  totalClients: number
-  attentionCount: number
-  activeThisWeekCount: number
-  chartData: { date: string; sessions: number }[]
-}
+  prsLastMonth: number;
+  mostActiveClientId: string | null;
+  mostActiveClientName: string | null;
+  attentionClientId: string | null;
+  attentionClientName: string | null;
+  attentionReason: string | null;
+  trainingsLastWeek: number;
+  totalClients: number;
+  attentionCount: number;
+  activeThisWeekCount: number;
+  chartData: { date: string; sessions: number }[];
+};
 
 export type CoachClientCard = {
-  id: string
-  fullName: string
-  avatarUrl?: string | null
-  planName?: string | null
-  assignedRoutineId?: string | null
-  assignedRoutineName?: string | null
-  assignedRoutineDaysPerWeek?: number | null
-  status?: string | null
-  lastSessionAt?: string | null
-  daysSinceLastSession?: number | null
-  streakDays?: number | null
-  trend?: 'up' | 'down' | 'flat'
-  compliance7dPct?: number | null
+  id: string;
+  fullName: string;
+  avatarUrl?: string | null;
+  planName?: string | null;
+  assignedRoutineId?: string | null;
+  assignedRoutineName?: string | null;
+  assignedRoutineDaysPerWeek?: number | null;
+  status?: string | null;
+  lastSessionAt?: string | null;
+  daysSinceLastSession?: number | null;
+  streakDays?: number | null;
+  trend?: "up" | "down" | "flat";
+  compliance7dPct?: number | null;
   /** Sesiones completadas en la ventana de 7 días y meta según rutina (días/semana). */
-  complianceSessionsDone7d?: number | null
-  complianceSessionsTarget?: number | null
+  complianceSessionsDone7d?: number | null;
+  complianceSessionsTarget?: number | null;
   /** Repeticiones máx entre eventos `pr_events` y series marcadas `is_pr` en logs (alineado con lo que ve el cliente). */
-  prEvents30d?: number
-  prStalled30d?: boolean
-  needsAttention?: boolean
-  attentionReason?: string | null
-  isRoutineCompleted?: boolean
-  clientRoutineId?: string | null
-  currentWeek?: number | null
-  durationWeeks?: number | null
-}
+  prEvents30d?: number;
+  prStalled30d?: boolean;
+  needsAttention?: boolean;
+  attentionReason?: string | null;
+  isRoutineCompleted?: boolean;
+  clientRoutineId?: string | null;
+  currentWeek?: number | null;
+  durationWeeks?: number | null;
+};
 
 type ClientDbRow = {
-  id: string
-  user_id: string | null
-  full_name: string | null
-  avatar_url: string | null
-  status: string | null
-  last_session_at: string | null
-  current_plan_id: string | null
-}
+  id: string;
+  user_id: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
+  status: string | null;
+  last_session_at: string | null;
+  current_plan_id: string | null;
+};
 
 type CompletedSessionRow = {
-  id: string
-  client_id: string
-  started_at: string | null
-  total_volume_kg: number | null
-  status: string | null
-}
+  id: string;
+  client_id: string;
+  started_at: string | null;
+  total_volume_kg: number | null;
+  status: string | null;
+};
 
-const PR_LOG_IN_CHUNK = 120
+const PR_LOG_IN_CHUNK = 120;
 
-type CoachSupabase = Awaited<ReturnType<typeof createClient>>
+type CoachSupabase = Awaited<ReturnType<typeof createClient>>;
 
 /** Cuenta series marcadas PR en logs (excl. calentamiento), misma fuente que las tarjetas por cliente. */
 async function countPrSetsFromExerciseLogs(
@@ -80,67 +80,81 @@ async function countPrSetsFromExerciseLogs(
   sessionToClient: Map<string, string>,
   allowedClientIds: Set<string>,
 ): Promise<number> {
-  let n = 0
+  let n = 0;
   for (let i = 0; i < sessionIds.length; i += PR_LOG_IN_CHUNK) {
-    const chunk = sessionIds.slice(i, i + PR_LOG_IN_CHUNK)
+    const chunk = sessionIds.slice(i, i + PR_LOG_IN_CHUNK);
     const { data: prLogRows } = await supabase
-      .from('exercise_logs')
-      .select('workout_session_id, is_warmup')
-      .eq('is_pr', true)
-      .in('workout_session_id', chunk)
+      .from("exercise_logs")
+      .select("workout_session_id, is_warmup")
+      .eq("is_pr", true)
+      .in("workout_session_id", chunk);
 
     for (const row of prLogRows || []) {
-      if (row.is_warmup) continue
-      const cid = sessionToClient.get(row.workout_session_id)
-      if (!cid || !allowedClientIds.has(cid)) continue
-      n++
+      if (row.is_warmup) continue;
+      const cid = sessionToClient.get(row.workout_session_id);
+      if (!cid || !allowedClientIds.has(cid)) continue;
+      n++;
     }
   }
-  return n
+  return n;
 }
 
 export async function CoachOverview() {
-  const user = await getAuthUser()
-  const role = await getUserRole()
+  const user = await getAuthUser();
+  const role = await getUserRole();
 
-  if (!user || role !== 'admin') return null
+  if (!user || role !== "admin") return null;
 
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   // 1) Cargar asesorados desde clients (admin ve sus propios asesorados)
   const { data: clientsData, error: clientsError } = await supabase
-    .from('clients')
-    .select('id, user_id, full_name, avatar_url, status, last_session_at, current_plan_id')
-    .eq('coach_id', user.id)
+    .from("clients")
+    .select(
+      "id, user_id, full_name, avatar_url, status, last_session_at, current_plan_id",
+    )
+    .eq("coach_id", user.id);
 
-  if (clientsError) throw clientsError
-  const clientsList: ClientDbRow[] = clientsData ?? []
+  if (clientsError) throw clientsError;
+  const clientsList: ClientDbRow[] = clientsData ?? [];
 
-  const clientIds = clientsList.map((c) => c.id).filter(Boolean)
+  const clientIds = clientsList.map((c) => c.id).filter(Boolean);
 
-  const latestCompletedByClient = await fetchLatestCompletedSessionByClients(supabase, clientIds)
+  const latestCompletedByClient = await fetchLatestCompletedSessionByClients(
+    supabase,
+    clientIds,
+  );
 
   // Planes para resolver current_plan_id -> plan_name
-  const planIds = [...new Set(clientsList.map((c) => c.current_plan_id).filter(Boolean))]
-  const plansById = new Map<string, string>()
+  const planIds = [
+    ...new Set(clientsList.map((c) => c.current_plan_id).filter(Boolean)),
+  ];
+  const plansById = new Map<string, string>();
   if (planIds.length > 0) {
     const { data: plans } = await supabase
-      .from('membership_plans')
-      .select('id, name')
-      .in('id', planIds)
-    for (const p of plans || []) plansById.set(p.id, p.name)
+      .from("membership_plans")
+      .select("id, name")
+      .in("id", planIds);
+    for (const p of plans || []) plansById.set(p.id, p.name);
   }
 
   // Rutina activa por cliente desde client_routines
-  const routineByClient = new Map<string, { id: string; routine_id: string; current_week: number }>()
+  const routineByClient = new Map<
+    string,
+    { id: string; routine_id: string; current_week: number }
+  >();
   if (clientIds.length > 0) {
     const { data: crData } = await supabase
-      .from('client_routines')
-      .select('id, client_id, routine_id, current_week')
-      .in('client_id', clientIds)
-      .eq('is_active', true)
+      .from("client_routines")
+      .select("id, client_id, routine_id, current_week")
+      .in("client_id", clientIds)
+      .eq("is_active", true);
     for (const cr of crData || []) {
-      routineByClient.set(cr.client_id, { id: cr.id, routine_id: cr.routine_id, current_week: cr.current_week ?? 1 })
+      routineByClient.set(cr.client_id, {
+        id: cr.id,
+        routine_id: cr.routine_id,
+        current_week: cr.current_week ?? 1,
+      });
     }
   }
 
@@ -151,309 +165,363 @@ export async function CoachOverview() {
     avatar_url: c.avatar_url,
     status: c.status,
     last_session_at: c.last_session_at,
-    plan_name: c.current_plan_id ? plansById.get(c.current_plan_id) ?? null : null,
+    plan_name: c.current_plan_id
+      ? (plansById.get(c.current_plan_id) ?? null)
+      : null,
     assigned_routine_id: routineByClient.get(c.id)?.routine_id ?? null,
     client_routine_id: routineByClient.get(c.id)?.id ?? null,
     current_week: routineByClient.get(c.id)?.current_week ?? 1,
-  }))
+  }));
   if (clientsSummary.length === 0) {
     return (
       <div className="flex flex-col gap-4">
-        <div className="text-lg font-semibold">No tienes asesorados todavía</div>
+        <div className="text-lg font-semibold">
+          No tienes asesorados todavía
+        </div>
         <div className="text-sm text-muted-foreground">
           Crea asesorados en Asesorados para que aparezcan aquí.
         </div>
       </div>
-    )
+    );
   }
 
   // 2) Fetch streak days + last_workout_at
-  const userIds = clientsSummary.map((c) => c.user_id).filter(Boolean)
-  const profilesByUserId = new Map<string, { streak_days?: number | null; last_workout_at?: string | null }>()
+  const userIds = clientsSummary.map((c) => c.user_id).filter(Boolean);
+  const profilesByUserId = new Map<
+    string,
+    { streak_days?: number | null; last_workout_at?: string | null }
+  >();
   if (userIds.length > 0) {
-    const adminClient = createAdminClient()
+    const adminClient = createAdminClient();
     const { data: profiles } = await adminClient
-      .from('profiles')
-      .select('id, streak_days, last_workout_at')
-      .in('id', userIds)
+      .from("profiles")
+      .select("id, streak_days, last_workout_at")
+      .in("id", userIds);
 
     for (const p of profiles || []) {
       profilesByUserId.set(p.id, {
         streak_days: p.streak_days,
         last_workout_at: p.last_workout_at,
-      })
+      });
     }
   }
 
   // 3) Fetch routines for filter labels
   const routineIds = Array.from(
     new Set(clientsSummary.map((c) => c.assigned_routine_id).filter(Boolean)),
-  )
-  const routinesById = new Map<string, { name: string; daysPerWeek: number | null; durationWeeks: number | null }>()
+  );
+  const routinesById = new Map<
+    string,
+    { name: string; daysPerWeek: number | null; durationWeeks: number | null }
+  >();
   if (routineIds.length > 0) {
     const { data: routines } = await supabase
-      .from('routines')
-      .select('id, name, days_per_week, duration_weeks')
-      .in('id', routineIds)
+      .from("routines")
+      .select("id, name, days_per_week, duration_weeks")
+      .in("id", routineIds);
     for (const r of routines || []) {
-      routinesById.set(r.id, { name: r.name, daysPerWeek: r.days_per_week ?? null, durationWeeks: r.duration_weeks ?? null })
+      routinesById.set(r.id, {
+        name: r.name,
+        daysPerWeek: r.days_per_week ?? null,
+        durationWeeks: r.duration_weeks ?? null,
+      });
     }
   }
 
   // 4) Fetch workout sessions to compute trend + attention + metrics
-  const startOfWeek = new Date()
-  startOfWeek.setDate(startOfWeek.getDate() - 6)
-  startOfWeek.setHours(0, 0, 0, 0)
+  const startOfWeek = new Date();
+  startOfWeek.setDate(startOfWeek.getDate() - 6);
+  startOfWeek.setHours(0, 0, 0, 0);
 
-  const startOfLastWeek = new Date()
-  startOfLastWeek.setDate(startOfLastWeek.getDate() - 13)
-  startOfLastWeek.setHours(0, 0, 0, 0)
+  const startOfLastWeek = new Date();
+  startOfLastWeek.setDate(startOfLastWeek.getDate() - 13);
+  startOfLastWeek.setHours(0, 0, 0, 0);
 
-  const startOfMonth = new Date()
-  startOfMonth.setDate(1)
-  startOfMonth.setHours(0, 0, 0, 0)
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
 
-  const startOfLast30Days = new Date()
-  startOfLast30Days.setDate(startOfLast30Days.getDate() - 29)
-  startOfLast30Days.setHours(0, 0, 0, 0)
+  const startOfLast30Days = new Date();
+  startOfLast30Days.setDate(startOfLast30Days.getDate() - 29);
+  startOfLast30Days.setHours(0, 0, 0, 0);
 
-  const startOfPrevMonth = new Date(startOfMonth)
-  startOfPrevMonth.setMonth(startOfPrevMonth.getMonth() - 1)
+  const startOfPrevMonth = new Date(startOfMonth);
+  startOfPrevMonth.setMonth(startOfPrevMonth.getMonth() - 1);
 
   const { data: completedSessions } = await supabase
-    .from('workout_sessions')
-    .select('id, client_id, started_at, total_volume_kg, status')
-    .in('client_id', clientIds)
-    .eq('status', 'completed')
-    .order('started_at', { ascending: false })
-    .limit(COACH_OVERVIEW_SESSIONS_CAP)
+    .from("workout_sessions")
+    .select("id, client_id, started_at, total_volume_kg, status")
+    .in("client_id", clientIds)
+    .eq("status", "completed")
+    .order("started_at", { ascending: false })
+    .limit(COACH_OVERVIEW_SESSIONS_CAP);
 
-  const sessionsList: CompletedSessionRow[] = completedSessions ?? []
+  const sessionsList: CompletedSessionRow[] = completedSessions ?? [];
 
   const sessionsByClientId = new Map<
     string,
     { started_at?: string; total_volume_kg?: number | null }[]
-  >()
+  >();
   for (const s of sessionsList) {
-    const arr = sessionsByClientId.get(s.client_id) || []
-    arr.push({ started_at: s.started_at ?? undefined, total_volume_kg: s.total_volume_kg })
-    sessionsByClientId.set(s.client_id, arr)
+    const arr = sessionsByClientId.get(s.client_id) || [];
+    arr.push({
+      started_at: s.started_at ?? undefined,
+      total_volume_kg: s.total_volume_kg,
+    });
+    sessionsByClientId.set(s.client_id, arr);
   }
 
-  const clientIdSet = new Set(clientIds)
-  const sessionToClient = new Map(sessionsList.map((s) => [s.id, s.client_id]))
+  const clientIdSet = new Set(clientIds);
+  const sessionToClient = new Map(sessionsList.map((s) => [s.id, s.client_id]));
 
   // Metrics (week/month) — PRs: max(pr_events, series PR en logs), alineado con lo que ve el cliente
   const { data: prEventsThisMonth } = await supabase
-    .from('pr_events')
-    .select('id, client_id, achieved_at')
-    .in('client_id', clientIds)
-    .gte('achieved_at', startOfMonth.toISOString())
+    .from("pr_events")
+    .select("id, client_id, achieved_at")
+    .in("client_id", clientIds)
+    .gte("achieved_at", startOfMonth.toISOString());
 
   const { data: prEventsPrevMonth } = await supabase
-    .from('pr_events')
-    .select('id, client_id, achieved_at')
-    .in('client_id', clientIds)
-    .gte('achieved_at', startOfPrevMonth.toISOString())
-    .lt('achieved_at', startOfMonth.toISOString())
+    .from("pr_events")
+    .select("id, client_id, achieved_at")
+    .in("client_id", clientIds)
+    .gte("achieved_at", startOfPrevMonth.toISOString())
+    .lt("achieved_at", startOfMonth.toISOString());
 
   const { data: prEventsLast30 } = await supabase
-    .from('pr_events')
-    .select('client_id, achieved_at')
-    .in('client_id', clientIds)
-    .gte('achieved_at', startOfLast30Days.toISOString())
+    .from("pr_events")
+    .select("client_id, achieved_at")
+    .in("client_id", clientIds)
+    .gte("achieved_at", startOfLast30Days.toISOString());
 
-  const monthStartMs = startOfMonth.getTime()
-  const prevMonthStartMs = startOfPrevMonth.getTime()
-  const nowMs = Date.now()
+  const monthStartMs = startOfMonth.getTime();
+  const prevMonthStartMs = startOfPrevMonth.getTime();
+  const nowMs = Date.now();
 
   const sessionIdsThisMonth = [
     ...new Set(
       sessionsList
         .filter((s) => {
-          if (!s.started_at || !clientIdSet.has(s.client_id)) return false
-          const t = new Date(s.started_at).getTime()
-          return !Number.isNaN(t) && t >= monthStartMs && t <= nowMs
+          if (!s.started_at || !clientIdSet.has(s.client_id)) return false;
+          const t = new Date(s.started_at).getTime();
+          return !Number.isNaN(t) && t >= monthStartMs && t <= nowMs;
         })
         .map((s) => s.id),
     ),
-  ]
+  ];
 
   const sessionIdsPrevMonth = [
     ...new Set(
       sessionsList
         .filter((s) => {
-          if (!s.started_at || !clientIdSet.has(s.client_id)) return false
-          const t = new Date(s.started_at).getTime()
-          return !Number.isNaN(t) && t >= prevMonthStartMs && t < monthStartMs
+          if (!s.started_at || !clientIdSet.has(s.client_id)) return false;
+          const t = new Date(s.started_at).getTime();
+          return !Number.isNaN(t) && t >= prevMonthStartMs && t < monthStartMs;
         })
         .map((s) => s.id),
     ),
-  ]
+  ];
 
   const prLogsThisMonth = await countPrSetsFromExerciseLogs(
     supabase,
     sessionIdsThisMonth,
     sessionToClient,
     clientIdSet,
-  )
+  );
   const prLogsPrevMonth = await countPrSetsFromExerciseLogs(
     supabase,
     sessionIdsPrevMonth,
     sessionToClient,
     clientIdSet,
-  )
+  );
 
-  const prsThisMonth = Math.max((prEventsThisMonth || []).length, prLogsThisMonth)
-  const prsLastMonth = Math.max((prEventsPrevMonth || []).length, prLogsPrevMonth)
+  const prsThisMonth = Math.max(
+    (prEventsThisMonth || []).length,
+    prLogsThisMonth,
+  );
+  const prsLastMonth = Math.max(
+    (prEventsPrevMonth || []).length,
+    prLogsPrevMonth,
+  );
 
   const totalTrainingsThisWeek = sessionsList.filter((s) => {
-    if (!s.started_at) return false
-    const d = new Date(s.started_at)
-    return !Number.isNaN(d.getTime()) && d >= startOfWeek
-  }).length
+    if (!s.started_at) return false;
+    const d = new Date(s.started_at);
+    return !Number.isNaN(d.getTime()) && d >= startOfWeek;
+  }).length;
 
   const trainingsLastWeek = sessionsList.filter((s) => {
-    if (!s.started_at) return false
-    const d = new Date(s.started_at)
-    return !Number.isNaN(d.getTime()) && d >= startOfLastWeek && d < startOfWeek
-  }).length
+    if (!s.started_at) return false;
+    const d = new Date(s.started_at);
+    return (
+      !Number.isNaN(d.getTime()) && d >= startOfLastWeek && d < startOfWeek
+    );
+  }).length;
 
-  const prCount30ByClient = new Map<string, number>()
+  const prCount30ByClient = new Map<string, number>();
   for (const row of prEventsLast30 || []) {
-    prCount30ByClient.set(row.client_id, (prCount30ByClient.get(row.client_id) || 0) + 1)
+    prCount30ByClient.set(
+      row.client_id,
+      (prCount30ByClient.get(row.client_id) || 0) + 1,
+    );
   }
 
-  const prLogCount30ByClient = new Map<string, number>()
+  const prLogCount30ByClient = new Map<string, number>();
   const sessionIdsForPrLogs = [
     ...new Set(
       sessionsList
         .filter((s) => {
-          if (!s.started_at || !clientIdSet.has(s.client_id)) return false
-          return new Date(s.started_at).getTime() >= startOfLast30Days.getTime()
+          if (!s.started_at || !clientIdSet.has(s.client_id)) return false;
+          return (
+            new Date(s.started_at).getTime() >= startOfLast30Days.getTime()
+          );
         })
         .map((s) => s.id),
     ),
-  ]
+  ];
   for (let i = 0; i < sessionIdsForPrLogs.length; i += PR_LOG_IN_CHUNK) {
-    const chunk = sessionIdsForPrLogs.slice(i, i + PR_LOG_IN_CHUNK)
+    const chunk = sessionIdsForPrLogs.slice(i, i + PR_LOG_IN_CHUNK);
     const { data: prLogRows } = await supabase
-      .from('exercise_logs')
-      .select('workout_session_id, is_warmup')
-      .eq('is_pr', true)
-      .in('workout_session_id', chunk)
+      .from("exercise_logs")
+      .select("workout_session_id, is_warmup")
+      .eq("is_pr", true)
+      .in("workout_session_id", chunk);
 
     for (const row of prLogRows || []) {
-      if (row.is_warmup) continue
-      const cid = sessionToClient.get(row.workout_session_id)
-      if (!cid || !clientIdSet.has(cid)) continue
-      prLogCount30ByClient.set(cid, (prLogCount30ByClient.get(cid) || 0) + 1)
+      if (row.is_warmup) continue;
+      const cid = sessionToClient.get(row.workout_session_id);
+      if (!cid || !clientIdSet.has(cid)) continue;
+      prLogCount30ByClient.set(cid, (prLogCount30ByClient.get(cid) || 0) + 1);
     }
   }
 
   // Chart data: sessions per day for last 90 days
-  const chartDataMap = new Map<string, number>()
-  const now = new Date()
+  const chartDataMap = new Map<string, number>();
+  const now = new Date();
   for (let i = 89; i >= 0; i--) {
-    const d = new Date(now)
-    d.setDate(d.getDate() - i)
-    d.setHours(0, 0, 0, 0)
-    chartDataMap.set(d.toISOString().slice(0, 10), 0)
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    d.setHours(0, 0, 0, 0);
+    chartDataMap.set(d.toISOString().slice(0, 10), 0);
   }
   for (const s of sessionsList) {
-    const dateStr = (s.started_at || '').slice(0, 10)
+    const dateStr = (s.started_at || "").slice(0, 10);
     if (chartDataMap.has(dateStr)) {
-      chartDataMap.set(dateStr, (chartDataMap.get(dateStr) || 0) + 1)
+      chartDataMap.set(dateStr, (chartDataMap.get(dateStr) || 0) + 1);
     }
   }
   const chartData = Array.from(chartDataMap.entries())
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([date, sessions]) => ({ date, sessions }))
+    .map(([date, sessions]) => ({ date, sessions }));
 
   // Most active client in last 30 days
   const last30 = sessionsList.filter((s) => {
-    if (!s.started_at) return false
-    const d = new Date(s.started_at)
-    return !Number.isNaN(d.getTime()) && d >= startOfLast30Days
-  })
-  const countByClient = new Map<string, number>()
-  for (const s of last30) countByClient.set(s.client_id, (countByClient.get(s.client_id) || 0) + 1)
+    if (!s.started_at) return false;
+    const d = new Date(s.started_at);
+    return !Number.isNaN(d.getTime()) && d >= startOfLast30Days;
+  });
+  const countByClient = new Map<string, number>();
+  for (const s of last30)
+    countByClient.set(s.client_id, (countByClient.get(s.client_id) || 0) + 1);
 
-  let mostActiveClientId: string | null = null
-  let mostActiveClientName: string | null = null
+  let mostActiveClientId: string | null = null;
+  let mostActiveClientName: string | null = null;
   for (const [id, count] of countByClient.entries()) {
-    if (!mostActiveClientId || count > (countByClient.get(mostActiveClientId) || 0)) {
-      const found = clientsSummary.find((c) => c.id === id)
-      mostActiveClientId = id
-      mostActiveClientName = found?.full_name ?? null
+    if (
+      !mostActiveClientId ||
+      count > (countByClient.get(mostActiveClientId) || 0)
+    ) {
+      const found = clientsSummary.find((c) => c.id === id);
+      mostActiveClientId = id;
+      mostActiveClientName = found?.full_name ?? null;
     }
   }
 
   const cards: CoachClientCard[] = clientsSummary.map((c) => {
-    const streak = c.user_id ? profilesByUserId.get(c.user_id) : undefined
-    const last = (sessionsByClientId.get(c.id) || [])[0]
-    const prev = (sessionsByClientId.get(c.id) || [])[1]
+    const streak = c.user_id ? profilesByUserId.get(c.user_id) : undefined;
+    const last = (sessionsByClientId.get(c.id) || [])[0];
+    const prev = (sessionsByClientId.get(c.id) || [])[1];
 
     const lastSessionAt =
-      latestCompletedByClient.get(c.id) ?? last?.started_at ?? c.last_session_at ?? null
-    const daysSinceLastSession = diffWholeDaysFromNow(lastSessionAt)
+      latestCompletedByClient.get(c.id) ??
+      last?.started_at ??
+      c.last_session_at ??
+      null;
+    const daysSinceLastSession = diffWholeDaysFromNow(lastSessionAt);
 
-    const lastVol = typeof last?.total_volume_kg === 'number' ? last.total_volume_kg : null
-    const prevVol = typeof prev?.total_volume_kg === 'number' ? prev.total_volume_kg : null
+    const lastVol =
+      typeof last?.total_volume_kg === "number" ? last.total_volume_kg : null;
+    const prevVol =
+      typeof prev?.total_volume_kg === "number" ? prev.total_volume_kg : null;
 
-    let trend: 'up' | 'down' | 'flat' = 'flat'
+    let trend: "up" | "down" | "flat" = "flat";
     if (lastVol !== null && prevVol !== null) {
-      if (lastVol > prevVol) trend = 'up'
-      else if (lastVol < prevVol) trend = 'down'
+      if (lastVol > prevVol) trend = "up";
+      else if (lastVol < prevVol) trend = "down";
     }
 
-    const isPending = c.status === 'pending'
-    const isExpired = c.status === 'expired'
-    const isSuspended = c.status === 'suspended'
-    const isActive = c.status === 'active'
+    const isPending = c.status === "pending";
+    const isExpired = c.status === "expired";
+    const isSuspended = c.status === "suspended";
+    const isActive = c.status === "active";
 
-    const routineMeta = c.assigned_routine_id ? routinesById.get(c.assigned_routine_id) : undefined
-    const isRoutineCompleted = !!(routineMeta?.durationWeeks && c.current_week > routineMeta.durationWeeks)
+    const routineMeta = c.assigned_routine_id
+      ? routinesById.get(c.assigned_routine_id)
+      : undefined;
+    const isRoutineCompleted = !!(
+      routineMeta?.durationWeeks && c.current_week > routineMeta.durationWeeks
+    );
 
-    const expectedPerWeek = routineMeta?.daysPerWeek ?? null
+    const expectedPerWeek = routineMeta?.daysPerWeek ?? null;
     const doneLast7 = sessionsList.filter((s) => {
-      if (s.client_id !== c.id) return false
-      if (!s.started_at) return false
-      const d = new Date(s.started_at)
-      return !Number.isNaN(d.getTime()) && d >= startOfWeek
-    }).length
+      if (s.client_id !== c.id) return false;
+      if (!s.started_at) return false;
+      const d = new Date(s.started_at);
+      return !Number.isNaN(d.getTime()) && d >= startOfWeek;
+    }).length;
     const compliance7dPct =
-      expectedPerWeek && expectedPerWeek > 0 ? Math.min(doneLast7 / expectedPerWeek, 1) : null
-    const complianceSessionsDone7d = expectedPerWeek && expectedPerWeek > 0 ? doneLast7 : null
-    const complianceSessionsTarget = expectedPerWeek && expectedPerWeek > 0 ? expectedPerWeek : null
+      expectedPerWeek && expectedPerWeek > 0
+        ? Math.min(doneLast7 / expectedPerWeek, 1)
+        : null;
+    const complianceSessionsDone7d =
+      expectedPerWeek && expectedPerWeek > 0 ? doneLast7 : null;
+    const complianceSessionsTarget =
+      expectedPerWeek && expectedPerWeek > 0 ? expectedPerWeek : null;
 
-    const fromEvents = prCount30ByClient.get(c.id) || 0
-    const fromLogs = prLogCount30ByClient.get(c.id) || 0
-    const prEvents30d = Math.max(fromEvents, fromLogs)
-    const prStalled30d = prEvents30d === 0
+    const fromEvents = prCount30ByClient.get(c.id) || 0;
+    const fromLogs = prLogCount30ByClient.get(c.id) || 0;
+    const prEvents30d = Math.max(fromEvents, fromLogs);
+    const prStalled30d = prEvents30d === 0;
 
-    let attentionReason: string | null = null
-    if (isRoutineCompleted) attentionReason = 'Rutina completada'
-    else if (isPending) attentionReason = 'Falta registro'
-    else if (isExpired) attentionReason = 'Plan vencido'
-    else if (isSuspended) attentionReason = 'Suspendido'
+    let attentionReason: string | null = null;
+    if (isRoutineCompleted) attentionReason = "Rutina completada";
+    else if (isPending) attentionReason = "Falta registro";
+    else if (isExpired) attentionReason = "Plan vencido";
+    else if (isSuspended) attentionReason = "Suspendido";
     else if (isActive) {
-      if (!c.assigned_routine_id) attentionReason = 'Sin rutina asignada'
-      else if (daysSinceLastSession === null) attentionReason = 'No ha entrenado nunca'
-      else if (daysSinceLastSession >= 7) attentionReason = `Inactivo hace ${daysSinceLastSession}d`
-      else if (compliance7dPct != null && compliance7dPct < 0.5) attentionReason = 'Bajo cumplimiento 7d'
+      if (!c.assigned_routine_id) attentionReason = "Sin rutina asignada";
+      else if (daysSinceLastSession === null)
+        attentionReason = "No ha entrenado nunca";
+      else if (daysSinceLastSession >= 7)
+        attentionReason = `Inactivo hace ${daysSinceLastSession}d`;
+      else if (compliance7dPct != null && compliance7dPct < 0.5)
+        attentionReason = "Bajo cumplimiento 7d";
     }
 
-    const needsAttention = attentionReason !== null
+    const needsAttention = attentionReason !== null;
 
     return {
       id: c.id,
-      fullName: c.full_name ?? 'Cliente',
+      fullName: c.full_name ?? "Cliente",
       avatarUrl: c.avatar_url,
       planName: c.plan_name ?? null,
       assignedRoutineId: c.assigned_routine_id ?? null,
-      assignedRoutineName: c.assigned_routine_id ? routinesById.get(c.assigned_routine_id)?.name || null : null,
-      assignedRoutineDaysPerWeek: c.assigned_routine_id ? routinesById.get(c.assigned_routine_id)?.daysPerWeek ?? null : null,
+      assignedRoutineName: c.assigned_routine_id
+        ? routinesById.get(c.assigned_routine_id)?.name || null
+        : null,
+      assignedRoutineDaysPerWeek: c.assigned_routine_id
+        ? (routinesById.get(c.assigned_routine_id)?.daysPerWeek ?? null)
+        : null,
       status: c.status ?? null,
       lastSessionAt,
       daysSinceLastSession,
@@ -470,36 +538,43 @@ export async function CoachOverview() {
       clientRoutineId: (c as any).client_routine_id,
       currentWeek: c.current_week,
       durationWeeks: routineMeta?.durationWeeks ?? null,
-    }
-  })
+    };
+  });
 
   // Re-evaluar los candidatos de atención basados en la nueva lógica de negocio
-  const attentionCandidates = cards.filter((c) => c.needsAttention)
-  let attentionClientId: string | null = null
-  let attentionClientName: string | null = null
-  
+  const attentionCandidates = cards.filter((c) => c.needsAttention);
+  let attentionClientId: string | null = null;
+  let attentionClientName: string | null = null;
+
   if (attentionCandidates.length > 0) {
-    // Prioridad de atención: 
+    // Prioridad de atención:
     // 0. Routine Completed, 1. Expired, 2. No routine, 3. Inactivo +7d, 4. Pending
     const sorted = [...attentionCandidates].sort((a, b) => {
       const getScore = (c: CoachClientCard) => {
-        if (c.attentionReason === 'Rutina completada') return 5
-        if (c.status === 'expired') return 4
-        if (c.status === 'active' && !c.assignedRoutineId) return 3
-        if (c.status === 'active' && c.daysSinceLastSession != null && c.daysSinceLastSession >= 7) return 2
-        if (c.status === 'pending') return 1
-        return 0
-      }
-      return getScore(b) - getScore(a)
-    })
-    attentionClientId = sorted[0]?.id ?? null
-    attentionClientName = sorted[0]?.fullName ?? null
+        if (c.attentionReason === "Rutina completada") return 5;
+        if (c.status === "expired") return 4;
+        if (c.status === "active" && !c.assignedRoutineId) return 3;
+        if (
+          c.status === "active" &&
+          c.daysSinceLastSession != null &&
+          c.daysSinceLastSession >= 7
+        )
+          return 2;
+        if (c.status === "pending") return 1;
+        return 0;
+      };
+      return getScore(b) - getScore(a);
+    });
+    attentionClientId = sorted[0]?.id ?? null;
+    attentionClientName = sorted[0]?.fullName ?? null;
   }
 
   const activeThisWeekCount = cards.filter(
     (c) =>
-      c.status === 'active' && c.daysSinceLastSession != null && c.daysSinceLastSession <= 6,
-  ).length
+      c.status === "active" &&
+      c.daysSinceLastSession != null &&
+      c.daysSinceLastSession <= 6,
+  ).length;
 
   const metrics: CoachOverviewMetrics = {
     totalTrainingsThisWeek,
@@ -511,22 +586,30 @@ export async function CoachOverview() {
     attentionClientName,
     attentionReason:
       attentionCandidates.length > 0
-        ? cards.find((c) => c.id === attentionClientId)?.attentionReason ?? null
+        ? (cards.find((c) => c.id === attentionClientId)?.attentionReason ??
+          null)
         : null,
     trainingsLastWeek,
     totalClients: cards.length,
     attentionCount: attentionCandidates.length,
     activeThisWeekCount,
     chartData,
-  }
+  };
 
   return (
     <CoachOverviewClient
       cards={cards}
       metrics={metrics}
-      planNames={Array.from(new Set(cards.map((c) => c.planName).filter(Boolean))) as string[]}
-      routineNames={Array.from(new Set(cards.map((c) => c.assignedRoutineName).filter(Boolean))) as string[]}
+      planNames={
+        Array.from(
+          new Set(cards.map((c) => c.planName).filter(Boolean)),
+        ) as string[]
+      }
+      routineNames={
+        Array.from(
+          new Set(cards.map((c) => c.assignedRoutineName).filter(Boolean)),
+        ) as string[]
+      }
     />
-  )
+  );
 }
-

@@ -1,5 +1,5 @@
-import { ClientDashboardSkeleton } from '@/components/skeletons'
+import { ClientDashboardSkeleton } from "@/components/skeletons";
 
 export default function ClientDashboardLoading() {
-  return <ClientDashboardSkeleton />
+  return <ClientDashboardSkeleton />;
 }

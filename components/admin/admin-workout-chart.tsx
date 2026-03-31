@@ -1,14 +1,25 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import dynamic from 'next/dynamic'
+import * as React from "react";
+import dynamic from "next/dynamic";
 
-const Area = dynamic(() => import('recharts').then((mod) => mod.Area as any), { ssr: false }) as typeof import('recharts').Area
-const AreaChart = dynamic(() => import('recharts').then((mod) => mod.AreaChart as any), { ssr: false }) as typeof import('recharts').AreaChart
-const CartesianGrid = dynamic(() => import('recharts').then((mod) => mod.CartesianGrid as any), { ssr: false }) as typeof import('recharts').CartesianGrid
-const XAxis = dynamic(() => import('recharts').then((mod) => mod.XAxis as any), { ssr: false }) as typeof import('recharts').XAxis
+const Area = dynamic(() => import("recharts").then((mod) => mod.Area as any), {
+  ssr: false,
+}) as typeof import("recharts").Area;
+const AreaChart = dynamic(
+  () => import("recharts").then((mod) => mod.AreaChart as any),
+  { ssr: false },
+) as typeof import("recharts").AreaChart;
+const CartesianGrid = dynamic(
+  () => import("recharts").then((mod) => mod.CartesianGrid as any),
+  { ssr: false },
+) as typeof import("recharts").CartesianGrid;
+const XAxis = dynamic(
+  () => import("recharts").then((mod) => mod.XAxis as any),
+  { ssr: false },
+) as typeof import("recharts").XAxis;
 
-import { useIsMobile } from '@/hooks/use-mobile'
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Card,
   CardAction,
@@ -16,61 +27,61 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
+} from "@/components/ui/card";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
-} from '@/components/ui/chart'
+} from "@/components/ui/chart";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from "@/components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
-  ToggleGroup,
-  ToggleGroupItem,
-} from '@/components/ui/toggle-group'
-import { ChartAreaShadowFilter, useChartShadowFilterId } from '@/components/charts/chart-visual-utils'
+  ChartAreaShadowFilter,
+  useChartShadowFilterId,
+} from "@/components/charts/chart-visual-utils";
 
-export type ChartDataPoint = { date: string; sessions: number }
+export type ChartDataPoint = { date: string; sessions: number };
 
 const chartConfig = {
   sessions: {
-    label: 'Sesiones',
-    color: 'var(--chart-1)',
+    label: "Sesiones",
+    color: "var(--chart-1)",
   },
-} satisfies ChartConfig
+} satisfies ChartConfig;
 
 export function AdminWorkoutChart({ data }: { data: ChartDataPoint[] }) {
-  const isMobile = useIsMobile()
-  const [timeRange, setTimeRange] = React.useState('90d')
-  const shadowFilterId = useChartShadowFilterId('admin-sessions')
+  const isMobile = useIsMobile();
+  const [timeRange, setTimeRange] = React.useState("90d");
+  const shadowFilterId = useChartShadowFilterId("admin-sessions");
 
   React.useEffect(() => {
-    if (isMobile) setTimeRange('7d')
-  }, [isMobile])
+    if (isMobile) setTimeRange("7d");
+  }, [isMobile]);
 
   const filteredData = React.useMemo(() => {
-    if (!data.length) return []
-    const ref = data[data.length - 1]?.date
-    if (!ref) return data
-    const referenceDate = new Date(ref)
-    let daysToSubtract = 90
-    if (timeRange === '30d') daysToSubtract = 30
-    else if (timeRange === '7d') daysToSubtract = 7
-    const startDate = new Date(referenceDate)
-    startDate.setDate(startDate.getDate() - daysToSubtract)
-    return data.filter((item) => new Date(item.date) >= startDate)
-  }, [data, timeRange])
+    if (!data.length) return [];
+    const ref = data[data.length - 1]?.date;
+    if (!ref) return data;
+    const referenceDate = new Date(ref);
+    let daysToSubtract = 90;
+    if (timeRange === "30d") daysToSubtract = 30;
+    else if (timeRange === "7d") daysToSubtract = 7;
+    const startDate = new Date(referenceDate);
+    startDate.setDate(startDate.getDate() - daysToSubtract);
+    return data.filter((item) => new Date(item.date) >= startDate);
+  }, [data, timeRange]);
 
   const sessionsInRange = React.useMemo(
     () => filteredData.reduce((acc, d) => acc + d.sessions, 0),
     [filteredData],
-  )
+  );
 
   return (
     <Card className="@container/card overflow-hidden border-border/60 shadow-md ring-1 ring-border/40">
@@ -78,12 +89,18 @@ export function AdminWorkoutChart({ data }: { data: ChartDataPoint[] }) {
         <CardTitle>Sesiones completadas</CardTitle>
         <CardDescription>
           <span className="hidden @[540px]/card:inline">
-            Suma diaria de todas las sesiones terminadas. En este período:{' '}
-            <span className="font-semibold tabular-nums text-foreground">{sessionsInRange}</span>{' '}
+            Suma diaria de todas las sesiones terminadas. En este período:{" "}
+            <span className="font-semibold tabular-nums text-foreground">
+              {sessionsInRange}
+            </span>{" "}
             sesiones.
           </span>
           <span className="@[540px]/card:hidden">
-            Período: <span className="font-semibold tabular-nums">{sessionsInRange}</span> sesiones
+            Período:{" "}
+            <span className="font-semibold tabular-nums">
+              {sessionsInRange}
+            </span>{" "}
+            sesiones
           </span>
         </CardDescription>
         <CardAction>
@@ -123,7 +140,7 @@ export function AdminWorkoutChart({ data }: { data: ChartDataPoint[] }) {
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         <ChartContainer
           config={chartConfig}
-          className="aspect-auto h-[min(280px,50vw)] w-full min-h-[220px]"
+          className="aspect-auto w-full min-h-[280px]"
         >
           <AreaChart
             accessibilityLayer
@@ -141,9 +158,9 @@ export function AdminWorkoutChart({ data }: { data: ChartDataPoint[] }) {
               tickMargin={8}
               minTickGap={32}
               tickFormatter={(value) =>
-                new Date(value).toLocaleDateString('es-ES', {
-                  month: 'short',
-                  day: 'numeric',
+                new Date(value).toLocaleDateString("es-ES", {
+                  month: "short",
+                  day: "numeric",
                 })
               }
             />
@@ -152,22 +169,21 @@ export function AdminWorkoutChart({ data }: { data: ChartDataPoint[] }) {
               content={
                 <ChartTooltipContent
                   labelFormatter={(value) =>
-                    new Date(value).toLocaleDateString('es-ES', {
-                      month: 'short',
-                      day: 'numeric',
+                    new Date(value).toLocaleDateString("es-ES", {
+                      month: "short",
+                      day: "numeric",
                     })
                   }
                   indicator="dot"
                   formatter={(value) => {
-                    const n = typeof value === 'number' ? value : Number(value)
-                    const safe = Number.isFinite(n) ? n : 0
-                    const text =
-                      safe === 1 ? '1 sesión' : `${safe} sesiones`
+                    const n = typeof value === "number" ? value : Number(value);
+                    const safe = Number.isFinite(n) ? n : 0;
+                    const text = safe === 1 ? "1 sesión" : `${safe} sesiones`;
                     return (
                       <span className="text-foreground font-mono font-medium tabular-nums">
                         {text}
                       </span>
-                    )
+                    );
                   }}
                 />
               }
@@ -186,5 +202,5 @@ export function AdminWorkoutChart({ data }: { data: ChartDataPoint[] }) {
         </ChartContainer>
       </CardContent>
     </Card>
-  )
+  );
 }

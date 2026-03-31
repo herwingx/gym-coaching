@@ -1,47 +1,48 @@
-import type { Metadata } from 'next'
-import { getAuthUser } from '@/lib/auth-utils'
-import { redirect } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import Link from 'next/link'
-import { CalendarDays, Pencil, Sparkles } from 'lucide-react'
-import { DeleteRoutineButton } from './delete-routine-button'
-import { createClient } from '@/lib/supabase/server'
-import { Badge } from '@/components/ui/badge'
-import { RoutineDayCards } from '@/components/routines/routine-day-cards'
-import { AdminPageHeader } from '@/components/admin/admin-page-header'
+import type { Metadata } from "next";
+import { getAuthUser } from "@/lib/auth-utils";
+import { redirect } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { CalendarDays, Pencil, Sparkles } from "lucide-react";
+import { DeleteRoutineButton } from "./delete-routine-button";
+import { createClient } from "@/lib/supabase/server";
+import { Badge } from "@/components/ui/badge";
+import { RoutineDayCards } from "@/components/routines/routine-day-cards";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 
-type RoutineDayRow = { is_rest_day: boolean }
+type RoutineDayRow = { is_rest_day: boolean };
 
 interface Props {
-  params: Promise<{ routineId: string }>
+  params: Promise<{ routineId: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { routineId } = await params
-  const supabase = await createClient()
+  const { routineId } = await params;
+  const supabase = await createClient();
   const { data: routine } = await supabase
-    .from('routines')
-    .select('name')
-    .eq('id', routineId)
-    .single()
+    .from("routines")
+    .select("name")
+    .eq("id", routineId)
+    .single();
   return {
-    title: routine?.name ? `${routine.name} | RU Coach` : 'Rutina | RU Coach',
-  }
+    title: routine?.name ? `${routine.name} | RU Coach` : "Rutina | RU Coach",
+  };
 }
 
 export default async function RoutineDetailsPage({ params }: Props) {
-  const user = await getAuthUser()
-  const { routineId } = await params
+  const user = await getAuthUser();
+  const { routineId } = await params;
 
   if (!user) {
-    redirect('/auth/login')
+    redirect("/auth/login");
   }
 
-  const supabase = await createClient()
+  const supabase = await createClient();
   const { data: routine } = await supabase
-    .from('routines')
-    .select(`
+    .from("routines")
+    .select(
+      `
       *,
       routine_days (
         *,
@@ -50,18 +51,20 @@ export default async function RoutineDetailsPage({ params }: Props) {
           exercises (*)
         )
       )
-    `)
-    .eq('id', routineId)
-    .single()
+    `,
+    )
+    .eq("id", routineId)
+    .single();
 
   if (!routine) {
-    redirect('/admin/routines')
+    redirect("/admin/routines");
   }
-  const configuredDays = routine.routine_days ?? []
-  const hasConfiguredDays = configuredDays.length > 0
+  const configuredDays = routine.routine_days ?? [];
+  const hasConfiguredDays = configuredDays.length > 0;
   const trainingDaysPerWeek = hasConfiguredDays
-    ? (configuredDays as RoutineDayRow[]).filter((day) => !day.is_rest_day).length
-    : (routine.days_per_week ?? 0)
+    ? (configuredDays as RoutineDayRow[]).filter((day) => !day.is_rest_day)
+        .length
+    : (routine.days_per_week ?? 0);
 
   return (
     <div className="bg-background">
@@ -71,8 +74,10 @@ export default async function RoutineDetailsPage({ params }: Props) {
         backLabel="Volver a rutinas"
         description={
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="secondary">{routine.level || 'Nivel libre'}</Badge>
-            <Badge variant="outline">{routine.goal || 'Objetivo general'}</Badge>
+            <Badge variant="secondary">{routine.level || "Nivel libre"}</Badge>
+            <Badge variant="outline">
+              {routine.goal || "Objetivo general"}
+            </Badge>
           </div>
         }
         actions={
@@ -83,7 +88,10 @@ export default async function RoutineDetailsPage({ params }: Props) {
                 Editar
               </Link>
             </Button>
-            <DeleteRoutineButton routineId={routineId} routineName={routine.name} />
+            <DeleteRoutineButton
+              routineId={routineId}
+              routineName={routine.name}
+            />
           </>
         }
       />
@@ -101,16 +109,24 @@ export default async function RoutineDetailsPage({ params }: Props) {
             <CardContent className="flex flex-col gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">Descripción</p>
-                <p className="font-medium">{routine.description || 'Sin descripción'}</p>
+                <p className="font-medium">
+                  {routine.description || "Sin descripción"}
+                </p>
               </div>
               <div className="grid gap-4 md:grid-cols-3">
                 <div>
                   <p className="text-sm text-muted-foreground">Nivel</p>
-                  <p className="font-medium capitalize">{routine.level || 'No especificado'}</p>
+                  <p className="font-medium capitalize">
+                    {routine.level || "No especificado"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Duración</p>
-                  <p className="font-medium">{routine.duration_weeks ? `${routine.duration_weeks} semanas` : '-'}</p>
+                  <p className="font-medium">
+                    {routine.duration_weeks
+                      ? `${routine.duration_weeks} semanas`
+                      : "-"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Días/semana</p>
@@ -130,5 +146,5 @@ export default async function RoutineDetailsPage({ params }: Props) {
         </div>
       </main>
     </div>
-  )
+  );
 }

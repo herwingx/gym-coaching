@@ -1,14 +1,20 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Badge } from '@/components/ui/badge'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Separator } from '@/components/ui/separator'
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
 import {
   Plus,
   ClipboardList,
@@ -17,12 +23,15 @@ import {
   Lightbulb,
   Loader2,
   Dumbbell,
-} from 'lucide-react'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { FieldGroup, Field, FieldLabel } from '@/components/ui/field'
-import { saveRoutineFromBuilder, updateRoutineFromBuilder } from '@/app/actions/routine-builder'
-import { getExercisesForSelector } from '@/app/actions/exercises'
-import { toast } from 'sonner'
+} from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { FieldGroup, Field, FieldLabel } from "@/components/ui/field";
+import {
+  saveRoutineFromBuilder,
+  updateRoutineFromBuilder,
+} from "@/app/actions/routine-builder";
+import { getExercisesForSelector } from "@/app/actions/exercises";
+import { toast } from "sonner";
 
 import {
   DndContext,
@@ -32,47 +41,55 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
-} from '@dnd-kit/core'
+} from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
-} from '@dnd-kit/sortable'
-import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
+} from "@dnd-kit/sortable";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 
-import { ExerciseSelectorDrawer } from '@/components/admin/exercises/exercise-selector-drawer'
-import { SortableExercise } from '@/components/admin/exercises/sortable-exercise'
-import { Exercise } from '@/lib/types'
-import { cn } from '@/lib/utils'
+import { ExerciseSelectorDrawer } from "@/components/admin/exercises/exercise-selector-drawer";
+import { SortableExercise } from "@/components/admin/exercises/sortable-exercise";
+import { Exercise } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 interface DayExercise {
-  id: string
-  exerciseId: string
-  sets: number
-  reps: string
-  restSeconds: number
+  id: string;
+  exerciseId: string;
+  sets: number;
+  reps: string;
+  restSeconds: number;
 }
 
 interface Day {
-  id: string
-  dayNumber: number
-  name: string
-  isRestDay: boolean
-  exercises: DayExercise[]
+  id: string;
+  dayNumber: number;
+  name: string;
+  isRestDay: boolean;
+  exercises: DayExercise[];
 }
 
-const DAY_NAMES = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+const DAY_NAMES = [
+  "Lunes",
+  "Martes",
+  "Miércoles",
+  "Jueves",
+  "Viernes",
+  "Sábado",
+  "Domingo",
+];
 
 export interface RoutineBuilderClientProps {
-  exercises?: Exercise[]
-  routineId?: string
+  exercises?: Exercise[];
+  routineId?: string;
   initialData?: {
-    name: string
-    description: string
-    durationWeeks: number
-    days: Day[]
-  }
+    name: string;
+    description: string;
+    durationWeeks: number;
+    days: Day[];
+  };
 }
 
 export function RoutineBuilderClient({
@@ -80,13 +97,19 @@ export function RoutineBuilderClient({
   routineId,
   initialData,
 }: RoutineBuilderClientProps) {
-  const router = useRouter()
-  const [exercises, setExercises] = useState<Exercise[]>(initialExercises)
-  const [loadingExercises, setLoadingExercises] = useState(initialExercises.length === 0)
-  
-  const [name, setName] = useState(initialData?.name ?? '')
-  const [description, setDescription] = useState(initialData?.description ?? '')
-  const [durationWeeks, setDurationWeeks] = useState(initialData?.durationWeeks ?? 4)
+  const router = useRouter();
+  const [exercises, setExercises] = useState<Exercise[]>(initialExercises);
+  const [loadingExercises, setLoadingExercises] = useState(
+    initialExercises.length === 0,
+  );
+
+  const [name, setName] = useState(initialData?.name ?? "");
+  const [description, setDescription] = useState(
+    initialData?.description ?? "",
+  );
+  const [durationWeeks, setDurationWeeks] = useState(
+    initialData?.durationWeeks ?? 4,
+  );
   const [days, setDays] = useState<Day[]>(
     initialData?.days ??
       DAY_NAMES.map((name, i) => ({
@@ -96,25 +119,27 @@ export function RoutineBuilderClient({
         isRestDay: [5, 6].includes(i),
         exercises: [],
       })),
-  )
-  const [saving, setSaving] = useState(false)
+  );
+  const [saving, setSaving] = useState(false);
 
-  const [selectorOpen, setSelectorOpen] = useState(false)
-  const [activeDayId, setActiveDayId] = useState<string | null>(null)
+  const [selectorOpen, setSelectorOpen] = useState(false);
+  const [activeDayId, setActiveDayId] = useState<string | null>(null);
 
   // Fetch exercises on client if not provided
   useEffect(() => {
     if (initialExercises.length === 0) {
-      getExercisesForSelector().then((data) => {
-        setExercises(data as Exercise[])
-        setLoadingExercises(false)
-      }).catch(err => {
-        console.error('Error loading exercises', err)
-        toast.error('No pudimos cargar el catálogo de ejercicios.')
-        setLoadingExercises(false)
-      })
+      getExercisesForSelector()
+        .then((data) => {
+          setExercises(data as Exercise[]);
+          setLoadingExercises(false);
+        })
+        .catch((err) => {
+          console.error("Error loading exercises", err);
+          toast.error("No pudimos cargar el catálogo de ejercicios.");
+          setLoadingExercises(false);
+        });
     }
-  }, [initialExercises])
+  }, [initialExercises]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -123,31 +148,34 @@ export function RoutineBuilderClient({
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
-  )
+  );
 
   const handleDragEnd = (event: DragEndEvent, dayId: string) => {
-    const { active, over } = event
+    const { active, over } = event;
     if (over && active.id !== over.id) {
       setDays((prev) =>
         prev.map((d) => {
           if (d.id === dayId) {
-            const oldIndex = d.exercises.findIndex((ex) => ex.id === active.id)
-            const newIndex = d.exercises.findIndex((ex) => ex.id === over.id)
-            return { ...d, exercises: arrayMove(d.exercises, oldIndex, newIndex) }
+            const oldIndex = d.exercises.findIndex((ex) => ex.id === active.id);
+            const newIndex = d.exercises.findIndex((ex) => ex.id === over.id);
+            return {
+              ...d,
+              exercises: arrayMove(d.exercises, oldIndex, newIndex),
+            };
           }
-          return d
+          return d;
         }),
-      )
+      );
     }
-  }
+  };
 
   const handleOpenSelector = (dayId: string) => {
-    setActiveDayId(dayId)
-    setSelectorOpen(true)
-  }
+    setActiveDayId(dayId);
+    setSelectorOpen(true);
+  };
 
   const handleSelectExercises = (selectedIds: string[]) => {
-    if (!activeDayId) return
+    if (!activeDayId) return;
     setDays((prev) =>
       prev.map((d) =>
         d.id === activeDayId
@@ -159,34 +187,39 @@ export function RoutineBuilderClient({
                   id: crypto.randomUUID(),
                   exerciseId: exId,
                   sets: 3,
-                  reps: '',
+                  reps: "",
                   restSeconds: 60,
                 })),
               ],
             }
           : d,
       ),
-    )
-    setSelectorOpen(false)
-    setActiveDayId(null)
-  }
+    );
+    setSelectorOpen(false);
+    setActiveDayId(null);
+  };
 
-  const setDayKind = (dayId: string, kind: 'train' | 'rest') => {
+  const setDayKind = (dayId: string, kind: "train" | "rest") => {
     setDays((prev) =>
       prev.map((d) => {
-        if (d.id !== dayId) return d
-        const nextRest = kind === 'rest'
-        if (d.isRestDay === nextRest) return d
+        if (d.id !== dayId) return d;
+        const nextRest = kind === "rest";
+        if (d.isRestDay === nextRest) return d;
         return {
           ...d,
           isRestDay: nextRest,
           exercises: nextRest ? [] : d.exercises,
-        }
+        };
       }),
-    )
-  }
+    );
+  };
 
-  const updateExercise = (dayId: string, exId: string, field: string, value: string | number) => {
+  const updateExercise = (
+    dayId: string,
+    exId: string,
+    field: string,
+    value: string | number,
+  ) => {
     setDays(
       days.map((d) =>
         d.id === dayId
@@ -198,33 +231,39 @@ export function RoutineBuilderClient({
             }
           : d,
       ),
-    )
-  }
+    );
+  };
 
   const removeExercise = (dayId: string, exId: string) => {
     setDays(
       days.map((d) =>
-        d.id === dayId ? { ...d, exercises: d.exercises.filter((ex) => ex.id !== exId) } : d,
+        d.id === dayId
+          ? { ...d, exercises: d.exercises.filter((ex) => ex.id !== exId) }
+          : d,
       ),
-    )
-  }
+    );
+  };
 
   const handleSave = async () => {
     if (!name.trim()) {
-      toast.error('Escribe un nombre para la rutina.')
-      return
+      toast.error("Escribe un nombre para la rutina.");
+      return;
     }
 
-    const daysWithExercises = days.filter((d) => !d.isRestDay && d.exercises.length > 0)
+    const daysWithExercises = days.filter(
+      (d) => !d.isRestDay && d.exercises.length > 0,
+    );
     const hasEmptyReps = daysWithExercises.some((d) =>
       d.exercises.some((ex) => !ex.reps?.trim()),
-    )
+    );
     if (hasEmptyReps) {
-      toast.error('Completa las reps o notas de cada ejercicio antes de guardar.')
-      return
+      toast.error(
+        "Completa las reps o notas de cada ejercicio antes de guardar.",
+      );
+      return;
     }
 
-    setSaving(true)
+    setSaving(true);
     try {
       const payload = {
         name: name.trim(),
@@ -242,26 +281,26 @@ export function RoutineBuilderClient({
             rest_seconds: ex.restSeconds,
           })),
         })),
-      }
+      };
 
       if (routineId) {
-        await updateRoutineFromBuilder(routineId, payload)
-        toast.success('Rutina actualizada.')
-        router.push(`/admin/routines/${routineId}`)
+        await updateRoutineFromBuilder(routineId, payload);
+        toast.success("Rutina actualizada.");
+        router.push(`/admin/routines/${routineId}`);
       } else {
-        const id = await saveRoutineFromBuilder(payload)
-        toast.success('Rutina creada.')
-        router.push(`/admin/routines/${id}`)
+        const id = await saveRoutineFromBuilder(payload);
+        toast.success("Rutina creada.");
+        router.push(`/admin/routines/${id}`);
       }
     } catch {
-      toast.error('No pudimos guardar. Revisa los datos e inténtalo de nuevo.')
+      toast.error("No pudimos guardar. Revisa los datos e inténtalo de nuevo.");
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
-  const trainingDays = days.filter((d) => !d.isRestDay).length
-  const restDays = days.filter((d) => d.isRestDay).length
+  const trainingDays = days.filter((d) => !d.isRestDay).length;
+  const restDays = days.filter((d) => d.isRestDay).length;
 
   return (
     <div className="mx-auto flex h-full w-full max-w-3xl flex-col gap-8 pb-28 lg:pb-10">
@@ -269,9 +308,12 @@ export function RoutineBuilderClient({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 px-4">
           <Card className="w-full max-w-md rounded-xl border shadow-sm">
             <CardHeader>
-              <CardTitle className="text-destructive">Sin ejercicios en la base</CardTitle>
+              <CardTitle className="text-destructive">
+                Sin ejercicios en la base
+              </CardTitle>
               <CardDescription>
-                Ejecuta el seed de ejercicios o revisa la tabla <code className="text-xs">exercises</code>.
+                Ejecuta el seed de ejercicios o revisa la tabla{" "}
+                <code className="text-xs">exercises</code>.
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
@@ -279,7 +321,7 @@ export function RoutineBuilderClient({
                 type="button"
                 variant="secondary"
                 className="w-full"
-                onClick={() => router.push('/admin/routines')}
+                onClick={() => router.push("/admin/routines")}
               >
                 Volver a rutinas
               </Button>
@@ -294,8 +336,9 @@ export function RoutineBuilderClient({
           Flujo rápido
         </AlertTitle>
         <AlertDescription className="text-sm text-muted-foreground">
-          1) Nombre y duración → 2) Marca días de entreno o descanso → 3) Añade ejercicios por día,
-          arrastra para ordenar → 4) Indica series, reps y descanso → Guardar.
+          1) Nombre y duración → 2) Marca días de entreno o descanso → 3) Añade
+          ejercicios por día, arrastra para ordenar → 4) Indica series, reps y
+          descanso → Guardar.
         </AlertDescription>
       </Alert>
 
@@ -343,7 +386,9 @@ export function RoutineBuilderClient({
               />
             </Field>
             <Field className="md:col-span-12">
-              <FieldLabel htmlFor="routine-desc">Descripción (opcional)</FieldLabel>
+              <FieldLabel htmlFor="routine-desc">
+                Descripción (opcional)
+              </FieldLabel>
               <Textarea
                 id="routine-desc"
                 value={description}
@@ -362,15 +407,22 @@ export function RoutineBuilderClient({
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <Sparkles className="size-4 text-muted-foreground" aria-hidden />
-              <h2 className="text-lg font-semibold tracking-tight sm:text-xl">Tu semana</h2>
+              <h2 className="text-lg font-semibold tracking-tight sm:text-xl">
+                Tu semana
+              </h2>
             </div>
             <p className="text-sm text-muted-foreground">
-              Activa o desactiva cada día. Solo los días de entreno llevan ejercicios.
+              Activa o desactiva cada día. Solo los días de entreno llevan
+              ejercicios.
             </p>
           </div>
-          <Badge variant="secondary" className="w-fit rounded-full px-3 py-1 text-xs font-medium">
-            {trainingDays} entreno{trainingDays !== 1 ? 's' : ''} · {restDays} descanso
-            {restDays !== 1 ? 's' : ''}
+          <Badge
+            variant="secondary"
+            className="w-fit rounded-full px-3 py-1 text-xs font-medium"
+          >
+            {trainingDays} entreno{trainingDays !== 1 ? "s" : ""} · {restDays}{" "}
+            descanso
+            {restDays !== 1 ? "s" : ""}
           </Badge>
         </div>
 
@@ -378,20 +430,20 @@ export function RoutineBuilderClient({
 
         <div className="flex flex-col gap-5">
           {days.map((day) => {
-            const selectorActive = selectorOpen && activeDayId === day.id
+            const selectorActive = selectorOpen && activeDayId === day.id;
             return (
               <Card
                 key={day.id}
                 className={cn(
-                  'overflow-hidden rounded-xl border shadow-sm transition-[border-color,box-shadow,background-color] duration-200',
+                  "overflow-hidden rounded-xl border shadow-sm transition-[border-color,box-shadow,background-color] duration-200",
                   day.isRestDay
-                    ? 'border-dashed border-muted-foreground/25 bg-muted/15'
-                    : 'border-border bg-card',
+                    ? "border-dashed border-muted-foreground/25 bg-muted/15"
+                    : "border-border bg-card",
                   !day.isRestDay &&
-                    'hover:border-primary/25 hover:shadow-md focus-within:border-primary/30',
+                    "hover:border-primary/25 hover:shadow-md focus-within:border-primary/30",
                   !day.isRestDay &&
                     selectorActive &&
-                    'border-primary/40 shadow-md ring-2 ring-ring/40',
+                    "border-primary/40 shadow-md ring-2 ring-ring/40",
                 )}
               >
                 <CardHeader className="flex flex-col gap-4 px-5 pb-4 pt-5 sm:px-6">
@@ -399,21 +451,27 @@ export function RoutineBuilderClient({
                     <div className="flex items-center gap-4">
                       <div
                         className={cn(
-                          'flex size-11 shrink-0 items-center justify-center rounded-xl text-sm font-semibold tabular-nums',
+                          "flex size-11 shrink-0 items-center justify-center rounded-xl text-sm font-semibold tabular-nums",
                           day.isRestDay
-                            ? 'bg-muted text-muted-foreground'
-                            : 'bg-primary text-primary-foreground',
+                            ? "bg-muted text-muted-foreground"
+                            : "bg-primary text-primary-foreground",
                         )}
                         aria-hidden
                       >
-                        {day.isRestDay ? <Moon className="size-5" /> : day.dayNumber}
+                        {day.isRestDay ? (
+                          <Moon className="size-5" />
+                        ) : (
+                          day.dayNumber
+                        )}
                       </div>
                       <div className="min-w-0">
-                        <CardTitle className="text-base font-semibold sm:text-lg">{day.name}</CardTitle>
+                        <CardTitle className="text-base font-semibold sm:text-lg">
+                          {day.name}
+                        </CardTitle>
                         <CardDescription className="text-xs sm:text-sm">
                           {day.isRestDay
-                            ? 'Día de recuperación — sin ejercicios.'
-                            : 'Construye la sesión: ordena con el asa ⋮⋮ (escritorio).'}
+                            ? "Día de recuperación — sin ejercicios."
+                            : "Construye la sesión: ordena con el asa ⋮⋮ (escritorio)."}
                         </CardDescription>
                       </div>
                     </div>
@@ -426,9 +484,10 @@ export function RoutineBuilderClient({
                       </p>
                       <ToggleGroup
                         type="single"
-                        value={day.isRestDay ? 'rest' : 'train'}
+                        value={day.isRestDay ? "rest" : "train"}
                         onValueChange={(v) => {
-                          if (v === 'train' || v === 'rest') setDayKind(day.id, v)
+                          if (v === "train" || v === "rest")
+                            setDayKind(day.id, v);
                         }}
                         variant="outline"
                         size="sm"
@@ -439,25 +498,31 @@ export function RoutineBuilderClient({
                         <ToggleGroupItem
                           value="train"
                           className={cn(
-                            'min-h-10 flex-1 gap-2 rounded-lg border-0 px-3 py-2 text-xs font-semibold shadow-none sm:flex-initial sm:text-sm',
-                            'data-[state=on]:bg-primary data-[state=on]:text-primary-foreground',
-                            'data-[state=off]:text-muted-foreground',
+                            "min-h-10 flex-1 gap-2 rounded-lg border-0 px-3 py-2 text-xs font-semibold shadow-none sm:flex-initial sm:text-sm",
+                            "data-[state=on]:bg-primary data-[state=on]:text-primary-foreground",
+                            "data-[state=off]:text-muted-foreground",
                           )}
                           aria-label="Marcar como día de entreno"
                         >
-                          <Dumbbell className="opacity-90" data-icon="inline-start" />
+                          <Dumbbell
+                            className="opacity-90"
+                            data-icon="inline-start"
+                          />
                           Entreno
                         </ToggleGroupItem>
                         <ToggleGroupItem
                           value="rest"
                           className={cn(
-                            'min-h-10 flex-1 gap-2 rounded-lg border-0 px-3 py-2 text-xs font-semibold shadow-none sm:flex-initial sm:text-sm',
-                            'data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:ring-2 data-[state=on]:ring-ring/60',
-                            'data-[state=off]:text-muted-foreground',
+                            "min-h-10 flex-1 gap-2 rounded-lg border-0 px-3 py-2 text-xs font-semibold shadow-none sm:flex-initial sm:text-sm",
+                            "data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:ring-2 data-[state=on]:ring-ring/60",
+                            "data-[state=off]:text-muted-foreground",
                           )}
                           aria-label="Marcar como día de descanso"
                         >
-                          <Moon className="opacity-90" data-icon="inline-start" />
+                          <Moon
+                            className="opacity-90"
+                            data-icon="inline-start"
+                          />
                           Descanso
                         </ToggleGroupItem>
                       </ToggleGroup>
@@ -470,9 +535,11 @@ export function RoutineBuilderClient({
                     {day.exercises.length === 0 && (
                       <div className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-6 text-center">
                         <p className="text-sm text-muted-foreground">
-                          Aún no hay ejercicios este día. Pulsa{' '}
-                          <span className="font-medium text-foreground">Añadir ejercicios</span> y elige
-                          del catálogo.
+                          Aún no hay ejercicios este día. Pulsa{" "}
+                          <span className="font-medium text-foreground">
+                            Añadir ejercicios
+                          </span>{" "}
+                          y elige del catálogo.
                         </p>
                       </div>
                     )}
@@ -490,7 +557,9 @@ export function RoutineBuilderClient({
                         >
                           <div className="flex flex-col gap-3">
                             {day.exercises.map((ex) => {
-                              const exerciseInfo = exercises.find((e) => e.id === ex.exerciseId)
+                              const exerciseInfo = exercises.find(
+                                (e) => e.id === ex.exerciseId,
+                              );
                               return (
                                 <SortableExercise
                                   key={ex.id}
@@ -501,10 +570,12 @@ export function RoutineBuilderClient({
                                   reps={ex.reps}
                                   restSeconds={ex.restSeconds}
                                   exerciseInfo={exerciseInfo}
-                                  onUpdate={(field, value) => updateExercise(day.id, ex.id, field, value)}
+                                  onUpdate={(field, value) =>
+                                    updateExercise(day.id, ex.id, field, value)
+                                  }
                                   onRemove={() => removeExercise(day.id, ex.id)}
                                 />
-                              )
+                              );
                             })}
                           </div>
                         </SortableContext>
@@ -517,29 +588,31 @@ export function RoutineBuilderClient({
                       size="lg"
                       onClick={() => handleOpenSelector(day.id)}
                       className={cn(
-                        'h-12 w-full rounded-xl border-2 border-dashed text-sm font-medium',
+                        "h-12 w-full rounded-xl border-2 border-dashed text-sm font-medium",
                         selectorActive
-                          ? 'border-primary bg-primary/5 text-primary'
-                          : 'border-muted-foreground/30 hover:border-primary/40 hover:bg-accent/50',
+                          ? "border-primary bg-primary/5 text-primary"
+                          : "border-muted-foreground/30 hover:border-primary/40 hover:bg-accent/50",
                       )}
                     >
                       <Plus className="size-4 shrink-0" />
-                      {selectorActive ? 'Catálogo abierto — selecciona ejercicios' : 'Añadir ejercicios'}
+                      {selectorActive
+                        ? "Catálogo abierto — selecciona ejercicios"
+                        : "Añadir ejercicios"}
                     </Button>
                   </CardContent>
                 )}
               </Card>
-            )
+            );
           })}
         </div>
       </div>
 
       <div
         className={cn(
-          'fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95',
-          'backdrop-blur-sm',
-          'px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6',
-          'lg:static lg:z-auto lg:border-0 lg:bg-transparent lg:px-0 lg:py-0 lg:backdrop-blur-none',
+          "fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95",
+          "backdrop-blur-sm",
+          "px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6",
+          "lg:static lg:z-auto lg:border-0 lg:bg-transparent lg:px-0 lg:py-0 lg:backdrop-blur-none",
         )}
       >
         <div className="mx-auto w-full max-w-3xl lg:max-w-none">
@@ -553,12 +626,12 @@ export function RoutineBuilderClient({
             {saving ? (
               <span className="flex items-center gap-2">
                 <Loader2 className="size-4 animate-spin" aria-hidden />
-                {routineId ? 'Guardando…' : 'Creando rutina…'}
+                {routineId ? "Guardando…" : "Creando rutina…"}
               </span>
             ) : routineId ? (
-              'Guardar cambios'
+              "Guardar cambios"
             ) : (
-              'Guardar rutina'
+              "Guardar rutina"
             )}
           </Button>
         </div>
@@ -567,15 +640,15 @@ export function RoutineBuilderClient({
       <ExerciseSelectorDrawer
         open={selectorOpen}
         onOpenChange={(open) => {
-          setSelectorOpen(open)
-          if (!open) setActiveDayId(null)
+          setSelectorOpen(open);
+          if (!open) setActiveDayId(null);
         }}
         exercises={exercises}
         onSelectExercises={handleSelectExercises}
         loading={loadingExercises}
       />
     </div>
-  )
+  );
 }
 
-export default RoutineBuilderClient
+export default RoutineBuilderClient;

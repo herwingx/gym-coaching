@@ -1,24 +1,24 @@
-import { getAuthUser } from '@/lib/auth-utils'
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { Button } from '@/components/ui/button'
-import Link from 'next/link'
-import { AdminPageHeader } from '@/components/admin/admin-page-header'
-import { RoutineBuilderLazy } from './routine-builder-lazy'
+import { getAuthUser } from "@/lib/auth-utils";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { RoutineBuilderLazy } from "./routine-builder-lazy";
 
 export default async function BuilderPage() {
-  const user = await getAuthUser()
-  if (!user) redirect('/auth/login')
+  const user = await getAuthUser();
+  if (!user) redirect("/auth/login");
 
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
 
-  if (profile?.role !== 'admin') redirect('/client/dashboard')
+  if (profile?.role !== "admin") redirect("/client/dashboard");
 
   return (
     <div className="min-h-dvh bg-background">
@@ -34,5 +34,5 @@ export default async function BuilderPage() {
         <RoutineBuilderLazy />
       </main>
     </div>
-  )
+  );
 }

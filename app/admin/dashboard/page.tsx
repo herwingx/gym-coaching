@@ -1,23 +1,30 @@
-import { getAuthData } from '@/lib/auth-utils'
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
-import { CreditCard, Dumbbell, Library, Ticket, UserPlus, Users } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { CoachOverview } from './coach-overview'
-import { AdminPageHeader } from '@/components/admin/admin-page-header'
+import { getAuthData } from "@/lib/auth-utils";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import {
+  CreditCard,
+  Dumbbell,
+  Library,
+  Ticket,
+  UserPlus,
+  Users,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CoachOverview } from "./coach-overview";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 
 export default async function AdminDashboard() {
-  const { user, role, profile } = await getAuthData()
+  const { user, role, profile } = await getAuthData();
 
-  if (!user || role !== 'admin') {
-    redirect('/auth/login')
+  if (!user || role !== "admin") {
+    redirect("/auth/login");
   }
 
   const coachFirstName =
-    profile?.full_name?.split(/\s+/).filter(Boolean)[0] || 'Coach'
-  const todayLabel = format(new Date(), "EEEE d MMM", { locale: es })
+    profile?.full_name?.split(/\s+/).filter(Boolean)[0] || "Coach";
+  const todayLabel = format(new Date(), "EEEE d MMM", { locale: es });
 
   return (
     <div className="min-h-dvh bg-background">
@@ -73,5 +80,5 @@ export default async function AdminDashboard() {
         <CoachOverview />
       </main>
     </div>
-  )
+  );
 }

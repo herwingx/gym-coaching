@@ -1,10 +1,10 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -12,38 +12,38 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { Plus } from 'lucide-react'
-import { toast } from 'sonner'
-import { addMeasurement } from '@/app/actions/measurements'
+} from "@/components/ui/dialog";
+import { Plus } from "lucide-react";
+import { toast } from "sonner";
+import { addMeasurement } from "@/app/actions/measurements";
 
 export function AddMeasurementForm() {
-  const router = useRouter()
-  const [open, setOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [weight, setWeight] = useState('')
-  const [bodyFat, setBodyFat] = useState('')
-  const [waist, setWaist] = useState('')
-  const [hip, setHip] = useState('')
-  const [chest, setChest] = useState('')
-  const [arm, setArm] = useState('')
-  const [thigh, setThigh] = useState('')
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [weight, setWeight] = useState("");
+  const [bodyFat, setBodyFat] = useState("");
+  const [waist, setWaist] = useState("");
+  const [hip, setHip] = useState("");
+  const [chest, setChest] = useState("");
+  const [arm, setArm] = useState("");
+  const [thigh, setThigh] = useState("");
 
   const parseFiniteNumberOrUndefined = (raw: string) => {
-    if (!raw) return undefined
-    const n = Number.parseFloat(raw)
-    return Number.isFinite(n) ? n : undefined
-  }
+    if (!raw) return undefined;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : undefined;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const w = parseFiniteNumberOrUndefined(weight)
-    const bf = parseFiniteNumberOrUndefined(bodyFat)
-    const wc = parseFiniteNumberOrUndefined(waist)
-    const h = parseFiniteNumberOrUndefined(hip)
-    const c = parseFiniteNumberOrUndefined(chest)
-    const a = parseFiniteNumberOrUndefined(arm)
-    const t = parseFiniteNumberOrUndefined(thigh)
+    e.preventDefault();
+    const w = parseFiniteNumberOrUndefined(weight);
+    const bf = parseFiniteNumberOrUndefined(bodyFat);
+    const wc = parseFiniteNumberOrUndefined(waist);
+    const h = parseFiniteNumberOrUndefined(hip);
+    const c = parseFiniteNumberOrUndefined(chest);
+    const a = parseFiniteNumberOrUndefined(arm);
+    const t = parseFiniteNumberOrUndefined(thigh);
 
     if (
       w == null &&
@@ -54,12 +54,12 @@ export function AddMeasurementForm() {
       a == null &&
       t == null
     ) {
-      toast.error('Ingresa al menos una medida (peso, grasa, cintura, etc.)')
-      return
+      toast.error("Ingresa al menos una medida (peso, grasa, cintura, etc.)");
+      return;
     }
 
-    setLoading(true)
-    let result: Awaited<ReturnType<typeof addMeasurement>>
+    setLoading(true);
+    let result: Awaited<ReturnType<typeof addMeasurement>>;
     try {
       result = await addMeasurement({
         weight: w,
@@ -69,30 +69,32 @@ export function AddMeasurementForm() {
         chest_cm: c,
         arm_cm: a,
         thigh_cm: t,
-      })
+      });
     } catch (e) {
-      console.error(e)
-      toast.error('Error inesperado al guardar. Intenta de nuevo.')
-      return
+      console.error(e);
+      toast.error("Error inesperado al guardar. Intenta de nuevo.");
+      return;
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
 
     if (result.success) {
-      toast.success('¡Medida registrada correctamente!')
-      setOpen(false)
-      setWeight('')
-      setBodyFat('')
-      setWaist('')
-      setHip('')
-      setChest('')
-      setArm('')
-      setThigh('')
-      router.refresh()
+      toast.success("¡Medida registrada correctamente!");
+      setOpen(false);
+      setWeight("");
+      setBodyFat("");
+      setWaist("");
+      setHip("");
+      setChest("");
+      setArm("");
+      setThigh("");
+      router.refresh();
     } else {
-      toast.error(result.error || 'No pudimos registrar la medida. Intenta de nuevo.')
+      toast.error(
+        result.error || "No pudimos registrar la medida. Intenta de nuevo.",
+      );
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -106,7 +108,8 @@ export function AddMeasurementForm() {
         <DialogHeader>
           <DialogTitle>Registrar medida</DialogTitle>
           <DialogDescription>
-            Ingresa las medidas que quieras registrar. Solo son obligatorias las que completes.
+            Ingresa las medidas que quieras registrar. Solo son obligatorias las
+            que completes.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -198,10 +201,10 @@ export function AddMeasurementForm() {
             </div>
           </div>
           <Button type="submit" disabled={loading} className="w-full">
-            {loading ? 'Guardando...' : 'Guardar'}
+            {loading ? "Guardando..." : "Guardar"}
           </Button>
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

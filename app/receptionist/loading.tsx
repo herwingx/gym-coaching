@@ -1,5 +1,5 @@
-import { ReceptionistDashboardSkeleton } from '@/components/skeletons'
+import { ReceptionistDashboardSkeleton } from "@/components/skeletons";
 
 export default function ReceptionistLoading() {
-  return <ReceptionistDashboardSkeleton />
+  return <ReceptionistDashboardSkeleton />;
 }

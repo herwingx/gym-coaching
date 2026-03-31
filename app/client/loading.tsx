@@ -1,5 +1,5 @@
-import { ClientPageSkeleton } from '@/components/skeletons'
+import { ClientPageSkeleton } from "@/components/skeletons";
 
 export default function ClientLoading() {
-  return <ClientPageSkeleton />
+  return <ClientPageSkeleton />;
 }

@@ -1,22 +1,27 @@
-import { getAuthUser } from '@/lib/auth-utils'
-import { redirect } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { getAuthUser } from "@/lib/auth-utils";
+import { redirect } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 export default async function ReceptionistClientsPage() {
-  const user = await getAuthUser()
+  const user = await getAuthUser();
 
   if (!user) {
-    redirect('/auth/login')
+    redirect("/auth/login");
   }
 
   return (
     <div className="min-h-dvh bg-background">
       <header className="border-b">
         <div className="container flex items-center gap-4 py-4">
-          <Button variant="ghost" size="icon" asChild aria-label="Volver al dashboard">
+          <Button
+            variant="ghost"
+            size="icon"
+            asChild
+            aria-label="Volver al dashboard"
+          >
             <Link href="/receptionist/dashboard">
               <ArrowLeft className="size-4" />
             </Link>
@@ -38,5 +43,5 @@ export default async function ReceptionistClientsPage() {
         </Card>
       </main>
     </div>
-  )
+  );
 }

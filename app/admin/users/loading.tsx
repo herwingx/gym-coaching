@@ -1,5 +1,5 @@
-import { Skeleton } from '@/components/ui/skeleton'
-import { TableSkeleton } from '@/components/skeletons'
+import { Skeleton } from "@/components/ui/skeleton";
+import { TableSkeleton } from "@/components/skeletons";
 
 export default function UsersLoading() {
   return (
@@ -19,5 +19,5 @@ export default function UsersLoading() {
         <TableSkeleton rows={8} />
       </main>
     </div>
-  )
+  );
 }

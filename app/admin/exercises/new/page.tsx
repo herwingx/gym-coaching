@@ -1,17 +1,27 @@
-import { getAuthUser } from '@/lib/auth-utils'
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { AdminPageHeader } from '@/components/admin/admin-page-header'
-import { NewExerciseForm } from './new-exercise-form'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { getAuthUser } from "@/lib/auth-utils";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { NewExerciseForm } from "./new-exercise-form";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default async function NewExercisePage() {
-  const user = await getAuthUser()
-  if (!user) redirect('/auth/login')
+  const user = await getAuthUser();
+  if (!user) redirect("/auth/login");
 
-  const supabase = await createClient()
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') redirect('/client/dashboard')
+  const supabase = await createClient();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+  if (profile?.role !== "admin") redirect("/client/dashboard");
 
   return (
     <div className="min-h-dvh bg-background">
@@ -26,7 +36,9 @@ export default async function NewExercisePage() {
         <Card className="border-muted/70">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg">Datos del movimiento</CardTitle>
-            <CardDescription>Mínimo: nombre y grupo muscular. URLs de media son opcionales.</CardDescription>
+            <CardDescription>
+              Mínimo: nombre y grupo muscular. URLs de media son opcionales.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <NewExerciseForm />
@@ -34,5 +46,5 @@ export default async function NewExercisePage() {
         </Card>
       </main>
     </div>
-  )
+  );
 }

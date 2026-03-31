@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function KpiTileSkeleton() {
   return (
@@ -12,12 +12,16 @@ function KpiTileSkeleton() {
         <Skeleton className="h-3 w-32" />
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export default function AdminRoutinesLoading() {
   return (
-    <div className="bg-background" aria-busy="true" aria-label="Cargando rutinas">
+    <div
+      className="bg-background"
+      aria-busy="true"
+      aria-label="Cargando rutinas"
+    >
       <header className="border-b">
         <div className="container flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-2">
@@ -37,7 +41,10 @@ export default function AdminRoutinesLoading() {
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i} className="overflow-hidden border-muted/70 shadow-none">
+            <Card
+              key={i}
+              className="overflow-hidden border-muted/70 shadow-none"
+            >
               <CardHeader className="space-y-2 pb-2">
                 <div className="flex items-start justify-between gap-3">
                   <Skeleton className="h-6 w-48" />
@@ -62,5 +69,5 @@ export default function AdminRoutinesLoading() {
         </div>
       </main>
     </div>
-  )
+  );
 }
