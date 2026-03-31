@@ -27,7 +27,7 @@ export default async function ReceptionistDashboard() {
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Rodrigo Urbina - Gestión de Acceso</p>
           </div>
           <Button variant="outline" size="sm" className="w-full sm:w-auto h-10 font-bold uppercase tracking-tighter border-border/50 hover:bg-muted/50" asChild>
-            <Link href="/auth/logout">Cerrar Sesión</Link>
+            <Link href="/auth/logout" prefetch={false}>Cerrar Sesión</Link>
           </Button>
         </div>
       </header>

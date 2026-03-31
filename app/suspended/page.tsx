@@ -46,7 +46,7 @@ export default function SuspendedPage() {
             </Button>
             
             <Button variant="outline" className="w-full gap-2 h-12 text-sm font-semibold" asChild>
-              <Link href="/auth/logout">
+              <Link href="/auth/logout" prefetch={false}>
                 <LogOut className="size-4" />
                 Cerrar Sesión
               </Link>
