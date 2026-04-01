@@ -84,6 +84,14 @@ export function LoginForm({
         msg.toLowerCase().includes('invalid') && msg.toLowerCase().includes('credentials')
       const isRateLimit =
         msg.toLowerCase().includes('rate limit') || msg.includes('429')
+      const isUnverified = msg.toLowerCase().includes('email not confirmed')
+
+      if (isUnverified) {
+        toast.error('Tu cuenta aún no está verificada.')
+        window.location.href = `/auth/verify-otp?email=${encodeURIComponent(email)}`
+        return
+      }
+
       toast.error(
         isInvalidCreds
           ? 'Correo o contraseña incorrectos. Verifica tus datos.'

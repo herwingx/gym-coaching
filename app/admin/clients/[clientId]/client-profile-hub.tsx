@@ -176,12 +176,28 @@ function exerciseGroupsFromLogs(logs: SessionExerciseLogRow[]) {
 function formatSetLine(log: SessionExerciseLogRow) {
   const w = log.weight_kg != null ? `${log.weight_kg} kg` : "—";
   const r = log.reps != null ? `${log.reps} rep.` : "—";
-  const bits = [
-    log.is_pr ? "PR" : null,
-    log.is_warmup ? "Calentamiento" : null,
-  ].filter(Boolean);
-  const tag = bits.length ? ` · ${bits.join(" · ")}` : "";
-  return `Serie ${log.set_number}: ${w} × ${r}${tag}`;
+  
+  return (
+    <div className="flex items-center gap-2 py-1 border-b border-border/5 last:border-0">
+      <span className="text-[10px] font-black tabular-nums bg-muted/50 w-5 h-5 flex items-center justify-center rounded-md shrink-0">
+        {log.set_number}
+      </span>
+      <div className="flex-1 flex items-center gap-2 overflow-hidden">
+        <span className="text-[11px] font-bold text-foreground shrink-0">{w}</span>
+        <span className="text-muted-foreground/30 text-[10px]">×</span>
+        <span className="text-[11px] font-bold text-foreground shrink-0">{r}</span>
+        
+        <div className="flex gap-1 ml-auto overflow-hidden">
+          {log.is_pr && (
+            <Badge variant="secondary" className="h-4 px-1 text-[8px] font-black bg-primary/20 text-primary border-primary/20 shrink-0">PR</Badge>
+          )}
+          {log.is_warmup && (
+            <Badge variant="outline" className="h-4 px-1 text-[8px] font-black border-orange-500/30 text-orange-600/80 shrink-0">CAL</Badge>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 const PROGRESS_VIEWPORT = 12;
@@ -349,59 +365,59 @@ export function ClientProfileHub({
         </div>
 
         <TabsContent value="summary" className="flex flex-col gap-6 pt-2">
-          <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-            <div className="flex flex-col justify-between gap-3 rounded-[1.5rem] border border-border/50 bg-card/60 p-5 shadow-sm backdrop-blur-xl transition-all hover:shadow-md">
-              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground uppercase font-black tracking-widest opacity-80">
-                <ArrowUpRight className="size-4" />
+          <div className="grid gap-3 grid-cols-2 lg:grid-cols-4 sm:gap-4">
+            <div className="flex flex-col justify-between gap-2.5 rounded-[1.5rem] border border-border/50 bg-card/60 p-4 sm:p-5 shadow-sm backdrop-blur-xl transition-all hover:shadow-md">
+              <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-muted-foreground uppercase font-black tracking-widest opacity-80">
+                <ArrowUpRight className="size-3.5 sm:size-4" />
                 Última sesión
               </div>
-              <div className="flex flex-col gap-1">
-                <div className="text-2xl font-bold tracking-tight">
+              <div className="flex flex-col gap-0.5 sm:gap-1">
+                <div className="text-xl sm:text-2xl font-bold tracking-tight">
                   {formatRelativeDays(lastSessionAt)}
                 </div>
-                <div className="text-xs font-medium text-muted-foreground">
+                <div className="text-[10px] sm:text-xs font-medium text-muted-foreground">
                   Fecha: {formatDate(lastSessionAt)}
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-col justify-between gap-3 rounded-[1.5rem] border border-border/50 bg-card/60 p-5 shadow-sm backdrop-blur-xl transition-all hover:shadow-md">
-              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground uppercase font-black tracking-widest opacity-80">
-                <Dumbbell className="size-4" />
+            <div className="flex flex-col justify-between gap-2.5 rounded-[1.5rem] border border-border/50 bg-card/60 p-4 sm:p-5 shadow-sm backdrop-blur-xl transition-all hover:shadow-md">
+              <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-muted-foreground uppercase font-black tracking-widest opacity-80">
+                <Dumbbell className="size-3.5 sm:size-4" />
                 Racha
               </div>
-              <div className="flex flex-col gap-1">
-                <div className="text-2xl font-bold tracking-tight">{streakDays ?? "-"}</div>
-                <div className="text-xs font-medium text-muted-foreground">
+              <div className="flex flex-col gap-0.5 sm:gap-1">
+                <div className="text-xl sm:text-2xl font-bold tracking-tight">{streakDays ?? "-"}</div>
+                <div className="text-[10px] sm:text-xs font-medium text-muted-foreground">
                   días consecutivos
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-col justify-between gap-3 rounded-[1.5rem] border border-border/50 bg-card/60 p-5 shadow-sm backdrop-blur-xl transition-all hover:shadow-md">
-              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground uppercase font-black tracking-widest opacity-80">
-                <History className="size-4" />
+            <div className="flex flex-col justify-between gap-2.5 rounded-[1.5rem] border border-border/50 bg-card/60 p-4 sm:p-5 shadow-sm backdrop-blur-xl transition-all hover:shadow-md">
+              <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-muted-foreground uppercase font-black tracking-widest opacity-80">
+                <History className="size-3.5 sm:size-4" />
                 Tendencia
               </div>
-              <div className="flex flex-col gap-1">
-                <div className="text-2xl font-bold tracking-tight">
+              <div className="flex flex-col gap-0.5 sm:gap-1">
+                <div className="text-xl sm:text-2xl font-bold tracking-tight text-balance">
                   {trend === "up" ? "Creciendo" : trend === "down" ? "Bajando" : "Estable"}
                 </div>
-                <div className="text-xs font-medium text-muted-foreground">
-                  volumen total vs anterior
+                <div className="text-[10px] sm:text-xs font-medium text-muted-foreground">
+                  volumen vs anterior
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-col justify-between gap-3 rounded-[1.5rem] border border-border/50 bg-card/60 p-5 shadow-sm backdrop-blur-xl transition-all hover:shadow-md">
-              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground uppercase font-black tracking-widest opacity-80">
-                <Trophy className="size-4" />
+            <div className="flex flex-col justify-between gap-2.5 rounded-[1.5rem] border border-border/50 bg-card/60 p-4 sm:p-5 shadow-sm backdrop-blur-xl transition-all hover:shadow-md">
+              <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-muted-foreground uppercase font-black tracking-widest opacity-80">
+                <Trophy className="size-3.5 sm:size-4" />
                 Récords (PR)
               </div>
-              <div className="flex flex-col gap-1">
-                <div className="text-2xl font-bold tracking-tight">{personalRecords?.length ?? 0}</div>
-                <div className="text-xs font-medium text-muted-foreground">
-                  hitos de fuerza
+              <div className="flex flex-col gap-0.5 sm:gap-1">
+                <div className="text-xl sm:text-2xl font-bold tracking-tight">{personalRecords?.length ?? 0}</div>
+                <div className="text-[10px] sm:text-xs font-medium text-muted-foreground">
+                  hitos registrados
                 </div>
               </div>
             </div>
@@ -410,12 +426,12 @@ export function ClientProfileHub({
           <div className="grid gap-6 lg:grid-cols-12">
              <div className="lg:col-span-8 flex flex-col gap-6">
                 <Card className="border-border/50 bg-card/60 backdrop-blur-xl rounded-[1.5rem] shadow-sm overflow-hidden">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-[17px] font-bold">Resumen del atleta</CardTitle>
+                  <CardHeader className="pb-4 sm:pb-5">
+                    <CardTitle className="text-[16px] sm:text-[17px] font-bold">Resumen del atleta</CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="flex items-start gap-4">
-                      <Avatar className="size-[4rem] rounded-[1.2rem] border-2 border-background shadow-sm shrink-0">
+                  <CardContent className="px-4 sm:px-6 pb-5 sm:pb-6">
+                    <div className="flex flex-col xs:flex-row items-center xs:items-start gap-4 sm:gap-6 text-center xs:text-left">
+                      <Avatar className="size-[5rem] sm:size-[4.5rem] rounded-[1.2rem] border-2 border-background shadow-sm shrink-0">
                         {client?.avatar_url ? (
                           <AvatarImage
                             src={client.avatar_url}
@@ -423,32 +439,40 @@ export function ClientProfileHub({
                             className="object-cover"
                           />
                         ) : null}
-                        <AvatarFallback className="bg-primary/10 text-primary font-black text-lg">
+                        <AvatarFallback className="bg-primary/20 text-primary font-black text-xl">
                           {(client?.full_name || "?").slice(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
 
-                      <div className="flex flex-col gap-1.5 min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2.5">
-                          <div className="text-xl font-bold leading-none truncate">
+                      <div className="flex flex-col gap-2 min-w-0 flex-1 w-full">
+                        <div className="flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-3">
+                          <div className="text-xl sm:text-2xl font-bold leading-tight break-words">
                             {client?.full_name || "-"}
                           </div>
-                          {client?.status ? (
-                            <AdminClientStatusBadge status={client.status} />
-                          ) : null}
+                          <div className="flex justify-center xs:justify-start">
+                            {client?.status ? (
+                              <AdminClientStatusBadge status={client.status} />
+                            ) : null}
+                          </div>
                         </div>
-                        <div className="text-[13px] font-medium opacity-90 text-muted-foreground truncate">
-                          {client?.email ? `${client.email}` : "Sin email"}
-                          <span className="mx-2 opacity-50">·</span>
-                          {client?.phone ? `${client.phone}` : "Sin teléfono"}
+                        <div className="text-[13px] sm:text-[14px] font-medium opacity-90 text-muted-foreground break-all">
+                          {client?.email ? (
+                            <span className="inline-block">{client.email}</span>
+                          ) : "Sin email"}
+                          {client?.phone && (
+                            <>
+                              <span className="mx-2 opacity-30 hidden xs:inline">·</span>
+                              <span className="inline-block">{client.phone}</span>
+                            </>
+                          )}
                         </div>
-                        <div className="mt-2 flex flex-col gap-2">
-                          <div className="inline-flex items-center gap-2 text-sm bg-muted/20 rounded-lg px-3 py-2 w-fit">
-                            <span className="font-semibold text-foreground">
+                        <div className="mt-1 flex flex-col items-center xs:items-start gap-3">
+                          <div className="inline-flex flex-wrap items-center justify-center xs:justify-start gap-x-2 gap-y-1 text-sm bg-muted/30 rounded-xl px-4 py-2.5 w-full xs:w-fit border border-border/20">
+                            <span className="font-bold text-foreground">
                             {client?.plan_name ? client.plan_name : "Sin plan activo"}
                             </span>
-                            <span className="opacity-50 text-muted-foreground">·</span>
-                            <span className="font-medium text-muted-foreground">
+                            <span className="opacity-30 text-muted-foreground hidden xs:inline">·</span>
+                            <span className="font-medium text-muted-foreground text-[13px]">
                               {client?.days_until_expiry != null
                                 ? client.days_until_expiry > 0
                                   ? `Vence en ${client.days_until_expiry} días`
@@ -456,22 +480,23 @@ export function ClientProfileHub({
                                 : "Sin fecha de vencimiento"}
                             </span>
                           </div>
-                        </div>
-                        <div className="mt-1 flex flex-wrap gap-2 items-center">
-                          {client?.goal && (
-                            <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest gap-1 bg-primary/10 text-primary border-primary/20">
-                              <Target className="size-3" />
-                              {getGoalLabel(client.goal)}
+                          
+                          <div className="flex flex-wrap justify-center xs:justify-start gap-2">
+                            {client?.goal && (
+                              <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest gap-1.5 bg-primary/10 text-primary border-primary/20 py-1 px-2.5">
+                                <Target className="size-3" />
+                                {getGoalLabel(client.goal)}
+                              </Badge>
+                            )}
+                            <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest border-border/60 py-1 px-2.5">
+                              Paso:{" "}
+                              {profile?.onboarding_completed ||
+                              client?.onboarding_completed ||
+                              (client?.user_id && client?.goal && client?.experience_level)
+                                ? "COMPLETADO"
+                                : "PENDIENTE"}
                             </Badge>
-                          )}
-                          <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest border-border/60">
-                            Onboarding:{" "}
-                            {profile?.onboarding_completed ||
-                            client?.onboarding_completed ||
-                            (client?.user_id && client?.goal && client?.experience_level)
-                              ? "LISTO"
-                              : "PENDIENTE"}
-                          </Badge>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -480,42 +505,52 @@ export function ClientProfileHub({
              </div>
 
              <div className="lg:col-span-4">
-                <Card className="h-full border-border/50 bg-card/60 backdrop-blur-xl rounded-[1.5rem] shadow-sm overflow-hidden transition-all hover:bg-card">
+                <Card className="h-full border-border/50 bg-card/60 backdrop-blur-xl rounded-[1.5rem] shadow-sm overflow-hidden transition-all hover:bg-card/80">
                    <CardHeader className="pb-3 border-b border-border/30">
                       <div className="flex items-center justify-between">
-                         <CardTitle className="text-[15px] font-bold">Top Records (PRs)</CardTitle>
-                         <Trophy className="size-4 text-primary" />
+                         <CardTitle className="text-[15px] font-bold tracking-tight">Top Records (PRs)</CardTitle>
+                         <Trophy className="size-4 text-primary animate-pulse" />
                       </div>
                    </CardHeader>
                    <CardContent className="p-0">
-                      <ScrollArea className="h-[200px]">
-                         <div className="divide-y divide-border/20">
+                      <ScrollArea className="h-[240px] sm:h-[300px] lg:h-[200px]">
+                         <div className="divide-y divide-border/10">
                             {personalRecords?.length > 0 ? (
-                               personalRecords.slice(0, 5).map((pr) => (
-                                  <div key={pr.exercise_id} className="flex flex-col gap-1 p-4 transition-colors hover:bg-primary/5">
-                                     <div className="text-[13px] font-black uppercase tracking-tight text-foreground truncate">
+                               personalRecords.slice(0, 10).map((pr) => (
+                                  <div key={pr.exercise_id} className="flex flex-col gap-1.5 p-4 transition-colors hover:bg-primary/5 group">
+                                     <div className="text-[12px] font-black uppercase tracking-wider text-muted-foreground/80 group-hover:text-primary transition-colors leading-tight">
                                         {pr.exercise_name}
                                      </div>
-                                     <div className="flex items-center justify-between">
-                                        <div className="text-lg font-black text-primary italic">
-                                           {pr.weight_kg} <span className="text-xs">kg</span>
-                                           <span className="mx-1 text-muted-foreground">×</span>
-                                           {pr.reps} <span className="text-xs">reps</span>
+                                     <div className="flex items-end justify-between gap-2">
+                                        <div className="text-xl font-black text-foreground italic flex items-baseline gap-1">
+                                           {pr.weight_kg} <span className="text-[10px] font-bold not-italic text-muted-foreground uppercase">kg</span>
+                                           <span className="mx-0.5 text-muted-foreground/30 not-italic">×</span>
+                                           {pr.reps} <span className="text-[10px] font-bold not-italic text-muted-foreground uppercase">reps</span>
                                         </div>
-                                        <time className="text-[10px] font-bold text-muted-foreground uppercase opacity-60">
+                                        <time className="text-[9px] font-bold text-muted-foreground/50 uppercase tracking-tighter self-center mb-1">
                                            {formatDate(pr.achieved_at)}
                                         </time>
                                      </div>
                                   </div>
-                               ))
+                                ))
                             ) : (
                                <div className="flex flex-col items-center justify-center h-40 text-muted-foreground p-6 text-center">
-                                  <Dumbbell className="size-8 opacity-20 mb-3" />
-                                  <div className="text-xs font-bold uppercase tracking-widest opacity-60">Sin récords aún</div>
+                                  <div className="relative mb-3">
+                                    <Dumbbell className="size-10 opacity-10" />
+                                    <Trophy className="size-5 opacity-20 absolute -bottom-1 -right-1" />
+                                  </div>
+                                  <div className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40">Sin récords aún</div>
                                </div>
                             )}
                          </div>
                       </ScrollArea>
+                      {personalRecords?.length > 0 && (
+                        <div className="p-3 border-t border-border/30 bg-muted/10">
+                          <p className="text-[9px] text-center font-bold text-muted-foreground/40 uppercase tracking-widest">
+                            Mostrando top {Math.min(personalRecords.length, 10)} records
+                          </p>
+                        </div>
+                      )}
                    </CardContent>
                 </Card>
              </div>
@@ -529,16 +564,17 @@ export function ClientProfileHub({
                    <Trophy className="size-4 text-primary" />
                  </div>
                </CardHeader>
-               <CardContent className="p-6">
-                 <div className="flex flex-wrap gap-6">
+               <CardContent className="p-4 sm:p-6">
+                 <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 lg:grid-cols-8 gap-4 sm:gap-6">
                    {userAchievements.slice(0, 8).map((ua) => (
-                     <AchievementBadge
-                       key={ua.id}
-                       achievement={ua.achievements}
-                       unlocked={true}
-                       size="md"
-                       showDetails={true}
-                     />
+                     <div key={ua.id} className="flex justify-center">
+                       <AchievementBadge
+                         achievement={ua.achievements}
+                         unlocked={true}
+                         size="md"
+                         showDetails={true}
+                       />
+                     </div>
                    ))}
                  </div>
                </CardContent>
@@ -548,9 +584,9 @@ export function ClientProfileHub({
 
         <TabsContent value="routine" className="flex flex-col gap-4 pt-2">
           <Card className="border-border/50 bg-card/60 backdrop-blur-xl rounded-[1.5rem] shadow-sm overflow-hidden">
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Dumbbell className="size-4" />
+            <CardHeader className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-4 pb-3">
+              <CardTitle className="flex items-center gap-2 text-base font-bold">
+                <Dumbbell className="size-4 text-primary" />
                 Rutina asignada
               </CardTitle>
               {clientId ? (
@@ -558,6 +594,7 @@ export function ClientProfileHub({
                   asChild
                   size="sm"
                   variant={routine ? "outline" : "default"}
+                  className="w-full xs:w-auto h-9 font-bold text-[13px]"
                 >
                   <Link href={`/admin/clients/${clientId}/assign-routine`}>
                     <Plus className="mr-1 size-4" />
@@ -566,25 +603,28 @@ export function ClientProfileHub({
                 </Button>
               ) : null}
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 sm:px-6">
               {routine ? (
-                <div className="grid gap-4">
+                <div className="grid gap-6">
                   <div className="grid gap-1">
-                    <div className="text-lg font-semibold">{routine.name}</div>
+                    <div className="text-lg sm:text-xl font-bold tracking-tight text-foreground">{routine.name}</div>
                     {routine.description ? (
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-sm font-medium text-muted-foreground/80 line-clamp-2">
                         {routine.description}
                       </div>
                     ) : null}
-                    <div className="text-sm text-muted-foreground">
-                      Duración:{" "}
-                      {routine.duration_weeks
-                        ? `${routine.duration_weeks} semanas`
-                        : "-"}{" "}
-                      · Días:{" "}
-                      {routine.days_per_week ||
-                        routine.routine_days?.length ||
-                        "-"}
+                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] font-bold text-muted-foreground uppercase tracking-widest opacity-70">
+                      <span>
+                        {routine.duration_weeks
+                          ? `${routine.duration_weeks} semanas`
+                          : "-"}
+                      </span>
+                      <span className="size-1 rounded-full bg-border" />
+                      <span>
+                        {routine.days_per_week ||
+                          routine.routine_days?.length ||
+                          "-"} días/sem
+                      </span>
                     </div>
                   </div>
                   <RoutineDayCards
@@ -594,8 +634,11 @@ export function ClientProfileHub({
                   />
                 </div>
               ) : (
-                <div className="text-sm text-muted-foreground">
-                  Sin rutina asignada
+                <div className="flex flex-col items-center justify-center py-10 text-center gap-3">
+                   <div className="size-12 rounded-full bg-muted/20 flex items-center justify-center">
+                      <Plus className="size-6 text-muted-foreground/40" />
+                   </div>
+                   <div className="text-sm font-black uppercase tracking-widest text-muted-foreground/40">Sin rutina asignada</div>
                 </div>
               )}
             </CardContent>
@@ -699,18 +742,16 @@ export function ClientProfileHub({
                                   key={name}
                                   className="rounded-xl bg-muted/40 border border-border/50 px-3.5 py-2.5"
                                 >
-                                  <div className="text-sm font-bold tracking-tight">
+                                  <div className="text-[13px] font-bold tracking-tight text-foreground/90 mb-1.5 px-0.5">
                                     {name}
                                   </div>
-                                  <ul className="mt-1 flex flex-col gap-0.5 text-muted-foreground text-xs">
+                                  <div className="flex flex-col">
                                     {sets.map((log, idx) => (
-                                      <li
-                                        key={`${name}-${log.set_number}-${idx}`}
-                                      >
+                                      <div key={`${name}-${log.set_number}-${idx}`}>
                                         {formatSetLine(log)}
-                                      </li>
+                                      </div>
                                     ))}
-                                  </ul>
+                                  </div>
                                 </div>
                               ))}
                             </div>
@@ -772,33 +813,40 @@ export function ClientProfileHub({
                     return (
                       <div
                         key={s.id}
-                        className="flex flex-col gap-2 rounded-2xl border border-border/50 bg-card/40 p-4 transition-all hover:bg-card/60 hover:shadow-sm sm:grid sm:grid-cols-[minmax(0,1fr)_5.5rem_minmax(0,1.5fr)] sm:items-center sm:gap-4"
+                        className="flex flex-col gap-3 rounded-2xl border border-border/40 bg-card/40 p-4 transition-all hover:bg-card/60 hover:shadow-md sm:grid sm:grid-cols-[minmax(0,1fr)_6.5rem_minmax(0,1.5fr)] sm:items-center sm:gap-6"
                       >
-                        <div className="min-w-0">
-                          <div
-                            className={`text-sm font-medium ${isEmptyVol ? "text-muted-foreground" : ""}`}
-                          >
-                            {when.dateLine}
-                          </div>
-                          {when.timeLine ? (
-                            <div className="text-muted-foreground text-xs">
-                              {when.timeLine}
+                        <div className="flex flex-row sm:flex-col justify-between items-center sm:items-start gap-1">
+                          <div className="min-w-0">
+                            <div className={`text-[14px] font-bold tracking-tight ${isEmptyVol ? "text-muted-foreground/60" : "text-foreground"}`}>
+                              {when.dateLine}
                             </div>
-                          ) : null}
+                            {when.timeLine ? (
+                              <div className="text-muted-foreground/60 text-[11px] font-medium uppercase tracking-wider">
+                                {when.timeLine}
+                              </div>
+                            ) : null}
+                          </div>
+                          <div className="sm:hidden tabular-nums text-sm font-black text-primary bg-primary/10 px-2.5 py-1 rounded-lg">
+                            {vol} <span className="text-[10px] uppercase">kg</span>
+                          </div>
                         </div>
-                        <div
-                          className={`tabular-nums text-sm font-semibold ${isEmptyVol ? "text-muted-foreground" : ""}`}
-                        >
-                          {vol} kg
+
+                        <div className="hidden sm:block tabular-nums text-base font-black text-primary italic">
+                          {vol} <span className="text-xs font-bold not-italic opacity-60">kg</span>
                         </div>
-                        <div className="min-w-0 sm:pt-0">
+
+                        <div className="min-w-0 flex flex-col gap-1.5 sm:pt-0">
+                          <div className="flex items-center justify-between sm:hidden">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Progreso</span>
+                            <span className="text-[10px] font-black tabular-nums text-primary/80">{pct}%</span>
+                          </div>
                           <Progress
                             value={pct}
-                            className={isEmptyVol ? "opacity-40" : ""}
-                            aria-label={`Volumen relativo ${pct} por ciento`}
+                            className={`h-2.5 ${isEmptyVol ? "opacity-20" : ""}`}
+                            aria-label={`Volumen relativo ${pct}%`}
                           />
                           {isEmptyVol ? (
-                            <span className="text-muted-foreground mt-1 block text-xs">
+                            <span className="text-muted-foreground/40 text-[10px] font-bold uppercase tracking-widest mt-0.5">
                               Sin volumen registrado
                             </span>
                           ) : null}
@@ -838,27 +886,38 @@ export function ClientProfileHub({
                   </EmptyHeader>
                 </Empty>
               ) : (
-                <div className="flex flex-col gap-0 divide-y divide-border/50 rounded-2xl border border-border/60 bg-card/40 overflow-hidden">
+                <div className="grid gap-3">
                   {measurementRows.map((m) => (
                     <div
                       key={m.id}
-                      className="flex flex-col gap-1 px-4 py-3 first:rounded-t-xl last:rounded-b-xl"
+                      className="group flex flex-col gap-3 rounded-2xl border border-border/40 bg-card/40 p-4 transition-all hover:bg-card/60 hover:shadow-md"
                     >
-                      <div className="text-sm font-medium">
-                        {formatBodyMeasurementDate(m.recorded_at)}
-                      </div>
-                      <div className="text-foreground/90 text-sm">
-                        <span className="font-medium">Peso:</span>{" "}
-                        {m.weight ?? "—"} kg
-                        <span className="text-muted-foreground mx-2">·</span>
-                        <span className="font-medium">Grasa:</span>{" "}
-                        {m.body_fat_pct ?? "—"}%
-                      </div>
-                      {m.weightDelta ? (
-                        <div className="text-muted-foreground text-xs">
-                          {m.weightDelta}
+                      <div className="flex items-center justify-between border-b border-border/10 pb-2">
+                        <div className="text-[12px] font-black uppercase tracking-widest text-muted-foreground/80">
+                          {formatBodyMeasurementDate(m.recorded_at)}
                         </div>
-                      ) : null}
+                        {m.weightDelta ? (
+                          <Badge variant="secondary" className="text-[10px] font-bold bg-primary/5 text-primary border-primary/10">
+                            {m.weightDelta}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[10px] font-bold opacity-30">Inicial</Badge>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Peso</span>
+                          <div className="text-xl font-black text-foreground italic flex items-baseline gap-1">
+                            {m.weight ?? "—"} <span className="text-[10px] font-bold not-italic text-muted-foreground uppercase opacity-60">kg</span>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Grasa</span>
+                          <div className="text-xl font-black text-foreground italic flex items-baseline gap-1">
+                            {m.body_fat_pct ?? "—"} <span className="text-[10px] font-bold not-italic text-muted-foreground uppercase opacity-60">%</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1010,28 +1069,43 @@ export function ClientProfileHub({
                  Hitos desbloqueados por el atleta a través de su esfuerzo y consistencia.
                </CardDescription>
              </CardHeader>
-             <CardContent className="p-6">
-               {userAchievements.length === 0 ? (
-                 <div className="flex flex-col items-center justify-center py-12 text-muted-foreground text-center">
-                    <Trophy className="size-12 opacity-20 mb-4" />
-                    <div className="text-sm font-bold uppercase tracking-widest opacity-60">Sin logros desbloqueados aún</div>
-                 </div>
-               ) : (
-                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8">
-                   {userAchievements.map((ua) => (
-                     <div key={ua.id} className="flex flex-col items-center gap-2">
-                       <AchievementBadge
-                         achievement={ua.achievements}
-                         unlocked={true}
-                         size="md"
-                         showDetails={true}
-                         showMilestoneBadge={true}
-                       />
+             <CardContent className="p-4 sm:p-6 lg:p-10">
+                {userAchievements.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-16 text-muted-foreground text-center">
+                     <div className="relative mb-6">
+                        <Trophy className="size-16 opacity-5" />
+                        <Dumbbell className="size-8 opacity-10 absolute -top-2 -right-2 rotate-12" />
                      </div>
-                   ))}
-                 </div>
-               )}
-             </CardContent>
+                     <div className="text-[11px] font-black uppercase tracking-[0.3em] opacity-30 mt-2">Próximamente desbloqueará hitos</div>
+                     <p className="text-xs text-muted-foreground/40 mt-4 max-w-xs mx-auto">Los logros se otorgan automáticamente basándose en la consistencia y récords personales.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 xs:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-4 gap-y-10 sm:gap-x-8 sm:gap-y-12">
+                    {userAchievements.map((ua) => (
+                      <div key={ua.id} className="flex flex-col items-center gap-3 group">
+                        <div className="relative transition-transform duration-300 group-hover:scale-110">
+                           <AchievementBadge
+                             achievement={ua.achievements}
+                             unlocked={true}
+                             size="lg"
+                             showDetails={false}
+                             showMilestoneBadge={true}
+                           />
+                           <div className="absolute -inset-4 bg-primary/5 rounded-full -z-10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                        <div className="flex flex-col items-center text-center gap-1">
+                           <div className="text-[11px] font-black uppercase tracking-wider text-foreground leading-tight px-2 line-clamp-2 min-h-[2.2em]">
+                             {ua.achievements.name}
+                           </div>
+                           <time className="text-[9px] font-bold text-muted-foreground/50 uppercase tracking-tighter">
+                             {formatDate(ua.unlocked_at)}
+                           </time>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
            </Card>
         </TabsContent>
       </Tabs>

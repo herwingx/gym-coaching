@@ -30,14 +30,18 @@
                 <h1 style="color: #ffffff; font-size: 24px; font-weight: 700; text-align: center; margin: 0 0 24px;">
                     Confirma tu cuenta</h1>
                 <p style="color: #a1a1aa; font-size: 16px; line-height: 26px; text-align: center; margin: 0 0 20px;">
-                    ¡Bienvenido a RU Coach! Para activar tu cuenta de entrenamiento premium, haz clic en el botón de abajo.
+                    ¡Bienvenido a RU Coach! Tu código de seguridad de 6 dígitos para activar tu cuenta es:
                 </p>
                 <div style="text-align: center; margin: 32px 0;">
-                    <a href="{{ .ConfirmationURL }}"
-                        style="background-color: #e5a84d; border-radius: 12px; color: #0a0a0a; font-size: 16px; font-weight: 700; text-decoration: none; padding: 14px 28px; display: inline-block;">
-                        Activar mi cuenta
-                    </a>
+                    <div style="background-color: #0b0a0d; border: 1px dashed #e5a84d; border-radius: 16px; display: inline-block; padding: 16px 32px;">
+                        <span style="color: #e5a84d; font-size: 36px; font-weight: 900; letter-spacing: 0.3em; font-family: monospace;">
+                            {{ .Token }}
+                        </span>
+                    </div>
                 </div>
+                <p style="color: #a1a1aa; font-size: 14px; line-height: 24px; text-align: center; margin: 0 0 20px;">
+                    Ingresa este número en la plataforma completa tu registro. Este código expirará pronto.
+                </p>
                 <hr style="border: 0; border-top: 1px solid #27272a; margin: 20px 0;">
                 <p style="color: #52525b; font-size: 12px; line-height: 20px; text-align: center; margin: 0;">
                     © 2026 RU Coach Premium | Rodrigo Urbina

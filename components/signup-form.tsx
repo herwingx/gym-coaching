@@ -206,7 +206,7 @@ function SignUpFormInner({
         )
         router.push(signUpRole === 'admin' ? '/admin/onboarding' : '/onboarding')
       } else {
-        router.push('/auth/sign-up-success')
+        router.push(`/auth/verify-otp?email=${encodeURIComponent(email)}`)
       }
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : ''

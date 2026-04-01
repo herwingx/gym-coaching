@@ -43,6 +43,38 @@ export async function createInvitationCode(formData: FormData) {
   const forRole = (formData.get("for_role") as string) || "client";
   const roleToCreate = forRole === "admin" ? "admin" : "client";
 
+  const adminClient = createAdminClient();
+
+  if (email?.trim()) {
+    const trimmedEmail = email.trim();
+
+    // 1. Verificar si el correo ya tiene una cuenta
+    const { data: existingProfile } = await adminClient
+      .from("profiles")
+      .select("id")
+      .eq("email", trimmedEmail)
+      .single();
+
+    if (existingProfile) {
+      return { error: "Este correo ya tiene una cuenta registrada." };
+    }
+
+    // 2. Verificar si ya tiene un código de invitación pendiente
+    const { data: existingCode } = await adminClient
+      .from("invitation_codes")
+      .select("id")
+      .eq("email", trimmedEmail)
+      .eq("is_active", true)
+      .eq("times_used", 0)
+      .gte("expires_at", new Date().toISOString())
+      .limit(1)
+      .maybeSingle();
+
+    if (existingCode) {
+      return { error: "Ya existe una invitación pendiente enviada a este correo." };
+    }
+  }
+
   const code = generateCode();
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + expiresInDays);
@@ -50,7 +82,7 @@ export async function createInvitationCode(formData: FormData) {
   const { error } = await supabase.from("invitation_codes").insert({
     code,
     created_by: user.id,
-    email: email || null,
+    email: email?.trim() || null,
     expires_at: expiresAt.toISOString(),
     max_uses: 1,
     times_used: 0,
@@ -270,15 +302,11 @@ export async function deleteInvitationCode(codeId: string) {
     .single();
 
   if (invitationError || !invitation) {
-    return { error: "C?digo no encontrado" };
+    return { error: "Código no encontrado" };
   }
 
-  if (invitation.times_used > 0) {
-    return { error: "No se puede eliminar un c?digo que ya fue usado" };
-  }
-
-  if (invitation.is_active) {
-    return { error: "Primero desactiva el c?digo antes de eliminarlo" };
+  if (invitation.is_active && invitation.times_used === 0) {
+    return { error: "Primero desactiva el código antes de eliminarlo" };
   }
 
   const { error } = await supabase
