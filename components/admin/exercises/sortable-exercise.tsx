@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { X, GripVertical, ImageOff } from 'lucide-react'
 import { Exercise } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { exName, exEquipment } from '@/lib/exercise-i18n'
 
 interface SortableExerciseProps {
   id: string
@@ -74,7 +75,7 @@ export function SortableExercise({
           {exerciseInfo?.gif_url && !imgFailed ? (
             <img
               src={exerciseInfo.gif_url}
-              alt={exerciseInfo.name}
+              alt={exName(exerciseInfo)}
               className="size-full object-cover transition-transform duration-500 group-hover/ex:scale-110"
               loading="lazy"
               onError={() => setImgFailed(true)}
@@ -88,17 +89,17 @@ export function SortableExercise({
 
         <div className="min-w-0 flex-1">
           <p className="line-clamp-1 text-sm font-bold tracking-tight text-foreground group-hover/ex:text-primary transition-colors">
-            {exerciseInfo?.name || 'Ejercicio'}
+            {exName(exerciseInfo)}
           </p>
           <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
             {exerciseInfo?.primary_muscle && (
               <Badge variant="secondary" className="h-5 rounded-md px-1.5 text-[10px] font-bold uppercase tracking-wider bg-primary/5 text-primary/70 border-0">
-                {exerciseInfo.primary_muscle}
+                {exerciseInfo.target_muscles_es?.[0] || exerciseInfo.primary_muscle}
               </Badge>
             )}
-            {exerciseInfo?.equipment && (
+            {exEquipment(exerciseInfo) && (
               <span className="text-[11px] font-medium text-muted-foreground opacity-80">
-                {exerciseInfo.equipment}
+                {exEquipment(exerciseInfo)}
               </span>
             )}
           </div>

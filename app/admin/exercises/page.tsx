@@ -33,7 +33,7 @@ export default async function AdminExercisesPage({
   let query = supabase.from("exercises").select("*", { count: "exact" });
 
   if (search) {
-    query = query.ilike("name", `%${search}%`);
+    query = query.or(`name.ilike.%${search}%,name_es.ilike.%${search}%`);
   }
 
   if (bodyPart) {

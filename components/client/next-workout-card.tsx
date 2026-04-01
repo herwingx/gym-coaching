@@ -144,7 +144,7 @@ export function NextWorkoutCard({
                       {i + 1}
                     </span>
                     <span className="font-black text-sm tracking-tight text-foreground transition-colors group-hover:text-primary">
-                      {ex.exercises?.name || 'Ejercicio'}
+                      {ex.exercises?.name_es || ex.exercises?.name || 'Ejercicio'}
                     </span>
                   </div>
                   <Badge variant="outline" className="h-6 rounded-lg font-black text-[9px] tabular-nums tracking-widest border-border/60 text-muted-foreground/60 group-hover:border-primary/20 group-hover:text-primary transition-colors">
