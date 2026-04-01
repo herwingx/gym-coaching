@@ -18,76 +18,82 @@ export default function TwoUpWrapper({
   afterLabel = 'Después'
 }: ImageCompareProps) {
   return (
-    <div className="relative w-full h-full group bg-black overflow-hidden">
+    <div className="relative w-full h-full group bg-neutral-950 overflow-hidden shadow-inner">
       <style jsx global>{`
         .img-comparison-slider {
-          --divider-width: 2px;
-          --divider-color: white;
-          --default-handle-width: 44px;
-          --default-handle-color: white;
-          --divider-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+          --divider-width: 1px;
+          --divider-color: rgba(255, 255, 255, 0.4);
+          --default-handle-width: 0; /* Removing default handle completely */
           width: 100%;
           height: 100%;
           cursor: col-resize;
-          border-radius: inherit;
+          outline: none !important;
         }
 
         .img-comparison-slider:focus {
-           outline: none;
+          outline: none;
         }
 
-        /* Essential for full height */
-        .img-comparison-slider > [slot="before"],
-        .img-comparison-slider > [slot="after"] {
-          width: 100%;
-          height: 100%;
-          display: block;
+        /* Sublte glow for the divider line */
+        .img-comparison-slider::part(divider) {
+          box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+          background-image: linear-gradient(to bottom, transparent, white, transparent);
         }
       `}</style>
 
       <ImgComparisonSlider className="img-comparison-slider">
         {/* Child 1: Antes */}
-        <div slot="first" className="relative w-full h-full overflow-hidden">
+        <div slot="first" className="relative w-full h-full select-none pointer-events-none">
           <img
             src={beforeImage}
             alt={beforeLabel}
-            className="w-full h-full object-cover select-none"
+            className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-[1.01]"
             loading="eager"
           />
-          <div className="absolute top-4 left-4 pointer-events-none z-10 transition-opacity duration-300 group-hover:opacity-100">
-             <span className="rounded-full bg-black/60 backdrop-blur-md px-3.5 py-1.5 text-[10px] font-black text-white uppercase tracking-[0.2em] border border-white/20 shadow-2xl">
+          <div className="absolute top-6 left-6 z-10 transition-all duration-500 group-hover:translate-x-1">
+             <span className="rounded-2xl bg-black/40 backdrop-blur-xl px-5 py-2 text-[10px] font-black text-white/90 uppercase tracking-[0.25em] border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
               {beforeLabel}
             </span>
           </div>
         </div>
 
         {/* Child 2: Después */}
-        <div slot="second" className="relative w-full h-full overflow-hidden">
+        <div slot="second" className="relative w-full h-full select-none pointer-events-none">
           <img
             src={afterImage}
             alt={afterLabel}
-            className="w-full h-full object-cover select-none"
+            className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-[1.01]"
             loading="eager"
           />
-          <div className="absolute top-4 right-4 pointer-events-none z-10 transition-opacity duration-300 group-hover:opacity-100">
-             <span className="rounded-full bg-primary/90 backdrop-blur-lg px-3.5 py-1.5 text-[10px] font-black text-white uppercase tracking-[0.2em] border border-white/20 shadow-2xl">
+          <div className="absolute top-6 right-6 z-10 transition-all duration-500 group-hover:-translate-x-1">
+             <span className="rounded-2xl bg-primary/40 backdrop-blur-xl px-5 py-2 text-[10px] font-black text-white uppercase tracking-[0.25em] border border-primary/20 shadow-[0_8px_32px_rgba(59,130,246,0.3)]">
               {afterLabel}
             </span>
           </div>
         </div>
 
-        {/* Custom Handle Override for Premium Look */}
-        <div slot="handle" className="z-20 cursor-col-resize">
-          <div className="flex flex-col items-center justify-center -translate-x-1/2">
-             <div className="w-[3px] h-[500%] absolute bg-white/80 shadow-[0_0_15px_rgba(0,0,0,0.5)]" />
-             <div className="size-11 rounded-full bg-white shadow-2xl border-[3px] border-primary flex items-center justify-center transition-transform duration-200 hover:scale-110 active:scale-95 group-hover:shadow-[0_0_25px_rgba(59,130,246,0.4)]">
-                 <div className="flex gap-1">
-                    <div className="size-1.5 rounded-full bg-primary animate-pulse" />
-                    <div className="size-1.5 rounded-full bg-primary/60 scale-75" />
-                    <div className="size-1.5 rounded-full bg-primary animate-pulse" />
-                 </div>
-             </div>
-          </div>
+        {/* --- ULTIMATE PREMIUM HANDLE --- */}
+        <div slot="handle" className="z-30 cursor-col-resize -translate-x-1/2 flex items-center justify-center h-full">
+           <div className="relative flex items-center justify-center">
+              {/* Vertical Glowing Line */}
+              <div className="w-[1px] h-[2000px] absolute bg-gradient-to-b from-transparent via-white/40 to-transparent pointer-events-none" />
+              
+              {/* Glassmorphism Circle */}
+              <div className="size-12 rounded-full border border-white/20 bg-white/10 backdrop-blur-2xl shadow-[0_0_40px_rgba(0,0,0,0.5),inset_0_0_12px_rgba(255,255,255,0.1)] flex items-center justify-center transition-all duration-300 hover:size-14 hover:bg-white/20 active:scale-90 group-hover:border-primary/40 group-hover:shadow-[0_0_30px_rgba(59,130,246,0.3)] overflow-hidden">
+                  <div className="flex items-center gap-2.5 text-white/80">
+                     <svg width="6" height="10" viewBox="0 0 6 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 1L1 5L5 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                     </svg>
+                     <div className="w-[1.5px] h-3 bg-white/30 rounded-full" />
+                     <svg width="6" height="10" viewBox="0 0 6 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1 1L5 5L1 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                     </svg>
+                  </div>
+                  
+                  {/* Internal Glow Effect */}
+                  <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none" />
+              </div>
+           </div>
         </div>
       </ImgComparisonSlider>
     </div>
