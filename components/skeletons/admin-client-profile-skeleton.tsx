@@ -8,9 +8,9 @@ export function AdminClientProfileSkeleton() {
     <div className="flex flex-col gap-6" aria-busy="true" aria-label="Cargando perfil">
       <div className="sticky top-0 z-10 -mx-4 px-4 py-2 bg-background/95 backdrop-blur-md border-b sm:static sm:z-auto sm:mx-0 sm:px-0 sm:py-0 sm:bg-transparent sm:border-none">
         <ScrollArea className="w-full whitespace-nowrap pb-1">
-          <div className="inline-flex w-auto bg-card/60 backdrop-blur-xl p-1 h-12 rounded-[1rem] border border-border/50 shadow-sm mb-1">
+          <div className="inline-flex min-w-full lg:w-auto bg-card/60 backdrop-blur-xl p-1 h-12 rounded-[1rem] border border-border/50 shadow-sm mb-1">
             {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-              <Skeleton key={i} className="h-9 w-24 rounded-lg mx-0.5" />
+              <Skeleton key={i} className="h-9 w-24 shrink-0 rounded-lg mx-0.5" />
             ))}
           </div>
           <ScrollBar orientation="horizontal" className="invisible" />
@@ -30,7 +30,7 @@ export function AdminClientProfileSkeleton() {
                 <Skeleton className="h-3 w-20" />
               </div>
               <div className="flex flex-col gap-1">
-                <Skeleton className="h-8 w-24" />
+                <Skeleton className="h-8 w-full max-w-[120px]" />
                 <Skeleton className="h-3 w-16" />
               </div>
             </div>
@@ -48,17 +48,17 @@ export function AdminClientProfileSkeleton() {
                 <div className="flex items-start gap-4">
                   <Skeleton className="size-[4rem] rounded-[1.2rem] shrink-0" />
                   <div className="flex flex-col gap-3 min-w-0 flex-1">
-                    <div className="flex items-center gap-2.5">
-                      <Skeleton className="h-7 w-48" />
-                      <Skeleton className="h-5 w-16 rounded-full" />
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      <Skeleton className="h-7 w-48 max-w-full" />
+                      <Skeleton className="h-5 w-16 rounded-full shrink-0" />
                     </div>
-                    <Skeleton className="h-4 w-64" />
+                    <Skeleton className="h-4 w-full max-w-[280px]" />
                     <div className="mt-2 flex flex-col gap-2">
-                      <Skeleton className="h-9 w-40 rounded-lg" />
+                      <Skeleton className="h-9 w-40 max-w-full rounded-lg" />
                     </div>
-                    <div className="mt-1 flex gap-2">
-                      <Skeleton className="h-5 w-24 rounded-full" />
-                      <Skeleton className="h-5 w-24 rounded-full" />
+                    <div className="mt-1 flex flex-wrap gap-2">
+                      <Skeleton className="h-5 w-24 rounded-full shrink-0" />
+                      <Skeleton className="h-5 w-24 rounded-full shrink-0" />
                     </div>
                   </div>
                 </div>

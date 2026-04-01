@@ -93,6 +93,7 @@ export default async function ClientProfilePage({
     photosRes,
     activeClientRoutineRes,
     prsRes,
+    achievementsRes,
   ] = await Promise.all([
     planPromise,
     profilePromise,
@@ -118,9 +119,16 @@ export default async function ClientProfilePage({
       .select("exercise_id, exercise_name, weight_kg, reps, achieved_at")
       .eq("client_id", clientId)
       .order("achieved_at", { ascending: false }),
+    client.user_id
+      ? adminClient
+          .from("user_achievements")
+          .select("*, achievements(*)")
+          .eq("user_id", client.user_id)
+      : Promise.resolve({ data: [] }),
   ]);
 
   const personalRecords = prsRes.data ?? [];
+  const userAchievements = (achievementsRes.data as any[]) ?? [];
 
   const sessionExerciseLogs = await getExerciseLogsForSessions(
     workoutSessions.map((s) => s.id),
@@ -182,6 +190,7 @@ export default async function ClientProfilePage({
           bodyMeasurements={bodyMeasurements}
           progressPhotos={progressPhotos ?? []}
           personalRecords={personalRecords}
+          userAchievements={userAchievements}
           clientId={clientId}
         />
       </main>

@@ -65,6 +65,7 @@ import {
   workoutStatusBadgeClass,
   workoutStatusLabelEs,
 } from "@/lib/format-workout-session";
+import { AchievementBadge } from "@/components/client/achievement-badge";
 
 import { PhotoGallery } from "@/components/photos/photo-gallery";
 import { PhotoCompare } from "@/components/photos/photo-compare";
@@ -194,6 +195,7 @@ export function ClientProfileHub({
   bodyMeasurements,
   progressPhotos,
   personalRecords,
+  userAchievements,
   clientId,
 }: {
   client: ClientHubClient;
@@ -204,6 +206,7 @@ export function ClientProfileHub({
   bodyMeasurements: BodyMeasurementRow[];
   progressPhotos: ProgressPhotoRow[];
   personalRecords: any[];
+  userAchievements: any[];
   clientId?: string;
 }) {
   const [tab, setTab] = useState("summary");
@@ -332,6 +335,13 @@ export function ClientProfileHub({
               >
                 <Notebook className="size-4" />
                 Notas
+              </TabsTrigger>
+              <TabsTrigger
+                value="achievements"
+                className="rounded-lg px-4 py-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:font-bold transition-all gap-2 text-[14px] font-medium"
+              >
+                <Trophy className="size-4" />
+                Logros
               </TabsTrigger>
             </TabsList>
             <ScrollBar orientation="horizontal" className="invisible" />
@@ -509,7 +519,31 @@ export function ClientProfileHub({
                    </CardContent>
                 </Card>
              </div>
-          </div>
+           </div>
+
+           {userAchievements.length > 0 && (
+             <Card className="border-border/50 bg-card/60 backdrop-blur-xl rounded-[1.5rem] shadow-sm overflow-hidden">
+               <CardHeader className="pb-3 border-b border-border/30">
+                 <div className="flex items-center justify-between">
+                   <CardTitle className="text-[15px] font-bold">Logros Recientes</CardTitle>
+                   <Trophy className="size-4 text-primary" />
+                 </div>
+               </CardHeader>
+               <CardContent className="p-6">
+                 <div className="flex flex-wrap gap-6">
+                   {userAchievements.slice(0, 8).map((ua) => (
+                     <AchievementBadge
+                       key={ua.id}
+                       achievement={ua.achievements}
+                       unlocked={true}
+                       size="md"
+                       showDetails={true}
+                     />
+                   ))}
+                 </div>
+               </CardContent>
+             </Card>
+           )}
         </TabsContent>
 
         <TabsContent value="routine" className="flex flex-col gap-4 pt-2">
@@ -963,6 +997,42 @@ export function ClientProfileHub({
               </div>
             </CardFooter>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="achievements" className="flex flex-col gap-4 pt-2">
+           <Card className="border-border/50 bg-card/60 backdrop-blur-xl rounded-[1.5rem] shadow-sm overflow-hidden">
+             <CardHeader className="pb-3 text-center sm:text-left">
+               <CardTitle className="flex items-center justify-center sm:justify-start gap-2 text-base">
+                 <Trophy className="size-4 text-primary" />
+                 Logros y Títulos
+               </CardTitle>
+               <CardDescription>
+                 Hitos desbloqueados por el atleta a través de su esfuerzo y consistencia.
+               </CardDescription>
+             </CardHeader>
+             <CardContent className="p-6">
+               {userAchievements.length === 0 ? (
+                 <div className="flex flex-col items-center justify-center py-12 text-muted-foreground text-center">
+                    <Trophy className="size-12 opacity-20 mb-4" />
+                    <div className="text-sm font-bold uppercase tracking-widest opacity-60">Sin logros desbloqueados aún</div>
+                 </div>
+               ) : (
+                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8">
+                   {userAchievements.map((ua) => (
+                     <div key={ua.id} className="flex flex-col items-center gap-2">
+                       <AchievementBadge
+                         achievement={ua.achievements}
+                         unlocked={true}
+                         size="md"
+                         showDetails={true}
+                         showMilestoneBadge={true}
+                       />
+                     </div>
+                   ))}
+                 </div>
+               )}
+             </CardContent>
+           </Card>
         </TabsContent>
       </Tabs>
     </div>

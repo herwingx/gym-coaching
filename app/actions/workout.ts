@@ -266,7 +266,7 @@ export async function completeWorkoutSession(data: WorkoutCompletionData) {
     const estimated1RM = calculate1RM(prSet.weight, prSet.reps);
     const exerciseName = nameById.get(prSet.exerciseId) ?? undefined;
 
-    await supabase.from("personal_records").upsert(
+    const { error: prError } = await supabase.from("personal_records").upsert(
       {
         client_id: data.clientId,
         exercise_id: prSet.exerciseId,
@@ -280,6 +280,10 @@ export async function completeWorkoutSession(data: WorkoutCompletionData) {
         onConflict: "client_id,exercise_id",
       },
     );
+
+    if (prError) {
+      console.error("Error upserting personal record:", prError);
+    }
   }
 
   // Sync denormalized session count from completed rows (avoids drift if increment fails under RLS)
