@@ -16,11 +16,20 @@ async function syncClientPlanDatesFromPayment(
 ) {
   const clientUpdate: Record<string, unknown> = {};
   if (fields.period_start) clientUpdate.membership_start = fields.period_start;
-  if (fields.period_end) clientUpdate.membership_end = fields.period_end;
+  if (fields.period_end) {
+    clientUpdate.membership_end = fields.period_end;
+    const isExpired = new Date(fields.period_end) < new Date();
+    clientUpdate.status = isExpired ? "expired" : "active";
+  } else {
+    clientUpdate.status = "active";
+  }
   if (fields.plan_id) clientUpdate.current_plan_id = fields.plan_id;
+  
   if (Object.keys(clientUpdate).length === 0) return;
   await supabase.from("clients").update(clientUpdate).eq("id", clientId);
 }
+
+import { sendPushNotification } from "@/app/actions/web-push";
 
 async function notifyPayment(
   clientId: string,
@@ -32,10 +41,10 @@ async function notifyPayment(
     const supabase = await createClient();
     const { data: client } = await supabase
       .from("clients")
-      .select("full_name, email")
+      .select("user_id, full_name, email")
       .eq("id", clientId)
       .single();
-    if (!client?.email) return;
+    if (!client) return;
 
     let planName = "Plan Personalizado";
     if (planId) {
@@ -60,13 +69,23 @@ async function notifyPayment(
         })
       : "N/A";
 
-    await sendPaymentConfirmation({
-      to: client.email,
-      clientName: client.full_name,
-      amount: formattedAmount,
-      planName,
-      expiryDate: formattedDate,
-    });
+    if (client.email) {
+      await sendPaymentConfirmation({
+        to: client.email,
+        clientName: client.full_name,
+        amount: formattedAmount,
+        planName,
+        expiryDate: formattedDate,
+      });
+    }
+
+    if (client.user_id) {
+      await sendPushNotification(client.user_id, {
+        title: "¡Pago Registrado!",
+        body: `Hemos confirmado tu pago de ${formattedAmount}. Tu cuenta está activa.`,
+        data: { url: "/client/dashboard" }
+      });
+    }
   } catch (err) {
     console.error("Error enviando notificación de pago:", err);
   }

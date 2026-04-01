@@ -23,6 +23,10 @@ const STATUS_STYLE: Record<string, { label: string; className: string }> = {
     label: 'Pendiente',
     className: 'border-primary/50 bg-primary/10 text-primary',
   },
+  pending_payment: {
+    label: 'Pendiente de pago',
+    className: 'border-amber-500/50 bg-amber-500/10 text-amber-500',
+  },
   expiring_soon: {
     label: 'Por vencer',
     className: 'border-amber-500/50 text-amber-800 bg-amber-500/10 dark:text-amber-400',

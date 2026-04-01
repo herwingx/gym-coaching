@@ -29,24 +29,6 @@ export async function createNewClient(formData: FormData) {
   const fullName = formData.get("fullName") as string;
   const email = formData.get("email") as string;
   const phone = formData.get("phone") as string;
-  const birthDate = formData.get("birthDate") as string;
-  const gender = formData.get("gender") as string;
-  const goalRaw = formData.get("goal") as string;
-  const GOAL_MAP: Record<string, string> = {
-    muscle_gain: "muscle_gain",
-    fat_loss: "weight_loss",
-    strength: "toning",
-    endurance: "endurance",
-    general_fitness: "maintenance",
-  };
-  const goal = goalRaw && GOAL_MAP[goalRaw] ? GOAL_MAP[goalRaw] : null;
-
-  const experienceLevelRaw = formData.get("experienceLevel") as string;
-  const validExperienceLevels = ["beginner", "intermediate", "advanced"];
-  const experienceLevel = validExperienceLevels.includes(experienceLevelRaw)
-    ? experienceLevelRaw
-    : null;
-
   const notes = formData.get("notes") as string;
 
   const clientId = crypto.randomUUID();
@@ -60,10 +42,6 @@ export async function createNewClient(formData: FormData) {
         email,
         full_name: fullName,
         phone: phone || "",
-        birth_date: birthDate || null,
-        gender: gender || null,
-        goal: goal || null,
-        experience_level: experienceLevel || null,
         status: "pending",
         notes: notes || null,
       },

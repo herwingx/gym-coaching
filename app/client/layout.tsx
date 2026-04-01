@@ -13,12 +13,13 @@ export default async function ClientLayout({
     redirect("/auth/login");
   }
 
-  // Redirigir si está suspendido
+  // Redirigir si está suspendido, vencido o pendiente de pago
   if (
     profile?.subscription_status === "suspended" ||
-    profile?.subscription_status === "expired"
+    profile?.subscription_status === "expired" ||
+    profile?.subscription_status === "pending_payment"
   ) {
-    redirect("/suspended");
+    redirect(`/suspended?status=${profile.subscription_status}`);
   }
 
   // Redirigir a onboarding si no está completado

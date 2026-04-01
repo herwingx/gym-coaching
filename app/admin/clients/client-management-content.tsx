@@ -67,6 +67,7 @@ const CLIENT_STATUS_LABELS: Record<string, string> = {
   suspended: "Suspendido",
   inactive: "Inactivo",
   pending: "Pendiente",
+  pending_payment: "Pendiente de pago",
 };
 
 export type ClientManagementCard = {
@@ -115,6 +116,7 @@ export function ClientManagementContent({
       if (activeTab === "all") return true;
       if (activeTab === "active") return c.status === "active";
       if (activeTab === "pending") return c.status === "pending";
+      if (activeTab === "pending_payment") return c.status === "pending_payment";
       if (activeTab === "expired") return c.status === "expired";
       if (activeTab === "suspended") return c.status === "suspended";
 
@@ -129,6 +131,7 @@ export function ClientManagementContent({
       expired: clients.filter((c) => c.status === "expired").length,
       suspended: clients.filter((c) => c.status === "suspended").length,
       pending: clients.filter((c) => c.status === "pending").length,
+      pendingPayment: clients.filter((c) => c.status === "pending_payment").length,
     };
   }, [clients]);
 
@@ -271,6 +274,13 @@ export function ClientManagementContent({
                   Pendientes
                 </TabsTrigger>
                 <TabsTrigger
+                  value="pending_payment"
+                  className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-sm"
+                >
+                  <Badge variant="outline" className="px-1 text-[10px] w-3.5 h-3.5 p-0 flex items-center justify-center border-amber-500/50 bg-amber-500/10 text-amber-500">$</Badge>
+                  Falta Pago
+                </TabsTrigger>
+                <TabsTrigger
                   value="expired"
                   className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-sm"
                 >
@@ -310,6 +320,12 @@ export function ClientManagementContent({
                       <div className="flex items-center gap-2">
                         <AlertCircle className="size-4 text-muted-foreground" />
                         <span>Pendientes</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="pending_payment" className="rounded-lg py-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className="flex items-center justify-center size-4 border rounded-full border-amber-500/50 bg-amber-500/10 text-[10px] text-amber-600 font-bold">$</span>
+                        <span>Falta Pago</span>
                       </div>
                     </SelectItem>
                     <SelectItem value="expired" className="rounded-lg py-2.5">
@@ -511,6 +527,12 @@ export function ClientManagementContent({
                         <span>
                           Pendiente de que el usuario complete su registro
                         </span>
+                      </div>
+                    )}
+                    {client.status === "pending_payment" && (
+                      <div className="flex items-center gap-2 p-2 rounded-lg bg-amber-500/10 text-[11px] text-amber-600 border border-amber-500/20">
+                        <AlertTriangle className="size-3.5 shrink-0" />
+                        <span>Falta registrar su pago para activar su cuenta</span>
                       </div>
                     )}
                   </CardContent>

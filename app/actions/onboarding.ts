@@ -36,6 +36,8 @@ interface OnboardingData {
   notificationsEnabled?: boolean;
 }
 
+import { sendPushNotification } from "@/app/actions/web-push";
+
 export async function completeOnboarding(data: OnboardingData) {
   const supabase = await createClient();
 
@@ -132,7 +134,7 @@ export async function completeOnboarding(data: OnboardingData) {
     // Fallback: cliente pre-creado por admin con mismo email pero sin user_id
     const { data: clientByEmail } = await admin
       .from("clients")
-      .select("id, coach_id, goal, experience_level, full_name")
+      .select("id, coach_id, goal, experience_level, full_name, status")
       .eq("email", user.email)
       .is("user_id", null)
       .limit(1)
@@ -153,6 +155,10 @@ export async function completeOnboarding(data: OnboardingData) {
       if (!preserveAdminData) {
         updatePayload.goal = clientGoal;
         updatePayload.experience_level = data.experienceLevel;
+      }
+
+      if (clientByEmail.status === "pending") {
+        updatePayload.status = "pending_payment";
       }
 
       const { error: linkError } = await admin
@@ -204,13 +210,27 @@ export async function completeOnboarding(data: OnboardingData) {
         current_weight: data.initialWeight || null,
         goal: clientGoal,
         experience_level: data.experienceLevel,
-        status: "active",
+        status: "pending_payment",
       });
 
       if (clientError) {
         console.error("Client creation error:", clientError);
       }
     }
+  }
+
+  const { data: finalClient } = await admin
+    .from("clients")
+    .select("coach_id")
+    .eq("user_id", data.userId)
+    .single();
+
+  if (finalClient?.coach_id) {
+    await sendPushNotification(finalClient.coach_id, {
+      title: "Nuevo registro completado",
+      body: `${data.fullName} finalizó su onboarding y está pendiente de pago.`,
+      data: { url: "/admin/clients" }
+    }).catch(console.error);
   }
 
   return { success: true };
