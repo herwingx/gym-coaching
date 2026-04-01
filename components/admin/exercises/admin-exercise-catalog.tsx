@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Library, Search as SearchIcon, Eye, SlidersHorizontal, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { exName, exEquipment, exTargetMuscles } from '@/lib/exercise-i18n'
 import { ExerciseDetailDrawer } from '@/components/client/exercise-detail-drawer'
 
 interface AdminExerciseCatalogProps {
@@ -305,12 +306,12 @@ export function AdminExerciseCatalog({
                     </div>
                     <div className="flex min-h-0 flex-1 flex-col gap-2.5 p-4">
                       <h3 className="line-clamp-2 font-bold capitalize leading-snug text-foreground tracking-tight">
-                        {ex.name}
+                        {exName(ex)}
                       </h3>
                       <div className="flex flex-wrap gap-1.5 mt-auto pt-1">
-                        {ex.primary_muscle ? (
+                        {exTargetMuscles(ex).length > 0 ? (
                           <Badge variant="secondary" className="text-[10px] font-semibold capitalize bg-secondary/60 text-secondary-foreground px-2 py-0 border-transparent">
-                            {ex.primary_muscle}
+                            {exTargetMuscles(ex)[0]}
                           </Badge>
                         ) : null}
                         {ex.exercise_type ? (
@@ -319,8 +320,8 @@ export function AdminExerciseCatalog({
                           </Badge>
                         ) : null}
                       </div>
-                      {ex.equipment ? (
-                        <p className="line-clamp-1 text-xs text-muted-foreground font-medium mt-0.5">{ex.equipment}</p>
+                      {exEquipment(ex) ? (
+                        <p className="line-clamp-1 text-xs text-muted-foreground font-medium mt-0.5">{exEquipment(ex)}</p>
                       ) : null}
                       <Button
                         type="button"

@@ -92,7 +92,7 @@ type PrEventRow = {
   achieved_at: string | null
   weight_kg: number | null
   reps: number | null
-  exercises?: { name: string } | { name: string }[] | null
+  exercises?: { name: string; name_es?: string | null } | { name: string; name_es?: string | null }[] | null
 }
 
 /** Añade hitos de pr_events que no estén ya cubiertos por el mismo día + peso (sesión vs historial PR). */
@@ -114,7 +114,7 @@ export function mergePrEventsIntoPoints(
 
     const ex = r.exercises
     const meta = Array.isArray(ex) ? ex[0] : ex
-    if (meta?.name) nameById.set(id, meta.name)
+    if (meta) nameById.set(id, meta.name_es || meta.name)
 
     if (!out[id]) out[id] = []
     const dayKey = new Date(r.achieved_at).toISOString().slice(0, 10)

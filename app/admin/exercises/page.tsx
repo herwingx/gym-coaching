@@ -37,7 +37,7 @@ export default async function AdminExercisesPage({
   }
 
   if (bodyPart) {
-    query = query.contains("body_parts", [bodyPart]);
+    query = query.contains("body_parts_es", [bodyPart]);
   }
 
   const {
@@ -54,18 +54,18 @@ export default async function AdminExercisesPage({
   const totalCount = count ?? 0;
   const totalPages = Math.ceil(totalCount / pageSize);
 
-  // Use a predefined list of body parts instead of slow DB loops
+  // Body parts en español (valores de body_parts_es)
   const allBodyParts = [
-    "neck",
-    "lower arms",
-    "shoulders",
+    "antebrazos",
+    "brazos",
     "cardio",
-    "upper arms",
-    "chest",
-    "lower legs",
-    "back",
-    "upper legs",
-    "waist",
+    "cintura",
+    "cuello",
+    "espalda",
+    "hombros",
+    "pantorrillas",
+    "pecho",
+    "piernas",
   ].sort();
 
   return (

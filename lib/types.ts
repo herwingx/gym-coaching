@@ -69,6 +69,13 @@ export interface Exercise {
   equipments?: string[]
   secondary_muscles?: string[]
   instructions?: string[]
+  // -- Columnas en español --
+  name_es?: string
+  equipment_es?: string
+  body_parts_es?: string[]
+  target_muscles_es?: string[]
+  secondary_muscles_es?: string[]
+  instructions_es?: string[]
   created_at: string
   updated_at: string
 }

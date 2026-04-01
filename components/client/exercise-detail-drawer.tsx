@@ -27,6 +27,7 @@ import { Separator } from '@/components/ui/separator'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { ExternalLink, Info } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { exName, exEquipment, exTargetMuscles, exInstructions } from '@/lib/exercise-i18n'
 
 interface ExerciseDetailDrawerProps {
   open: boolean
@@ -65,6 +66,8 @@ function useMediaQuery(query: string) {
 }
 
 function ExerciseBadges({ exercise }: { exercise: Exercise }) {
+  const targets = exTargetMuscles(exercise)
+  const equipmentLabel = exEquipment(exercise)
   return (
     <div className="mt-3 flex flex-wrap gap-2 items-center justify-center sm:justify-start">
       {exercise.exercise_type ? (
@@ -72,14 +75,14 @@ function ExerciseBadges({ exercise }: { exercise: Exercise }) {
           {exercise.exercise_type}
         </Badge>
       ) : null}
-      {exercise.primary_muscle ? (
+      {targets.length > 0 ? (
         <Badge variant="secondary" className="capitalize rounded-full px-3 py-0.5 text-[11px] font-semibold bg-secondary/80 text-secondary-foreground border-transparent shadow-sm">
-          {exercise.primary_muscle}
+          {targets[0]}
         </Badge>
       ) : null}
-      {exercise.equipment ? (
+      {equipmentLabel ? (
         <Badge variant="outline" className="capitalize rounded-full px-3 py-0.5 text-[11px] font-medium border-border/60 bg-background/50 text-muted-foreground shadow-sm">
-          {exercise.equipment}
+          {equipmentLabel}
         </Badge>
       ) : null}
     </div>
@@ -97,8 +100,8 @@ function ExerciseDetailSections({
   showHeroMedia: boolean
   classNames?: { root?: string }
 }) {
-  const instructions = normalizeLines(exercise.instructions)
-  const targets = exercise.target_muscles?.length ? exercise.target_muscles : []
+  const instructions = normalizeLines(exInstructions(exercise))
+  const targets = exTargetMuscles(exercise)
   const showInstructionPlaceholder = !instructions.length && (showCompactCallout || !showHeroMedia)
 
   return (
@@ -127,7 +130,7 @@ function ExerciseDetailSections({
         <div className="overflow-hidden rounded-[1.5rem] border border-border/40 bg-white dark:bg-[#f8f9fa] shadow-sm">
           <ExerciseMedia
             src={exercise.gif_url || exercise.image_url}
-            alt={exercise.name}
+            alt={exName(exercise)}
             variant="fill"
             className="aspect-square w-full max-h-[min(55vh,420px)] sm:max-h-[min(50vh,480px)]"
             imgClassName="object-contain mix-blend-multiply drop-shadow-sm"
@@ -227,7 +230,7 @@ export function ExerciseDetailDrawer({
 }: ExerciseDetailDrawerProps) {
   const isDesktop = useMediaQuery('(min-width: 1024px)')
 
-  const title = exercise?.name ?? 'Ejercicio'
+  const title = exercise ? exName(exercise) : 'Ejercicio'
 
   if (isDesktop) {
     return (
@@ -261,7 +264,7 @@ export function ExerciseDetailDrawer({
                   <div className="border-b border-border/60 lg:border-r lg:border-b-0">
                     <DialogHeader className="p-6 pb-4 text-left lg:sticky lg:top-0">
                       <DialogTitle className="text-xl font-bold capitalize tracking-tight sm:text-2xl">
-                        {exercise.name}
+                        {exName(exercise)}
                       </DialogTitle>
                       <ExerciseBadges exercise={exercise} />
                     </DialogHeader>
@@ -269,7 +272,7 @@ export function ExerciseDetailDrawer({
                       <div className="overflow-hidden rounded-2xl border border-border/60 bg-muted/50 dark:bg-muted/25">
                         <ExerciseMedia
                           src={exercise.gif_url || exercise.image_url}
-                          alt={exercise.name}
+                          alt={exName(exercise)}
                           variant="fill"
                           className="aspect-4/3 w-full lg:aspect-square lg:max-h-[min(52vh,520px)]"
                           imgClassName="object-contain"
@@ -291,7 +294,7 @@ export function ExerciseDetailDrawer({
                 <>
                   <DialogHeader className="p-6 pb-2 text-left">
                     <DialogTitle className="text-xl font-bold capitalize tracking-tight sm:text-2xl">
-                      {exercise.name}
+                      {exName(exercise)}
                     </DialogTitle>
                     <ExerciseBadges exercise={exercise} />
                   </DialogHeader>

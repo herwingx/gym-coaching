@@ -16,7 +16,9 @@ type RoutineExerciseLike = {
   exercises?: {
     id?: string
     name?: string | null
+    name_es?: string | null
     primary_muscle?: string | null
+    target_muscles_es?: string[] | null
     gif_url?: string | null
   } | null
 }
@@ -228,18 +230,18 @@ export function RoutineDayCards({
                                 className="cursor-pointer flex items-center justify-center transition-transform hover:scale-105"
                                 onClick={() =>
                                   setSelectedExercise({
-                                    name: ex.exercises?.name || 'Ejercicio',
-                                    primaryMuscle: ex.exercises?.primary_muscle || 'No especificado',
+                                    name: ex.exercises?.name_es || ex.exercises?.name || 'Ejercicio',
+                                    primaryMuscle: (ex.exercises?.target_muscles_es?.[0]) || ex.exercises?.primary_muscle || 'No especificado',
                                     sets: `${ex.sets ?? '-'}x${ex.reps || '-'}`,
                                     rest: ex.rest_seconds ? `${ex.rest_seconds}s` : 'Sin descanso',
                                     gifUrl: ex.exercises?.gif_url || '',
                                   })
                                 }
-                                aria-label={`Ver detalle de ${ex.exercises?.name || 'ejercicio'}`}
+                                aria-label={`Ver detalle de ${ex.exercises?.name_es || ex.exercises?.name || 'ejercicio'}`}
                               >
                                 <img
                                   src={ex.exercises.gif_url}
-                                  alt={ex.exercises?.name || 'Ejercicio'}
+                                  alt={ex.exercises?.name_es || ex.exercises?.name || 'Ejercicio'}
                                   className={cn('object-cover mix-blend-multiply drop-shadow-[0_2px_4px_rgba(0,0,0,0.05)]', compact ? 'size-[2.75rem]' : 'size-[3.25rem]')}
                                   loading="lazy"
                                 />
@@ -252,11 +254,11 @@ export function RoutineDayCards({
                           </div>
                           <div className="min-w-0 flex-1 flex flex-col justify-center">
                             <p className="truncate text-[14px] font-bold leading-none tracking-tight text-foreground transition-colors group-hover:text-primary">
-                              {index + 1}. {ex.exercises?.name ?? 'Ejercicio'}
+                              {index + 1}. {ex.exercises?.name_es || ex.exercises?.name || 'Ejercicio'}
                             </p>
-                            {ex.exercises?.primary_muscle && (
+                            {(ex.exercises?.target_muscles_es?.[0] || ex.exercises?.primary_muscle) && (
                               <p className="truncate text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mt-1.5 opacity-80">
-                                {ex.exercises.primary_muscle}
+                                {ex.exercises?.target_muscles_es?.[0] || ex.exercises.primary_muscle}
                               </p>
                             )}
                           </div>

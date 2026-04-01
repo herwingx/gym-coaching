@@ -53,6 +53,7 @@ import {
 import { ClientStackPageHeader } from "@/components/client/client-app-page-parts";
 import { cn } from "@/lib/utils";
 import { exerciseUsesExternalLoad } from "@/lib/exercise-tracking";
+import { exName } from "@/lib/exercise-i18n";
 import { AchievementUnlockModal } from "@/components/client/achievement-unlock-modal";
 import type { Achievement } from "@/lib/types";
 
@@ -919,7 +920,7 @@ export function WorkoutActiveSession({
                         currentExercise.exercises?.gif_url ||
                         currentExercise.exercises?.image_url
                       }
-                      alt={currentExercise.exercises?.name ?? "Ejercicio"}
+                      alt={exName(currentExercise.exercises)}
                       variant="fill"
                       className="absolute inset-0 size-full transition-transform duration-700 group-hover:scale-110"
                       imgClassName="object-contain p-4"
@@ -964,7 +965,7 @@ export function WorkoutActiveSession({
                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">En Curso</span>
                  </div>
                 <h2 className="text-balance text-2xl font-black uppercase tracking-tight leading-tight sm:text-3xl">
-                  {currentExercise.exercises?.name}
+                  {exName(currentExercise.exercises)}
                 </h2>
                 <div className="flex flex-wrap items-center gap-3">
                    <div className="px-3 py-1.5 rounded-xl bg-primary/10 border border-primary/20">

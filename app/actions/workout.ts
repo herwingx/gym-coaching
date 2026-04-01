@@ -148,7 +148,7 @@ export async function completeWorkoutSession(data: WorkoutCompletionData) {
     uniqueExerciseIds.length > 0
       ? await supabase
           .from("exercises")
-          .select("id, name, exercise_type, uses_external_load, equipment")
+          .select("id, name, name_es, exercise_type, uses_external_load, equipment")
           .in("id", uniqueExerciseIds)
       : {
           data: [] as {
@@ -159,7 +159,7 @@ export async function completeWorkoutSession(data: WorkoutCompletionData) {
             equipment: string | null;
           }[],
         };
-  const nameById = new Map((exerciseRows ?? []).map((e) => [e.id, e.name]));
+  const nameById = new Map((exerciseRows ?? []).map((e) => [e.id, (e as any).name_es || e.name]));
   const usesLoadByExerciseId = new Map(
     (exerciseRows ?? []).map((e) => [
       e.id,
@@ -429,7 +429,7 @@ export async function getPersonalRecords(clientId: string) {
     .select(
       `
       *,
-      exercises(name, primary_muscle)
+      exercises(name, name_es, primary_muscle)
     `,
     )
     .eq("client_id", clientId)

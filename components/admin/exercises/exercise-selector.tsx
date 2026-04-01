@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { SearchIcon, X, Check, SlidersHorizontal, Loader2, Library, Dumbbell } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { exName, exEquipment, exBodyParts, exTargetMuscles } from '@/lib/exercise-i18n'
 
 interface ExerciseSelectorProps {
   exercises: Exercise[]
@@ -39,7 +40,7 @@ export function ExerciseSelector({
   const bodyParts = useMemo(() => {
     const set = new Set<string>()
     exercises.forEach((ex) => {
-      ex.body_parts?.forEach((bp) => set.add(bp))
+      exBodyParts(ex).forEach((bp) => set.add(bp))
     })
     return Array.from(set).sort()
   }, [exercises])
@@ -47,10 +48,10 @@ export function ExerciseSelector({
   const filteredExercises = useMemo(() => {
     return exercises.filter((ex) => {
       const matchSearch = search
-        ? ex.name.toLowerCase().includes(search.toLowerCase())
+        ? exName(ex).toLowerCase().includes(search.toLowerCase())
         : true
       const matchBodyPart = activeBodyPart
-        ? ex.body_parts?.includes(activeBodyPart)
+        ? exBodyParts(ex).includes(activeBodyPart)
         : true
 
       return matchSearch && matchBodyPart
@@ -268,17 +269,17 @@ export function ExerciseSelector({
 
                   <div className="min-w-0 flex-1 pr-8">
                     <p className="line-clamp-1 text-sm font-bold capitalize tracking-tight text-foreground group-hover:text-primary transition-colors">
-                      {ex.name}
+                      {exName(ex)}
                     </p>
                     <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                      {ex.primary_muscle && (
+                      {exTargetMuscles(ex).length > 0 && (
                         <Badge variant="secondary" className="h-5 rounded-md px-1.5 text-[10px] font-semibold uppercase tracking-wider bg-primary/5 text-primary/80 border-0">
-                          {ex.primary_muscle}
+                          {exTargetMuscles(ex)[0]}
                         </Badge>
                       )}
-                      {ex.equipment && (
+                      {exEquipment(ex) && (
                         <span className="text-[11px] font-medium text-muted-foreground">
-                          {ex.equipment}
+                          {exEquipment(ex)}
                         </span>
                       )}
                     </div>

@@ -71,7 +71,7 @@ export default async function ClientProgressPage() {
     supabase
       .from("pr_events")
       .select(
-        "achieved_at,weight_kg,reps,exercise_id,exercises(name,primary_muscle,exercise_type,uses_external_load,equipment)",
+        "achieved_at,weight_kg,reps,exercise_id,exercises(name,name_es,primary_muscle,exercise_type,uses_external_load,equipment)",
       )
       .eq("client_id", clientId)
       .order("achieved_at", { ascending: true })
