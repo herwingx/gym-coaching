@@ -37,8 +37,8 @@ function VerifyOtpFormInner({
       return
     }
 
-    if (token.length !== 6) {
-      toast.error('El código debe tener 6 dígitos.')
+    if (token.length !== 8) {
+      toast.error('El código debe tener 8 dígitos.')
       return
     }
 
@@ -98,7 +98,7 @@ function VerifyOtpFormInner({
 
       if (error) throw error
 
-      toast.success('Te hemos enviado un nuevo código de 6 dígitos.')
+      toast.success('Te hemos enviado un nuevo código de 8 dígitos.')
     } catch (error: any) {
       const msg = error.message || ''
       if (msg.includes('rate limit') || msg.includes('429')) {
