@@ -105,11 +105,11 @@ export async function assignRoutineToClient(
     .update({ assigned_routine_id: routineId })
     .eq("id", clientId);
 
-  // Notificar por email (background)
+  // Notificar por email (background) y Push Notification
   try {
     const { data: clientInfo } = await supabase
       .from("clients")
-      .select("full_name, email")
+      .select("full_name, email, user_id")
       .eq("id", clientId)
       .single();
 
@@ -119,13 +119,24 @@ export async function assignRoutineToClient(
       .eq("id", routineId)
       .single();
 
-    if (clientInfo?.email && routineInfo?.name) {
-      const { sendNewRoutineNotification } = await import("@/lib/email");
-      sendNewRoutineNotification({
-        to: clientInfo.email,
-        clientName: clientInfo.full_name,
-        routineName: routineInfo.name,
-      }).catch((err) => console.error("Error enviando email rutina:", err));
+    if (clientInfo && routineInfo?.name) {
+      if (clientInfo.email) {
+        const { sendNewRoutineNotification } = await import("@/lib/email");
+        sendNewRoutineNotification({
+          to: clientInfo.email,
+          clientName: clientInfo.full_name,
+          routineName: routineInfo.name,
+        }).catch((err) => console.error("Error enviando email rutina:", err));
+      }
+
+      if (clientInfo.user_id) {
+        const { sendPushNotification } = await import("@/app/actions/web-push");
+        sendPushNotification(clientInfo.user_id, {
+          title: "🔥 ¡Nueva Rutina Asignada!",
+          body: `Tu coach ha subido tu bloque: ${routineInfo.name}. ¡A darle!`,
+          data: { url: "/client/dashboard" },
+        }).catch((err) => console.error("Error enviando push rutina:", err));
+      }
     }
   } catch (err) {
     console.warn("No se pudo enviar notificación de rutina:", err);

@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { completeOnboarding } from "@/app/actions/onboarding";
+import { savePushSubscription } from "@/app/actions/web-push";
+import { urlBase64ToUint8Array } from "@/lib/utils/web-push";
 import type { FitnessGoal, ExperienceLevel } from "@/lib/types";
 
 interface OnboardingFlowProps {
@@ -134,6 +136,32 @@ export function OnboardingFlow({ userId, userEmail }: OnboardingFlowProps) {
     }
   };
 
+  const handleEnableNotifications = async () => {
+    setNotificationsEnabled(true);
+    if (typeof window !== "undefined" && "Notification" in window) {
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission === "granted") {
+          const registration = await navigator.serviceWorker.ready;
+          const subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!)
+          });
+          localStorage.setItem(`push_subscription_${userId}`, JSON.stringify(subscription));
+          toast.success("¡Notificaciones activadas!");
+        } else {
+          setNotificationsEnabled(false);
+          toast.error("Permiso denegado. Puedes cambiarlo luego en tus ajustes.");
+        }
+      } catch (err) {
+        console.error("Error pidiendo permiso de notificaciones:", err);
+      }
+    } else {
+      toast.error("Tu navegador no soporta notificaciones.");
+      setNotificationsEnabled(false);
+    }
+  };
+
   const handleComplete = async () => {
     setIsSubmitting(true);
     try {
@@ -155,6 +183,19 @@ export function OnboardingFlow({ userId, userEmail }: OnboardingFlowProps) {
       });
 
       if (result.success) {
+        if (notificationsEnabled) {
+          try {
+            const savedSub = localStorage.getItem(`push_subscription_${userId}`);
+            if (savedSub) {
+              const sub = JSON.parse(savedSub);
+              await savePushSubscription(sub);
+              localStorage.removeItem(`push_subscription_${userId}`);
+            }
+          } catch (e) {
+            console.error("No se pudo guardar la suscripción push", e);
+          }
+        }
+
         localStorage.removeItem(`onboarding_state_${userId}`); // Clear state
         toast.success("¡Bienvenido a RU Coach! Tu perfil está listo.");
         window.location.href = "/client/dashboard";
@@ -441,7 +482,7 @@ export function OnboardingFlow({ userId, userEmail }: OnboardingFlowProps) {
               <div className="mt-8 space-y-3 p-6 bg-muted/30 rounded-3xl border border-border text-center">
                 <Button
                   variant={notificationsEnabled ? "default" : "outline"}
-                  onClick={() => setNotificationsEnabled(true)}
+                  onClick={handleEnableNotifications}
                   className={`w-full h-14 rounded-xl text-lg font-semibold transition-all ${
                     notificationsEnabled ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : ""
                   }`}

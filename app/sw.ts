@@ -19,3 +19,37 @@ const serwist = new Serwist({
 });
 
 serwist.addEventListeners();
+
+// Web Push Notifications logic
+self.addEventListener("push", (event) => {
+  const data = event.data?.json() ?? {};
+  
+  const title = data.title || "Gym Coaching";
+  const options = {
+    body: data.body || "Tienes una nueva notificación.",
+    icon: "/android-chrome-192x192.png",
+    badge: "/favicon-32x32.png",
+    data: data.data || { url: "/" },
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const urlToOpen = event.notification.data?.url || "/";
+
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
+      for (let i = 0; i < windowClients.length; i++) {
+        const client = windowClients[i];
+        if (client.url === new URL(urlToOpen, self.location.origin).href && "focus" in client) {
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(urlToOpen);
+      }
+    })
+  );
+});
