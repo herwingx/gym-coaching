@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { Dumbbell, Check, ChevronRight } from "lucide-react";
+import { Check, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { completeAdminOnboarding } from "@/app/actions/admin-onboarding";
 
@@ -26,7 +26,7 @@ import {
 
 interface AdminOnboardingFlowProps {
   userId: string;
-  gymName: string;
+  gymName: string; // Used implicitly as a fallback for the DB
 }
 
 export function AdminOnboardingFlow({
@@ -35,7 +35,6 @@ export function AdminOnboardingFlow({
 }: AdminOnboardingFlowProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [gymNameLocal, setGymNameLocal] = useState(gymName);
   const [timezone, setTimezone] = useState("America/Mexico_City");
   const [currency, setCurrency] = useState("MXN");
 
@@ -47,14 +46,14 @@ export function AdminOnboardingFlow({
     try {
       const result = await completeAdminOnboarding({
         userId,
-        gymName: gymNameLocal,
+        gymName, // Passing the implicit/existing value instead of asking for it
         timezone,
         currency,
       });
 
       if (result.success) {
         toast.success(
-          "¡Configuración guardada! Ya puedes gestionar tus atletas.",
+          "¡Configuración guardada! Ya puedes gestionar a tus atletas.",
         );
         window.location.href = "/admin/dashboard";
       } else {
@@ -81,10 +80,10 @@ export function AdminOnboardingFlow({
             </div>
             <div className="flex flex-col leading-tight">
               <h1 className="font-black tracking-tighter uppercase">
-                RU Coach
+                Coach
               </h1>
               <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">
-                Rodrigo Urbina
+                Panel de Entrenamiento
               </p>
             </div>
           </div>
@@ -121,21 +120,12 @@ export function AdminOnboardingFlow({
           {currentStep === 1 && (
             <>
               <CardHeader>
-                <CardTitle>Configuración de Marca</CardTitle>
+                <CardTitle>Configuración Regional</CardTitle>
                 <CardDescription>
-                  Personaliza cómo verán tus atletas tu plataforma de coaching
+                  Define tu zona horaria y la moneda que manejarás con tus atletas.
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-6">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="gym_name">Nombre de tu marca</Label>
-                  <Input
-                    id="gym_name"
-                    placeholder="Ej: RU Coach Élite, Urbina Training, etc."
-                    value={gymNameLocal}
-                    onChange={(e) => setGymNameLocal(e.target.value)}
-                  />
-                </div>
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="timezone">Zona Horaria</Label>
                   <Select value={timezone} onValueChange={setTimezone}>
@@ -165,14 +155,14 @@ export function AdminOnboardingFlow({
                   </Select>
                 </div>
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="currency">Moneda</Label>
+                  <Label htmlFor="currency">Moneda de Pagos</Label>
                   <Select value={currency} onValueChange={setCurrency}>
                     <SelectTrigger id="currency" className="w-full">
                       <SelectValue placeholder="Seleccionar moneda" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="MXN">MXN (Peso Mexicano)</SelectItem>
-                      <SelectItem value="USD">USD (Dolar)</SelectItem>
+                      <SelectItem value="USD">USD (Dólar)</SelectItem>
                       <SelectItem value="COP">COP (Peso Colombiano)</SelectItem>
                       <SelectItem value="ARS">ARS (Peso Argentino)</SelectItem>
                       <SelectItem value="EUR">EUR (Euro)</SelectItem>
@@ -197,7 +187,7 @@ export function AdminOnboardingFlow({
               <CardHeader>
                 <CardTitle>¡Todo listo, Coach!</CardTitle>
                 <CardDescription>
-                  Tu ecosistema de entrenamiento premium está configurado.
+                  Tu ecosistema como entrenador está configurado.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -205,10 +195,9 @@ export function AdminOnboardingFlow({
                   <div className="size-20 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
                     <Check className="size-10 text-primary" />
                   </div>
-                  <h3 className="font-semibold mb-2">Bienvenido a RU Coach</h3>
+                  <h3 className="font-semibold mb-2">Bienvenido a tu plataforma</h3>
                   <p className="text-sm text-muted-foreground">
-                    <strong>{gymNameLocal}</strong> está en marcha. Comienza a
-                    transformar vidas con el respaldo de Rodrigo Urbina.
+                    Comienza a transformar vidas, asignar rutinas y gestionar a tus atletas directamente desde tu panel.
                   </p>
                 </div>
               </CardContent>
@@ -220,7 +209,7 @@ export function AdminOnboardingFlow({
                 >
                   {isSubmitting
                     ? "Configurando..."
-                    : "Entrar al Panel RU Coach"}
+                    : "Entrar a mi Panel"}
                   <Check className="w-4 h-4 ml-1" />
                 </Button>
               </div>

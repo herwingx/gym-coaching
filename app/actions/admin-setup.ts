@@ -163,33 +163,75 @@ export async function createAdminAccount(formData: FormData) {
     return { success: false, error: "Error al crear la cuenta" };
   }
 
-  // Actualizar perfil como admin, onboarding pendiente
-  const { error: profileError } = await supabase.from("profiles").upsert({
-    id: data.user.id,
-    role: "admin",
-    full_name: coachName,
-    onboarding_completed: false,
-  });
-
-  if (profileError) {
-    return { success: false, error: "Error al configurar el perfil" };
+  let adminClient: ReturnType<typeof import("@/lib/supabase/admin").createAdminClient> | null = null;
+  
+  try {
+    const { createAdminClient } = await import("@/lib/supabase/admin");
+    adminClient = createAdminClient();
+  } catch {
+    console.error("No se pudo cargar el cliente administrador (verifica la clave SERVICE_ROLE)");
   }
 
-  // Crear gym_settings (business_name / marca - opcional)
-  const displayName =
-    gymName && gymName.trim().length >= 2 ? gymName.trim() : coachName;
-  const { error: gymError } = await supabase.from("gym_settings").insert({
-    admin_id: data.user.id,
-    gym_name: displayName,
-    setup_completed: false,
-  });
+  if (adminClient) {
+    // Actualizar perfil como admin, onboarding pendiente (usando SDK Admin para saltar RLS local)
+    const { error: profileError } = await adminClient.from("profiles").upsert({
+      id: data.user.id,
+      role: "admin",
+      full_name: coachName,
+      onboarding_completed: false,
+    });
 
-  if (gymError && !isBenignGymSettingsInsertError(gymError)) {
-    console.error(
-      "[admin-setup] gym_settings insert (cuenta nueva):",
-      gymError.message,
-    );
-    // No bloqueamos confirmación por email: el admin puede configurarlo en onboarding
+    if (profileError) {
+      console.error("[admin-setup] Error con el perfil (adminClient):", profileError.message);
+      return { success: false, error: "Error al configurar el perfil" };
+    }
+
+    // Crear gym_settings (business_name / marca - opcional)
+    const displayName =
+      gymName && gymName.trim().length >= 2 ? gymName.trim() : coachName;
+    const { error: gymError } = await adminClient.from("gym_settings").insert({
+      admin_id: data.user.id,
+      gym_name: displayName,
+      setup_completed: false,
+    });
+
+    if (gymError && !isBenignGymSettingsInsertError(gymError)) {
+      console.error(
+        "[admin-setup] gym_settings insert (cuenta nueva):",
+        gymError.message,
+      );
+      // No bloqueamos confirmación por email: el admin puede configurarlo en onboarding
+    }
+  } else {
+    // Fallback: This will likely fail with RLS if email verification is enabled
+    // Actualizar perfil como admin, onboarding pendiente
+    const { error: profileError } = await supabase.from("profiles").upsert({
+      id: data.user.id,
+      role: "admin",
+      full_name: coachName,
+      onboarding_completed: false,
+    });
+
+    if (profileError) {
+      return { success: false, error: "Error al configurar el perfil" };
+    }
+
+    // Crear gym_settings (business_name / marca - opcional)
+    const displayName =
+      gymName && gymName.trim().length >= 2 ? gymName.trim() : coachName;
+    const { error: gymError } = await supabase.from("gym_settings").insert({
+      admin_id: data.user.id,
+      gym_name: displayName,
+      setup_completed: false,
+    });
+
+    if (gymError && !isBenignGymSettingsInsertError(gymError)) {
+      console.error(
+        "[admin-setup] gym_settings insert (cuenta nueva):",
+        gymError.message,
+      );
+      // No bloqueamos confirmación por email: el admin puede configurarlo en onboarding
+    }
   }
 
   if (data.session) {
