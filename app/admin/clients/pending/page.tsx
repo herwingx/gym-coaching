@@ -71,7 +71,7 @@ export default function PendingClientsPage() {
         .update({
           admin_approved: true,
           approval_date: new Date().toISOString(),
-          status: "active",
+          status: "pending_payment",
         })
         .eq("id", clientId)
         .eq("coach_id", user.id);

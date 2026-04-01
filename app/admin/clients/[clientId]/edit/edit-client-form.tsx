@@ -21,6 +21,7 @@ import { toast } from "sonner";
 
 const STATUS_OPTIONS = [
   { value: "active", label: "Activo" },
+  { value: "pending_payment", label: "Pendiente de pago" },
   { value: "expired", label: "Vencido" },
   { value: "suspended", label: "Suspendido" },
   { value: "inactive", label: "Inactivo" },

@@ -1,5 +1,5 @@
 import { ChatShellSkeleton } from "@/components/skeletons";
 
 export default function ClientMessagesLoading() {
-  return <ChatShellSkeleton variant="client" />;
+  return <ChatShellSkeleton role="client" />;
 }

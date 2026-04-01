@@ -220,7 +220,7 @@ export async function useInvitationCode(
       .single();
 
     const newStatus =
-      existingClient?.status === "suspended" ? "suspended" : "active";
+      existingClient?.status === "suspended" ? "suspended" : "pending_payment";
 
     const { error } = await admin
       .from("clients")
@@ -248,7 +248,7 @@ export async function useInvitationCode(
       full_name: profile?.full_name || "Nuevo Asesorado",
       phone: "",
       email: profile?.email || "",
-      status: "active",
+      status: "pending_payment",
     });
   }
 
