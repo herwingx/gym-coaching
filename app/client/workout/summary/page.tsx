@@ -82,8 +82,8 @@ export default async function WorkoutSummaryPage({
   return (
     <>
       <ClientStackPageHeader
-        title="Entrenamiento completado"
-        subtitle="Sesión guardada · revisa métricas, nota y sugerencias de la rutina."
+        title="Sesión Finalizada"
+        subtitle="¡Gran trabajo! Hemos guardado tu progreso y actualizado tus sugerencias. Revisa los detalles abajo."
         backHref="/client/dashboard"
       />
       <div className={CLIENT_DATA_PAGE_SHELL}>

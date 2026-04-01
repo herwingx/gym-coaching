@@ -46,69 +46,26 @@ export default async function AdminSettingsPage() {
 
       <main className="container py-6 sm:py-8">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-          <div className="grid gap-3 sm:grid-cols-3">
-            <Card className="border-dashed">
-              <CardContent className="flex items-center gap-3 p-4">
-                <div className="rounded-md bg-primary/10 p-2 text-primary">
-                  <Building2 className="size-4" />
-                </div>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">
-                    {gymSettings?.gym_name ?? "Mi marca"}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Nombre comercial
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="border-dashed">
-              <CardContent className="flex items-center gap-3 p-4">
-                <div className="rounded-md bg-primary/10 p-2 text-primary">
-                  <Dumbbell className="size-4" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium">
-                    {gymSettings?.currency ?? "MXN"}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Moneda activa</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="border-dashed">
-              <CardContent className="flex items-center gap-3 p-4">
-                <div className="rounded-md bg-primary/10 p-2 text-primary">
-                  <Globe2 className="size-4" />
-                </div>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">
-                    {gymSettings?.timezone ?? "America/Mexico_City"}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Zona horaria</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
 
           <Tabs defaultValue="profile" className="flex flex-col gap-6">
-            <TabsList className="grid grid-cols-3 w-full sm:w-[500px] h-12 p-1 bg-muted/50 rounded-2xl border border-border/40 shadow-sm">
+            <TabsList className="no-scrollbar flex h-auto w-full sm:w-fit items-center justify-start overflow-x-auto rounded-2xl border border-border/40 bg-muted/50 p-1 shadow-sm">
               <TabsTrigger
                 value="profile"
-                className="rounded-xl px-4 py-2 data-[state=active]:shadow-md gap-2"
+                className="shrink-0 gap-2 rounded-xl px-4 py-2 data-[state=active]:shadow-md"
               >
                 <User className="size-4" />
                 Mi perfil
               </TabsTrigger>
               <TabsTrigger
                 value="general"
-                className="rounded-xl px-4 py-2 data-[state=active]:shadow-md gap-2"
+                className="shrink-0 gap-2 rounded-xl px-4 py-2 data-[state=active]:shadow-md"
               >
                 <Settings className="size-4" />
                 General
               </TabsTrigger>
               <TabsTrigger
                 value="biblioteca"
-                className="rounded-xl px-4 py-2 data-[state=active]:shadow-md gap-2"
+                className="shrink-0 gap-2 rounded-xl px-4 py-2 data-[state=active]:shadow-md"
               >
                 <Library className="size-4" />
                 Biblioteca

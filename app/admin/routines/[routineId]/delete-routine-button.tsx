@@ -55,10 +55,9 @@ export function DeleteRoutineButton({
       <AlertDialogTrigger asChild>
         <Button
           variant="outline"
-          size="icon"
-          className="text-destructive hover:text-destructive"
+          className="h-12 w-12 rounded-[1rem] border border-destructive/20 bg-destructive/5 text-destructive shadow-sm hover:bg-destructive hover:text-destructive-foreground active:scale-[0.96] transition-all flex-shrink-0"
         >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="size-5" />
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>

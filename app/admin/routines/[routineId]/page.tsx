@@ -81,56 +81,58 @@ export default async function RoutineDetailsPage({ params }: Props) {
           </div>
         }
         actions={
-          <>
-            <Button asChild className="w-full sm:w-auto">
+          <div className="flex w-full items-center gap-3 sm:w-auto">
+            <Button asChild className="flex-1 sm:w-auto h-12 rounded-[1rem] font-bold text-[15px] shadow-sm transition-all hover:shadow-md active:scale-[0.98]">
               <Link href={`/admin/routines/${routineId}/edit`}>
-                <Pencil className="mr-2 size-4" />
-                Editar
+                <Pencil className="mr-2 size-5" />
+                Editar Rutina
               </Link>
             </Button>
             <DeleteRoutineButton
               routineId={routineId}
               routineName={routine.name}
             />
-          </>
+          </div>
         }
       />
 
       <main className="container py-6 sm:py-8">
         <div className="grid gap-6">
           {/* Routine Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="size-4" />
+          <Card className="rounded-[1.5rem] border-border/50 bg-card/60 shadow-sm backdrop-blur-xl overflow-hidden">
+            <CardHeader className="bg-muted/10 pb-4 border-b border-border/30">
+              <CardTitle className="flex items-center gap-2.5 text-lg font-bold tracking-tight">
+                <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Sparkles className="size-4.5" />
+                </div>
                 Información de la rutina
               </CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Descripción</p>
-                <p className="font-medium">
+            <CardContent className="flex flex-col gap-6 pt-5 bg-card/40">
+              <div className="rounded-xl border border-border/40 bg-background/50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Descripción</p>
+                <p className="text-[14px] leading-relaxed text-foreground/90 font-medium">
                   {routine.description || "Sin descripción"}
                 </p>
               </div>
-              <div className="grid gap-4 md:grid-cols-3">
-                <div>
-                  <p className="text-sm text-muted-foreground">Nivel</p>
-                  <p className="font-medium capitalize">
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="rounded-xl border border-border/40 bg-background/50 p-4 flex flex-col justify-center">
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Nivel</p>
+                  <p className="font-semibold text-[15px] capitalize text-foreground">
                     {routine.level || "No especificado"}
                   </p>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Duración</p>
-                  <p className="font-medium">
+                <div className="rounded-xl border border-border/40 bg-background/50 p-4 flex flex-col justify-center">
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Duración</p>
+                  <p className="font-semibold text-[15px] text-foreground">
                     {routine.duration_weeks
                       ? `${routine.duration_weeks} semanas`
                       : "-"}
                   </p>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Días/semana</p>
-                  <p className="font-medium">{trainingDaysPerWeek}</p>
+                <div className="rounded-xl border border-border/40 bg-background/50 p-4 flex flex-col justify-center">
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Días/semana</p>
+                  <p className="font-semibold text-[15px] text-foreground">{trainingDaysPerWeek}</p>
                 </div>
               </div>
             </CardContent>

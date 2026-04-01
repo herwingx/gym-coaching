@@ -35,44 +35,12 @@ export default async function AdminDashboard() {
         title={`Hola, ${coachFirstName}`}
         description="Resumen operativo: sesiones reales, prioridades y tu cartera en un solo vistazo."
         actions={
-          <>
-            <Button asChild className="w-full sm:w-auto">
-              <Link href="/admin/clients/new">
-                <UserPlus data-icon="inline-start" />
-                Nuevo asesorado
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="w-full sm:w-auto">
-              <Link href="/admin/exercises">
-                <Library data-icon="inline-start" />
-                Ejercicios
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="w-full sm:w-auto">
-              <Link href="/admin/routines/builder">
-                <Dumbbell data-icon="inline-start" />
-                Rutina
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="w-full sm:w-auto">
-              <Link href="/admin/clients">
-                <Users data-icon="inline-start" />
-                Gestionar
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="w-full sm:w-auto">
-              <Link href="/admin/invitations">
-                <Ticket data-icon="inline-start" />
-                Invitaciones
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="w-full sm:w-auto">
-              <Link href="/admin/payments">
-                <CreditCard data-icon="inline-start" />
-                Pagos
-              </Link>
-            </Button>
-          </>
+          <Button asChild className="w-full sm:w-auto">
+            <Link href="/admin/clients/new">
+              <UserPlus data-icon="inline-start" />
+              Nuevo asesorado
+            </Link>
+          </Button>
         }
       />
 

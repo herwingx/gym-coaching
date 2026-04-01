@@ -1,9 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { SidebarTrigger } from '@/components/ui/sidebar'
 import { cn } from '@/lib/utils'
 
 type AdminPageHeaderProps = {
@@ -24,64 +23,67 @@ export function AdminPageHeader({
   backHref,
   backLabel = 'Volver',
   actions,
-  sticky = false,
+  sticky = true,
   className,
 }: AdminPageHeaderProps) {
   return (
     <header
       className={cn(
-        'border-b bg-background/80 backdrop-blur-md',
-        sticky && 'sticky top-0 z-50 safe-area-header-pt',
+        'border-b border-border/50 bg-background/80 backdrop-blur-xl safe-area-header-pt min-h-[76px] sm:min-h-[112px] flex items-center',
+        sticky && 'sticky top-0 z-50',
         className,
       )}
     >
-      <div className="container flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:py-5">
-        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-          {backHref ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              asChild
-              className="shrink-0"
-            >
-              <Link href={backHref} aria-label={backLabel}>
-                <ArrowLeft className="size-5" />
-              </Link>
-            </Button>
-          ) : (
-            <div className="flex items-center gap-2">
-              <SidebarTrigger className="-ml-1 size-9 shrink-0 sm:size-8" />
-              <div className="flex items-center gap-2 lg:hidden">
-                <div className="size-7 rounded-lg overflow-hidden ring-1 ring-border shadow-sm shrink-0">
-                  <img src="/android-chrome-192x192.png" alt="Logo" className="size-full object-cover" />
+      {/* Usamos px-4 sm:px-6 md:px-8 en lugar de container para alineación perfecta con el Sidebar */}
+      <div className="w-full h-full flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:py-0 px-4 sm:px-6 md:px-8">
+        <div className="flex min-w-0 items-center gap-4 h-full">
+          {/* Leading icon: back arrow or logo */}
+          <div className="shrink-0 flex items-center h-full">
+            {backHref ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                asChild
+                className="-ml-3 size-10 sm:size-11 rounded-full hover:bg-primary/10 hover:text-primary transition-all duration-300 md:ml-0"
+              >
+                <Link href={backHref} aria-label={backLabel}>
+                  <ChevronLeft className="size-6 sm:size-7" strokeWidth={2.5} />
+                </Link>
+              </Button>
+            ) : (
+              <div className="flex items-center md:hidden">
+                <div className="size-11 rounded-xl overflow-hidden ring-1 ring-border/50 shadow-md shrink-0 bg-primary/10 flex items-center justify-center p-1.5">
+                  <img src="/android-chrome-192x192.png" alt="Logo" className="size-full object-contain" />
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          <div className="min-w-0">
+          {/* Title block */}
+          <div className="min-w-0 flex flex-col justify-center py-1 sm:h-full">
             {kicker ? (
-              <div className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground sm:text-xs">
+              <div className="mb-0.5 text-[10px] font-black uppercase tracking-[0.2em] text-primary sm:text-[11px] leading-none">
                 {kicker}
               </div>
             ) : null}
-            <h1 className="text-xl font-bold tracking-tight text-pretty sm:text-2xl">
+            <h1 className="text-xl font-black tracking-tight text-pretty sm:text-2xl md:text-3xl lg:text-4xl text-foreground leading-[1.1]">
               {title}
             </h1>
             {description ? (
               typeof description === 'string' ? (
-                <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground sm:text-sm">
+                <p className="mt-1 line-clamp-1 text-xs text-muted-foreground/90 sm:text-sm font-medium sm:mt-1.5">
                   {description}
                 </p>
               ) : (
-                <div className="mt-0.5">{description}</div>
+                <div className="mt-1 text-xs text-muted-foreground/90 sm:text-sm font-medium sm:mt-1.5">{description}</div>
               )
             ) : null}
           </div>
         </div>
 
+        {/* Actions section */}
         {actions ? (
-          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
+          <div className="flex w-full flex-wrap gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end shrink-0 sm:h-full">
             {actions}
           </div>
         ) : null}
@@ -89,4 +91,3 @@ export function AdminPageHeader({
     </header>
   )
 }
-

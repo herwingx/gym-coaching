@@ -13,9 +13,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus } from "lucide-react";
+import { Scale, Plus, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { addMeasurement } from "@/app/actions/measurements";
+import { FieldGroup, Field, FieldLabel } from "@/components/ui/field";
 
 export function AddMeasurementForm() {
   const router = useRouter();
@@ -99,111 +100,129 @@ export function AddMeasurementForm() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="min-h-11 gap-2 sm:min-h-9">
-          <Plus data-icon="inline-start" />
-          Registrar medida
+        <Button size="lg" className="w-full h-12 rounded-2xl gap-3 shadow-md hover:shadow-lg transition-all">
+          <Plus className="size-5" />
+          Registrar nueva medida
         </Button>
       </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Registrar medida</DialogTitle>
-          <DialogDescription>
-            Ingresa las medidas que quieras registrar. Solo son obligatorias las
-            que completes.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="weight">Peso (kg)</Label>
-              <Input
-                id="weight"
-                type="number"
-                step="0.1"
-                min="0"
-                placeholder="70"
-                value={weight}
-                onChange={(e) => setWeight(e.target.value)}
-              />
+      <DialogContent className="max-w-md rounded-3xl overflow-hidden border-none shadow-2xl p-0">
+        <div className="bg-primary/5 p-6 border-b border-primary/10">
+          <DialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-primary/10 rounded-xl">
+                <Scale className="size-5 text-primary" />
+              </div>
+              <DialogTitle className="text-xl font-bold tracking-tight">Nueva Medida</DialogTitle>
             </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="body_fat">% Grasa</Label>
-              <Input
-                id="body_fat"
-                type="number"
-                step="0.1"
-                min="0"
-                max="100"
-                placeholder="20"
-                value={bodyFat}
-                onChange={(e) => setBodyFat(e.target.value)}
-              />
+            <DialogDescription className="text-sm font-medium leading-relaxed">
+              Ingresa los datos del día. Solo es necesario completar las métricas que desees actualizar hoy.
+            </DialogDescription>
+          </DialogHeader>
+        </div>
+        <div className="p-6">
+          <form onSubmit={handleSubmit}>
+            <FieldGroup>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+              <Field>
+                <FieldLabel htmlFor="weight">Peso (kg)</FieldLabel>
+                <Input
+                  id="weight"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  placeholder="70.0"
+                  value={weight}
+                  onChange={(e) => setWeight(e.target.value)}
+                  className="rounded-xl h-11"
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="body_fat">% Grasa</FieldLabel>
+                <Input
+                  id="body_fat"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="100"
+                  placeholder="20.0"
+                  value={bodyFat}
+                  onChange={(e) => setBodyFat(e.target.value)}
+                  className="rounded-xl h-11"
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="waist">Cintura (cm)</FieldLabel>
+                <Input
+                  id="waist"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  placeholder="85"
+                  value={waist}
+                  onChange={(e) => setWaist(e.target.value)}
+                  className="rounded-xl h-11"
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="hip">Cadera (cm)</FieldLabel>
+                <Input
+                  id="hip"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  placeholder="95"
+                  value={hip}
+                  onChange={(e) => setHip(e.target.value)}
+                  className="rounded-xl h-11"
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="chest">Pecho (cm)</FieldLabel>
+                <Input
+                  id="chest"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  placeholder="100"
+                  value={chest}
+                  onChange={(e) => setChest(e.target.value)}
+                  className="rounded-xl h-11"
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="arm">Brazo (cm)</FieldLabel>
+                <Input
+                  id="arm"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  placeholder="35"
+                  value={arm}
+                  onChange={(e) => setArm(e.target.value)}
+                  className="rounded-xl h-11"
+                />
+              </Field>
+              <Field className="col-span-2">
+                <FieldLabel htmlFor="thigh">Muslo (cm)</FieldLabel>
+                <Input
+                  id="thigh"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  placeholder="55"
+                  value={thigh}
+                  onChange={(e) => setThigh(e.target.value)}
+                  className="rounded-xl h-11"
+                />
+              </Field>
             </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="waist">Cintura (cm)</Label>
-              <Input
-                id="waist"
-                type="number"
-                step="0.1"
-                min="0"
-                placeholder="80"
-                value={waist}
-                onChange={(e) => setWaist(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="hip">Cadera (cm)</Label>
-              <Input
-                id="hip"
-                type="number"
-                step="0.1"
-                min="0"
-                placeholder="95"
-                value={hip}
-                onChange={(e) => setHip(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="chest">Pecho (cm)</Label>
-              <Input
-                id="chest"
-                type="number"
-                step="0.1"
-                min="0"
-                placeholder="100"
-                value={chest}
-                onChange={(e) => setChest(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="arm">Brazo (cm)</Label>
-              <Input
-                id="arm"
-                type="number"
-                step="0.1"
-                min="0"
-                placeholder="35"
-                value={arm}
-                onChange={(e) => setArm(e.target.value)}
-              />
-            </div>
-            <div className="col-span-2 flex flex-col gap-2">
-              <Label htmlFor="thigh">Muslo (cm)</Label>
-              <Input
-                id="thigh"
-                type="number"
-                step="0.1"
-                min="0"
-                placeholder="55"
-                value={thigh}
-                onChange={(e) => setThigh(e.target.value)}
-              />
-            </div>
-          </div>
-          <Button type="submit" disabled={loading} className="w-full">
-            {loading ? "Guardando..." : "Guardar"}
-          </Button>
+
+            <Button type="submit" disabled={loading} className="w-full h-12 rounded-2xl font-bold text-base mt-2 shadow-lg transition-all active:scale-[0.98]">
+              {loading ? "Guardando envío..." : "Guardar Registro"}
+            </Button>
+          </FieldGroup>
         </form>
+        </div>
       </DialogContent>
     </Dialog>
   );

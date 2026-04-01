@@ -66,19 +66,19 @@ function useMediaQuery(query: string) {
 
 function ExerciseBadges({ exercise }: { exercise: Exercise }) {
   return (
-    <div className="mt-3 flex flex-wrap gap-2">
+    <div className="mt-3 flex flex-wrap gap-2 items-center justify-center sm:justify-start">
       {exercise.exercise_type ? (
-        <Badge variant="outline" className="capitalize">
+        <Badge variant="outline" className="capitalize rounded-full px-3 py-0.5 text-[11px] font-medium border-border/60 bg-background/50 text-muted-foreground shadow-sm">
           {exercise.exercise_type}
         </Badge>
       ) : null}
       {exercise.primary_muscle ? (
-        <Badge variant="secondary" className="capitalize">
+        <Badge variant="secondary" className="capitalize rounded-full px-3 py-0.5 text-[11px] font-semibold bg-secondary/80 text-secondary-foreground border-transparent shadow-sm">
           {exercise.primary_muscle}
         </Badge>
       ) : null}
       {exercise.equipment ? (
-        <Badge variant="outline" className="capitalize">
+        <Badge variant="outline" className="capitalize rounded-full px-3 py-0.5 text-[11px] font-medium border-border/60 bg-background/50 text-muted-foreground shadow-sm">
           {exercise.equipment}
         </Badge>
       ) : null}
@@ -124,28 +124,28 @@ function ExerciseDetailSections({
       ) : null}
 
       {showHeroMedia ? (
-        <div className="overflow-hidden rounded-2xl border border-border/60 bg-muted/50 shadow-inner dark:bg-muted/25">
+        <div className="overflow-hidden rounded-[1.5rem] border border-border/40 bg-white dark:bg-[#f8f9fa] shadow-sm">
           <ExerciseMedia
             src={exercise.gif_url || exercise.image_url}
             alt={exercise.name}
             variant="fill"
             className="aspect-square w-full max-h-[min(55vh,420px)] sm:max-h-[min(50vh,480px)]"
-            imgClassName="object-contain"
+            imgClassName="object-contain mix-blend-multiply drop-shadow-sm"
           />
         </div>
       ) : null}
 
       {targets.length > 0 ? (
-        <section className="flex flex-col gap-2" aria-labelledby="exercise-targets-heading">
+        <section className="flex flex-col gap-2.5" aria-labelledby="exercise-targets-heading">
           <h3
             id="exercise-targets-heading"
-            className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+            className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/80 mb-0.5"
           >
             Músculos objetivo
           </h3>
-          <div className="flex flex-wrap gap-2 sm:justify-start">
+          <div className="flex flex-wrap gap-2">
             {targets.map((m) => (
-              <Badge key={m} variant="secondary" className="capitalize">
+              <Badge key={m} variant="secondary" className="capitalize rounded-full px-3 py-1 bg-secondary/80 font-medium text-[13px] hover:bg-secondary transition-colors">
                 {m}
               </Badge>
             ))}
@@ -331,15 +331,15 @@ export function ExerciseDetailDrawer({
 
           {exercise ? (
             <>
-              <DrawerHeader className="pb-2 text-left">
-                <DrawerTitle className="text-xl font-bold capitalize tracking-tight sm:text-2xl">
+              <DrawerHeader className="pb-3 text-center sm:text-left items-center sm:items-start flex flex-col pt-6">
+                <DrawerTitle className="text-2xl font-black capitalize tracking-tight text-foreground">
                   {title}
                 </DrawerTitle>
                 <DrawerDescription className="sr-only">Detalles, técnica e instrucciones del ejercicio</DrawerDescription>
                 <ExerciseBadges exercise={exercise} />
               </DrawerHeader>
 
-              <div className="min-h-0 flex-1 overflow-y-auto px-4">
+              <div className="min-h-0 flex-1 overflow-y-auto px-5">
                 <ExerciseDetailSections
                   exercise={exercise}
                   showCompactCallout={variant === 'compact'}
@@ -347,9 +347,9 @@ export function ExerciseDetailDrawer({
                 />
               </div>
 
-              <DrawerFooter className="border-t border-border/60 pt-2">
+              <DrawerFooter className="border-t border-border/40 pt-4 pb-6 px-5 bg-background">
                 <DrawerClose asChild>
-                  <Button type="button" variant="secondary" className="w-full">
+                  <Button type="button" variant="secondary" className="w-full h-12 rounded-[1rem] font-semibold text-[15px] bg-secondary/80 hover:bg-secondary shadow-sm transition-all active:scale-[0.98]">
                     Cerrar
                   </Button>
                 </DrawerClose>

@@ -63,18 +63,27 @@ export function PhotosContent({
   return (
     <div className="space-y-8">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-3 h-12 p-1 bg-muted/50 rounded-2xl mb-8">
-          <TabsTrigger value="gallery" className="rounded-xl gap-2">
+        <TabsList className="no-scrollbar mb-6 flex h-auto w-full items-center justify-start overflow-x-auto rounded-2xl border border-border/40 bg-muted/50 p-1 shadow-sm sm:w-fit">
+          <TabsTrigger
+            value="gallery"
+            className="shrink-0 gap-2 rounded-xl px-4 py-2 data-[state=active]:shadow-md"
+          >
             <LayoutGrid className="size-4" />
-            <span className="hidden sm:inline">Galería</span>
+            <span className="inline">Galería</span>
           </TabsTrigger>
-          <TabsTrigger value="compare" className="rounded-xl gap-2">
+          <TabsTrigger
+            value="compare"
+            className="shrink-0 gap-2 rounded-xl px-4 py-2 data-[state=active]:shadow-md"
+          >
             <Diff className="size-4" />
-            <span className="hidden sm:inline">Comparar</span>
+            <span className="inline">Comparar</span>
           </TabsTrigger>
-          <TabsTrigger value="upload" className="rounded-xl gap-2">
+          <TabsTrigger
+            value="upload"
+            className="shrink-0 gap-2 rounded-xl px-4 py-2 data-[state=active]:shadow-md"
+          >
             <UploadCloud className="size-4" />
-            <span className="hidden sm:inline">Subir</span>
+            <span className="inline">Subir</span>
           </TabsTrigger>
         </TabsList>
 

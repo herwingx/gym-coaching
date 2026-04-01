@@ -4,12 +4,14 @@ import { RoutineBuilderContentSkeleton } from "@/components/skeletons";
 export default function RoutineBuilderLoading() {
   return (
     <div className="min-h-dvh bg-background">
-      <header className="sticky top-0 z-40 border-b bg-background safe-area-header-pt">
-        <div className="container flex items-center gap-4 py-4 sm:py-5">
-          <Skeleton className="size-9 shrink-0 rounded-md sm:size-10" />
-          <div className="min-w-0 flex-1 space-y-2">
-            <Skeleton className="h-7 w-[min(90%,18rem)] sm:h-8 sm:w-72" />
-            <Skeleton className="h-4 w-full max-w-xl" />
+      <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-md safe-area-header-pt">
+        <div className="container flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:py-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <Skeleton className="size-8 shrink-0 rounded-[10px]" />
+            <div className="min-w-0 flex flex-col gap-1.5">
+              <Skeleton className="h-6 w-[min(100%,14rem)] sm:h-7" />
+              <Skeleton className="h-3.5 w-52 max-w-full" />
+            </div>
           </div>
         </div>
       </header>

@@ -109,79 +109,91 @@ export function AdminExerciseCatalog({
   return (
     <>
       <div className="flex flex-col gap-6 lg:grid lg:grid-cols-12 lg:items-start lg:gap-8">
-        <aside className="flex flex-col gap-4 lg:sticky lg:top-[max(6.5rem,env(safe-area-inset-top,0px))] lg:col-span-4 lg:self-start xl:col-span-3">
-          <div className="relative overflow-hidden rounded-2xl border border-border/80 bg-gradient-to-b from-muted/40 to-muted/10 p-1 ring-1 ring-primary/5">
+        <aside className="flex flex-col gap-4 lg:sticky lg:top-[max(6rem,env(safe-area-inset-top,0px))] lg:col-span-4 lg:self-start xl:col-span-3 pb-4">
+          <div className="relative overflow-hidden rounded-[1.25rem] border border-border/60 bg-gradient-to-b from-card to-card/50 shadow-sm backdrop-blur-xl transition-all duration-300 hover:shadow-md">
             <div
-              className="pointer-events-none absolute -right-8 -top-12 size-32 rounded-full bg-primary/10 blur-2xl"
+              className="pointer-events-none absolute -right-10 -top-10 size-40 rounded-full bg-primary/10 blur-3xl transition-opacity duration-500"
               aria-hidden
             />
-            <div className="relative flex flex-col gap-4 rounded-[0.875rem] bg-card/80 p-4 backdrop-blur-sm">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <Library className="size-4" aria-hidden />
+            <div className="relative flex flex-col gap-6 p-5">
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary shadow-inner border border-primary/10">
+                  <Library className="size-5" aria-hidden />
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-foreground">Biblioteca</p>
-                    {isPending && <Loader2 className="size-3 animate-spin text-primary" />}
+                    <p className="text-sm font-bold tracking-tight text-foreground">Biblioteca</p>
+                    {isPending && <Loader2 className="size-3.5 animate-spin text-primary" />}
                   </div>
-                  <p className="text-[11px] leading-tight text-muted-foreground">Filtra sin perder contexto</p>
+                  <p className="text-xs font-medium text-muted-foreground mt-0.5">Filtra sin perder contexto</p>
                 </div>
               </div>
 
-              <div className="relative">
+              <div className="relative group">
                 <SearchIcon
-                  className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                  className="pointer-events-none absolute left-3.5 top-1/2 size-4.5 -translate-y-1/2 text-muted-foreground/80 transition-colors group-focus-within:text-primary"
                   aria-hidden
                 />
                 <Input
                   placeholder="Buscar por nombre…"
-                  className="h-11 rounded-xl border-border/80 bg-background pl-10 shadow-none"
+                  className="h-12 w-full rounded-xl border-border/70 bg-background/50 pl-11 shadow-sm transition-all focus-visible:border-primary/50 focus-visible:bg-background focus-visible:ring-4 focus-visible:ring-primary/10 text-sm"
                   value={search}
                   onChange={(e) => handleSearch(e.target.value)}
                   aria-label="Buscar ejercicios"
                 />
               </div>
 
-              <div className="flex flex-col gap-2">
-                <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  <SlidersHorizontal className="size-3" aria-hidden />
+              <div className="flex flex-col gap-3">
+                <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <SlidersHorizontal className="size-3.5" aria-hidden />
                   Zona muscular
                 </p>
-                <div className="flex max-h-[min(40vh,16rem)] flex-wrap gap-2 overflow-y-auto pr-1 lg:max-h-[min(50vh,20rem)]">
+                <div className="flex max-h-[min(40vh,16rem)] flex-wrap gap-2 overflow-y-auto pr-1 pb-1 lg:max-h-[min(50vh,20rem)] scrollbar-hide">
                   <Badge
                     variant={!activeBodyPart ? 'default' : 'secondary'}
                     className={cn(
-                      'h-9 shrink-0 cursor-pointer rounded-full px-3 text-xs font-medium',
-                      activeBodyPart ? 'hover:bg-secondary/80' : '',
+                      'min-h-[36px] items-center justify-center shrink-0 cursor-pointer rounded-full px-4 text-[13px] font-medium transition-all active:scale-95 border-transparent',
+                      !activeBodyPart 
+                        ? 'shadow-md shadow-primary/20 bg-primary leading-none text-primary-foreground hover:bg-primary/95 hover:shadow-lg' 
+                        : 'bg-muted/60 text-muted-foreground hover:bg-secondary hover:text-secondary-foreground',
                     )}
                     onClick={() => handleBodyPartChange(null)}
                   >
                     Todas
                   </Badge>
-                  {allBodyParts.map((bp) => (
-                    <Badge
-                      key={bp}
-                      variant={activeBodyPart === bp ? 'default' : 'outline'}
-                      className="h-9 shrink-0 cursor-pointer rounded-full px-3 text-xs font-medium capitalize"
-                      onClick={() => handleBodyPartChange(activeBodyPart === bp ? null : bp)}
-                    >
-                      {bp}
-                    </Badge>
-                  ))}
+                  {allBodyParts.map((bp) => {
+                    const isActive = activeBodyPart === bp;
+                    return (
+                      <Badge
+                        key={bp}
+                        variant={isActive ? 'default' : 'outline'}
+                        className={cn(
+                          "min-h-[36px] items-center justify-center shrink-0 cursor-pointer rounded-full px-4 text-[13px] font-medium capitalize transition-all active:scale-95",
+                          isActive 
+                            ? 'shadow-md shadow-primary/20 bg-primary leading-none text-primary-foreground hover:bg-primary/95 hover:shadow-lg border-transparent'
+                            : 'bg-background/50 hover:bg-secondary/60 text-muted-foreground hover:text-foreground border-border/60 hover:border-border'
+                        )}
+                        onClick={() => handleBodyPartChange(isActive ? null : bp)}
+                      >
+                        {bp}
+                      </Badge>
+                    );
+                  })}
                 </div>
               </div>
 
               {hasActiveFilters ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-9 w-full text-muted-foreground"
-                  onClick={clearFilters}
-                >
-                  Limpiar filtros
-                </Button>
+                <div className="pt-2 border-t border-border/50">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-10 w-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors font-medium rounded-xl"
+                    onClick={clearFilters}
+                  >
+                    Limpiar filtros
+                  </Button>
+                </div>
               ) : null}
             </div>
           </div>
@@ -192,38 +204,42 @@ export function AdminExerciseCatalog({
         </aside>
 
         <div className="flex min-w-0 flex-col gap-4 lg:col-span-8 xl:col-span-9">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
-            <p className="text-sm text-muted-foreground">
-              Mostrando <span className="tabular-nums font-semibold text-foreground">{exercises.length}</span>
-              <span className="mx-1">de</span>
-              <span className="tabular-nums font-semibold text-foreground">{totalCount}</span>
-              <span className="ml-1">ejercicios</span>
+          <div className="flex flex-col gap-3 rounded-[1.25rem] border border-border/50 bg-card/20 p-4 sm:flex-row sm:items-center sm:justify-between px-5 shadow-sm">
+            <div className="flex flex-col gap-1">
+              <p className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                Mostrando <span className="tabular-nums font-semibold text-foreground">{exercises.length}</span>
+                <span className="mx-1.5 text-border/80">/</span>
+                <span className="tabular-nums font-semibold text-foreground">{totalCount}</span>
+                <span className="ml-1.5">ejercicios</span>
+              </p>
               {activeBodyPart ? (
-                <span className="mt-1 block text-xs capitalize sm:mt-0 sm:ml-2 sm:inline">
-                  · zona <span className="font-medium text-foreground">{activeBodyPart}</span>
-                </span>
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                  <span className="size-1.5 rounded-full bg-primary animate-pulse" />
+                  Zona muscular: <span className="font-semibold text-foreground capitalize">{activeBodyPart}</span>
+                </p>
               ) : null}
-            </p>
+            </div>
 
             {totalPages > 1 && (
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5 rounded-[0.875rem] border border-border/60 bg-background/60 p-1 shadow-sm backdrop-blur-sm self-start sm:self-auto">
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="icon"
-                  className="size-8 rounded-lg"
+                  className="size-8 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                   disabled={currentPage <= 1 || isPending}
                   onClick={() => handlePageChange(currentPage - 1)}
                   aria-label="Página anterior"
                 >
                   <ChevronLeft className="size-4" />
                 </Button>
-                <div className="flex h-8 items-center px-3 text-xs font-medium bg-muted/50 rounded-lg border border-border/50">
-                  Página {currentPage} de {totalPages}
+                <div className="flex h-8 items-center px-3 text-xs font-semibold tabular-nums text-foreground">
+                  <span className="text-muted-foreground mr-1">Pág.</span> {currentPage} 
+                  <span className="text-muted-foreground font-normal mx-1">de</span> {totalPages}
                 </div>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="icon"
-                  className="size-8 rounded-lg"
+                  className="size-8 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                   disabled={currentPage >= totalPages || isPending}
                   onClick={() => handlePageChange(currentPage + 1)}
                   aria-label="Página siguiente"
@@ -258,18 +274,18 @@ export function AdminExerciseCatalog({
                     key={ex.id}
                     role="listitem"
                     className={cn(
-                      'group flex flex-col overflow-hidden rounded-xl border border-border/80 bg-card',
-                      'ring-1 ring-primary/5 transition-colors duration-200',
-                      'hover:border-primary/25 hover:ring-primary/10',
+                      'group flex flex-col overflow-hidden rounded-[1.25rem] border border-border/60 bg-card shadow-sm',
+                      'ring-1 ring-primary/0 transition-all duration-300 ease-out',
+                      'hover:border-primary/25 hover:ring-primary/10 hover:shadow-md hover:-translate-y-0.5',
                     )}
                   >
-                    <div className="relative aspect-[4/3] shrink-0 overflow-hidden bg-muted/30">
+                    <div className="relative aspect-[4/3] shrink-0 overflow-hidden bg-muted/20 border-b border-border/40">
                       {ex.gif_url ? (
                         // eslint-disable-next-line @next/next/no-img-element -- URLs externas
                         <img
                           src={ex.gif_url}
                           alt=""
-                          className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.02] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+                          className="size-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
                           loading="lazy"
                         />
                       ) : ex.image_url ? (
@@ -277,42 +293,43 @@ export function AdminExerciseCatalog({
                         <img
                           src={ex.image_url}
                           alt=""
-                          className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.02] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+                          className="size-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
                           loading="lazy"
                         />
                       ) : (
-                        <div className="flex size-full items-center justify-center bg-muted/50 text-xs text-muted-foreground">
+                        <div className="flex size-full items-center justify-center bg-muted/30 text-xs font-medium text-muted-foreground/60">
                           Sin preview
                         </div>
                       )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                     </div>
-                    <div className="flex min-h-0 flex-1 flex-col gap-2 p-3">
-                      <h3 className="line-clamp-2 font-semibold capitalize leading-snug text-foreground">
+                    <div className="flex min-h-0 flex-1 flex-col gap-2.5 p-4">
+                      <h3 className="line-clamp-2 font-bold capitalize leading-snug text-foreground tracking-tight">
                         {ex.name}
                       </h3>
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className="flex flex-wrap gap-1.5 mt-auto pt-1">
                         {ex.primary_muscle ? (
-                          <Badge variant="secondary" className="text-[10px] font-medium capitalize">
+                          <Badge variant="secondary" className="text-[10px] font-semibold capitalize bg-secondary/60 text-secondary-foreground px-2 py-0 border-transparent">
                             {ex.primary_muscle}
                           </Badge>
                         ) : null}
                         {ex.exercise_type ? (
-                          <Badge variant="outline" className="text-[10px] capitalize">
+                          <Badge variant="outline" className="text-[10px] capitalize px-2 py-0 font-medium text-muted-foreground border-border/60 bg-background/50">
                             {ex.exercise_type}
                           </Badge>
                         ) : null}
                       </div>
                       {ex.equipment ? (
-                        <p className="line-clamp-1 text-xs text-muted-foreground">{ex.equipment}</p>
+                        <p className="line-clamp-1 text-xs text-muted-foreground font-medium mt-0.5">{ex.equipment}</p>
                       ) : null}
                       <Button
                         type="button"
                         variant="secondary"
                         size="sm"
-                        className="mt-auto min-h-10 w-full"
+                        className="mt-2 min-h-[40px] w-full rounded-xl font-semibold bg-secondary/80 hover:bg-secondary transition-colors"
                         onClick={() => openDetail(ex)}
                       >
-                        <Eye data-icon="inline-start" />
+                        <Eye className="size-4 mr-2 text-muted-foreground" aria-hidden="true" />
                         Ver ficha
                       </Button>
                     </div>
@@ -324,11 +341,11 @@ export function AdminExerciseCatalog({
                 <div className="flex items-center justify-center gap-2 py-8">
                   <Button
                     variant="outline"
-                    className="h-10 rounded-xl"
+                    className="h-10 rounded-xl px-4 hover:bg-muted font-medium transition-colors"
                     disabled={currentPage <= 1 || isPending}
                     onClick={() => handlePageChange(currentPage - 1)}
                   >
-                    <ChevronLeft className="mr-2 size-4" />
+                    <ChevronLeft className="mr-2 size-4 text-muted-foreground" />
                     Anterior
                   </Button>
                   
@@ -358,12 +375,12 @@ export function AdminExerciseCatalog({
 
                   <Button
                     variant="outline"
-                    className="h-10 rounded-xl"
+                    className="h-10 rounded-xl px-4 hover:bg-muted font-medium transition-colors"
                     disabled={currentPage >= totalPages || isPending}
                     onClick={() => handlePageChange(currentPage + 1)}
                   >
                     Siguiente
-                    <ChevronRight className="ml-2 size-4" />
+                    <ChevronRight className="ml-2 size-4 text-muted-foreground" />
                   </Button>
                 </div>
               )}

@@ -20,66 +20,66 @@ export function ClientDashboardCards({
   const volumeTons = (totalVolume / 1000).toFixed(1)
 
   return (
-    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-      <Card className="overflow-hidden border-muted/70 bg-linear-to-br from-primary/10 via-background to-background shadow-none transition-shadow hover:shadow-md">
-        <CardHeader className="p-4 pb-2">
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-2">
+      <Card className="overflow-hidden border-border/80 shadow-md ring-1 ring-primary/5 rounded-3xl bg-card/60 backdrop-blur-sm transition-all hover:bg-card">
+        <CardHeader className="p-5 pb-2">
           <div className="flex items-center justify-between">
-            <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Flame className="size-4 text-primary" />
+            <div className="size-10 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <Flame className="size-5 text-primary" />
             </div>
             {streakDays >= 7 && (
-              <Badge variant="outline" className="h-5 border-success/30 bg-success/10 text-[10px] font-semibold text-success">
-                Racha {streakDays}d
+              <Badge className="h-5 font-black text-[9px] uppercase tracking-widest px-2 bg-primary text-primary-foreground border-none rounded-lg">
+                HOT
               </Badge>
             )}
           </div>
         </CardHeader>
-        <CardContent className="p-4 pt-0">
-          <p className="text-3xl font-black tracking-tighter tabular-nums">{streakDays}d</p>
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Racha</p>
+        <CardContent className="p-5 pt-2">
+          <p className="text-4xl font-black tracking-tighter tabular-nums text-foreground">{streakDays}d</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 mt-1">Racha Actual</p>
         </CardContent>
       </Card>
 
-      <Card className="overflow-hidden border-muted/70 bg-linear-to-br from-indigo-500/10 via-background to-background shadow-none transition-shadow hover:shadow-md">
-        <CardHeader className="p-4 pb-2">
-          <div className="size-8 rounded-lg bg-indigo-500/10 flex items-center justify-center">
-            <Dumbbell className="size-4 text-indigo-500" />
+      <Card className="overflow-hidden border-border/80 shadow-md ring-1 ring-primary/5 rounded-3xl bg-card/60 backdrop-blur-sm transition-all hover:bg-card">
+        <CardHeader className="p-5 pb-2">
+          <div className="size-10 rounded-2xl bg-indigo-500/10 flex items-center justify-center">
+            <Dumbbell className="size-5 text-indigo-500" />
           </div>
         </CardHeader>
-        <CardContent className="p-4 pt-0">
-          <p className="text-3xl font-black tracking-tighter tabular-nums">{totalWorkouts}</p>
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Sesiones</p>
+        <CardContent className="p-5 pt-2">
+          <p className="text-4xl font-black tracking-tighter tabular-nums text-foreground">{totalWorkouts}</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 mt-1">Sesiones</p>
         </CardContent>
       </Card>
 
-      <Card className="overflow-hidden border-muted/70 bg-linear-to-br from-amber-500/10 via-background to-background shadow-none transition-shadow hover:shadow-md">
-        <CardHeader className="p-4 pb-2">
-          <div className="size-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
-            <TrendingUp className="size-4 text-amber-500" />
+      <Card className="overflow-hidden border-border/80 shadow-md ring-1 ring-primary/5 rounded-3xl bg-card/60 backdrop-blur-sm transition-all hover:bg-card">
+        <CardHeader className="p-5 pb-2">
+          <div className="size-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center">
+            <TrendingUp className="size-5 text-emerald-500" />
           </div>
         </CardHeader>
-        <CardContent className="p-4 pt-0">
-          <p className="text-3xl font-black tracking-tighter tabular-nums">{volumeTons}t</p>
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Volumen</p>
+        <CardContent className="p-5 pt-2">
+          <p className="text-4xl font-black tracking-tighter tabular-nums text-foreground">{volumeTons}t</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 mt-1">Volumen Total</p>
         </CardContent>
       </Card>
 
-      <Card className="overflow-hidden border-muted/70 bg-linear-to-br from-amber-500/10 via-background to-background shadow-none transition-shadow hover:shadow-md">
-        <CardHeader className="p-4 pb-2">
+      <Card className="overflow-hidden border-border/80 shadow-md ring-1 ring-primary/5 rounded-3xl bg-card/60 backdrop-blur-sm transition-all hover:bg-card">
+        <CardHeader className="p-5 pb-2">
           <div className="flex items-center justify-between">
-            <div className="size-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
-              <Trophy className="size-4 text-amber-500" />
+            <div className="size-10 rounded-2xl bg-amber-500/10 flex items-center justify-center">
+              <Trophy className="size-5 text-amber-500" />
             </div>
             {prsThisMonth > 0 && (
-              <Badge variant="outline" className="h-5 border-primary/30 bg-primary/10 text-[10px] font-semibold text-primary">
-                Este mes
+              <Badge className="h-5 font-black text-[9px] uppercase tracking-widest px-2 bg-amber-500 text-white border-none rounded-lg">
+                PR
               </Badge>
             )}
           </div>
         </CardHeader>
-        <CardContent className="p-4 pt-0">
-          <p className="text-3xl font-black tracking-tighter tabular-nums">{prsThisMonth}</p>
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">PRs (mes)</p>
+        <CardContent className="p-5 pt-2">
+          <p className="text-4xl font-black tracking-tighter tabular-nums text-foreground">{prsThisMonth}</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 mt-1">Marcas Personales</p>
         </CardContent>
       </Card>
     </div>

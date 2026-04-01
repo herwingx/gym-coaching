@@ -24,6 +24,7 @@ export default async function ClientMessagesPage() {
 
   const supabase = await createClient();
 
+  // 1. Obtener el rol del usuario actual
   const { data: profile } = await supabase
     .from("profiles")
     .select("role")
@@ -36,27 +37,22 @@ export default async function ClientMessagesPage() {
     redirect("/admin/dashboard");
   }
 
-  let otherUser: {
-    id: string;
-    name: string;
-    avatarUrl?: string | null;
-  } | null = null;
-
-  const { data: client } = await supabase
-    .from("clients")
-    .select("id")
-    .eq("user_id", user.id)
-    .single();
-
+  // 2. Intentar encontrar al coach
   let coachId: string | null = null;
+  let coachCandidate: { full_name: string | null; avatar_url: string | null } | null = null;
 
+  // A. Vía tabla clients
   const { data: clientWithCoach } = await supabase
     .from("clients")
     .select("coach_id")
     .eq("user_id", user.id)
-    .single();
-  coachId = (clientWithCoach as any)?.coach_id;
+    .maybeSingle();
+  
+  if (clientWithCoach?.coach_id) {
+    coachId = clientWithCoach.coach_id;
+  }
 
+  // B. Vía invitación (si no hay coach directo)
   if (!coachId) {
     const { data: inv } = await supabase
       .from("invitation_codes")
@@ -64,10 +60,14 @@ export default async function ClientMessagesPage() {
       .eq("used_by_user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(1)
-      .single();
-    coachId = inv?.created_by;
+      .maybeSingle();
+    
+    if (inv?.created_by) {
+      coachId = inv.created_by;
+    }
   }
 
+  // C. Fallback a administrador (si sigue sin coach)
   if (!coachId) {
     const { data: adminProfile } = await supabase
       .from("profiles")
@@ -75,10 +75,28 @@ export default async function ClientMessagesPage() {
       .eq("role", "admin")
       .order("created_at", { ascending: true, nullsFirst: false })
       .limit(1)
-      .single();
-    coachId = adminProfile?.id;
+      .maybeSingle();
+    
+    if (adminProfile) {
+      coachId = adminProfile.id;
+      coachCandidate = { full_name: adminProfile.full_name, avatar_url: adminProfile.avatar_url };
+    }
   }
 
+  // 3. Intentar obtener el perfil del coach si no lo tenemos aún
+  if (coachId && !coachCandidate) {
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("full_name, avatar_url")
+      .eq("id", coachId)
+      .maybeSingle();
+    
+    if (profileData) {
+      coachCandidate = profileData;
+    }
+  }
+
+  // Si después de todo no hay ID, mostramos estado vacío
   if (!coachId) {
     return (
       <>
@@ -114,20 +132,14 @@ export default async function ClientMessagesPage() {
     );
   }
 
-  const { data: coachProfile } = await supabase
-    .from("profiles")
-    .select("full_name, avatar_url")
-    .eq("id", coachId)
-    .single();
-
-  otherUser = {
+  const otherUser = {
     id: coachId,
-    name: coachProfile?.full_name || "Tu coach",
-    avatarUrl: coachProfile?.avatar_url,
+    name: coachCandidate?.full_name || "Rodrigo Urbina",
+    avatarUrl: coachCandidate?.avatar_url || null,
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-background">
+    <div className="flex h-full w-full min-h-0 flex-1 flex-col bg-background">
       <ChatViewLazy
         currentUserId={user.id}
         role={role}

@@ -158,33 +158,37 @@ export function WorkoutCalendar({
                   type="button"
                   onClick={() => setSelected(day.dateKey)}
                   className={cn(
-                    'relative min-h-11 rounded-xl border px-1 py-1.5 text-left transition-[transform,box-shadow,border-color,background-color] duration-200 sm:min-h-12',
-                    'touch-manipulation active:scale-[0.98]',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-                    day.inMonth ? 'bg-card' : 'bg-muted/25',
-                    !day.inMonth && 'opacity-55',
+                    'relative min-h-12 flex flex-col items-center justify-center rounded-2xl border px-1 py-1.5 transition-all duration-200 sm:min-h-[3.5rem]',
+                    'touch-manipulation active:scale-[0.96]',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+                    day.inMonth ? 'bg-card shadow-sm' : 'bg-muted/10',
+                    !day.inMonth && 'opacity-40',
                     isSelected
-                      ? 'z-[1] border-primary/80 shadow-[0_0_0_1px_hsl(var(--primary))] ring-2 ring-primary/25'
-                      : 'border-border/70 hover:border-primary/45 hover:bg-muted/30',
+                      ? 'z-[10] border-transparent bg-primary shadow-md scale-105 ring-4 ring-primary/20'
+                      : 'border-border/60 hover:border-primary/40 hover:bg-muted/40 hover:scale-[1.02]',
                   )}
                 >
                   <div
                     className={cn(
-                      'text-xs font-semibold tabular-nums sm:text-sm',
-                      day.inMonth ? 'text-foreground' : 'text-muted-foreground',
+                      'text-sm font-bold tabular-nums',
+                      day.inMonth 
+                        ? (isSelected ? 'text-primary-foreground' : 'text-foreground/90') 
+                        : (isSelected ? 'text-primary-foreground' : 'text-muted-foreground'),
                     )}
                   >
                     {Number(day.dateKey.split('-')[2])}
                   </div>
                   {hasSession ? (
-                    <div className="mt-1 flex items-center gap-1">
-                      <span className="block size-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
-                      <span className="text-[10px] font-medium tabular-nums text-foreground/85 sm:text-[11px]">
+                    <div className="mt-1 flex items-center justify-center gap-1">
+                      <span className={cn('block size-1.5 shrink-0 rounded-full', isSelected ? 'bg-primary-foreground' : 'bg-primary')} aria-hidden />
+                      <span className={cn("text-[10px] font-bold tabular-nums sm:text-[11px]", isSelected ? 'text-primary-foreground/90' : 'text-muted-foreground')}>
                         {info.count}
                       </span>
                     </div>
                   ) : (
-                    <div className="mt-1 h-1.5" aria-hidden />
+                    <div className="mt-1 flex items-center justify-center gap-1 h-3 opacity-0">
+                      <span className="block size-1.5 shrink-0 rounded-full bg-transparent" aria-hidden />
+                    </div>
                   )}
                 </button>
               )
@@ -214,11 +218,11 @@ export function WorkoutCalendar({
                 {selectedInfo ? (
                   <>
                     <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="secondary" className="tabular-nums">
+                      <Badge variant="default" className="tabular-nums shadow-sm">
                         {selectedInfo.count} {selectedInfo.count === 1 ? 'sesión' : 'sesiones'}
                       </Badge>
                       {selectedInfo.lastSessionAt ? (
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs font-medium text-muted-foreground">
                           Última:{' '}
                           {new Date(selectedInfo.lastSessionAt).toLocaleTimeString('es-ES', {
                             hour: '2-digit',
@@ -228,45 +232,45 @@ export function WorkoutCalendar({
                       ) : null}
                     </div>
 
-                    <div className="rounded-xl border border-border/60 bg-muted/20 px-4 py-3">
-                      <div className="flex items-baseline justify-between gap-2">
-                        <span className="text-sm font-medium text-foreground">Volumen en el día</span>
-                        <span className="text-lg font-semibold tabular-nums tracking-tight text-foreground">
-                          {Math.round(selectedInfo.totalVolumeKg)} kg
+                    <div className="rounded-2xl border border-border/40 bg-card p-5 shadow-sm ring-1 ring-primary/5">
+                      <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1">
+                        <span className="text-sm font-medium text-muted-foreground">Volumen total levantado</span>
+                        <span className="text-3xl font-black tabular-nums tracking-tight text-foreground">
+                          {Math.round(selectedInfo.totalVolumeKg).toLocaleString('es-ES')} <span className="text-lg text-muted-foreground font-semibold">kg</span>
                         </span>
                       </div>
                       {monthStats.maxDayVolumeKg > 0 ? (
-                        <div className="mt-3 flex flex-col gap-2">
-                          <div className="flex justify-between text-[11px] text-muted-foreground sm:text-xs">
-                            <span>Frente al máximo del mes</span>
-                            <span className="tabular-nums">{volumeShare}%</span>
+                        <div className="mt-4 flex flex-col gap-2.5">
+                          <div className="flex justify-between text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                            <span>vs. día máximo del mes</span>
+                            <span className="tabular-nums text-primary">{volumeShare}%</span>
                           </div>
-                          <Progress value={volumeShare} className="h-2" />
+                          <Progress value={volumeShare} className="h-2.5 rounded-full" />
                         </div>
                       ) : null}
                     </div>
 
-                    <div className="rounded-xl border border-dashed border-border/70 bg-muted/10 px-4 py-3 text-sm">
-                      <p className="font-medium text-foreground">Resumen del mes</p>
-                      <ul className="mt-2 flex flex-col gap-1.5 text-muted-foreground">
-                        <li className="flex justify-between gap-2">
-                          <span>Promedio por sesión</span>
-                          <span className="tabular-nums font-medium text-foreground">
+                    <div className="rounded-2xl border border-dashed border-border/80 bg-muted/30 p-5 text-sm">
+                      <p className="font-bold text-foreground mb-3 text-base">Resumen del mes</p>
+                      <ul className="flex flex-col gap-3 text-muted-foreground">
+                        <li className="flex justify-between items-center gap-2">
+                          <span className="font-medium">Promedio por sesión</span>
+                          <span className="tabular-nums font-bold text-foreground text-sm bg-background px-2 py-0.5 rounded-md shadow-sm border">
                             {monthStats.sessionCount > 0
-                              ? `${Math.round(monthStats.avgVolumePerSession)} kg`
+                              ? `${Math.round(monthStats.avgVolumePerSession).toLocaleString('es-ES')} kg`
                               : '—'}
                           </span>
                         </li>
-                        <li className="flex justify-between gap-2">
-                          <span>Días con entreno</span>
-                          <span className="tabular-nums font-medium text-foreground">
+                        <li className="flex justify-between items-center gap-2">
+                          <span className="font-medium">Días activos</span>
+                          <span className="tabular-nums font-bold text-foreground text-sm bg-background px-2 py-0.5 rounded-md shadow-sm border">
                             {monthStats.uniqueDays}
                           </span>
                         </li>
-                        <li className="flex justify-between gap-2">
-                          <span>Volumen acumulado</span>
-                          <span className="tabular-nums font-medium text-foreground">
-                            {Math.round(monthStats.totalVolumeKg)} kg
+                        <li className="flex justify-between items-center gap-2">
+                          <span className="font-medium">Volumen acumulado</span>
+                          <span className="tabular-nums font-bold text-foreground text-sm bg-background px-2 py-0.5 rounded-md shadow-sm border">
+                            {Math.round(monthStats.totalVolumeKg).toLocaleString('es-ES')} kg
                           </span>
                         </li>
                       </ul>

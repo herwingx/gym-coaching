@@ -82,8 +82,9 @@ export default async function AdminRoutinesPage() {
       : 0;
 
   return (
-    <div className="bg-background">
+    <div className="min-h-dvh bg-background">
       <AdminPageHeader
+        sticky
         title="Rutinas de Entrenamiento"
         description={
           <>
@@ -102,7 +103,7 @@ export default async function AdminRoutinesPage() {
 
       <main className="container min-w-0 py-8">
         {totalRoutines > 0 && (
-          <section className="mb-6 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
+          <section className="mb-6 grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-3">
             <AdminKpiStatCard
               icon={Dumbbell}
               value={totalRoutines}
@@ -114,6 +115,7 @@ export default async function AdminRoutinesPage() {
               label="Días de entrenamiento / semana"
             />
             <AdminKpiStatCard
+              className="col-span-full sm:col-span-1"
               icon={Sigma}
               value={`${avgDuration || "-"} sem`}
               label="Promedio duración"

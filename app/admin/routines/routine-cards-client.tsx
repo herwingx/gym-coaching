@@ -70,7 +70,7 @@ export function RoutineCardsClient({
 
   return (
     <>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:gap-6">
         {routines.map((routine) => {
           const configuredDays = routine.routine_days ?? [];
           const hasConfiguredDays = configuredDays.length > 0;
@@ -124,16 +124,18 @@ export function RoutineCardsClient({
             <AdminCardWithActions
               key={routine.id}
               menuSections={menuSections}
-              cardClassName="border-muted/70"
+              cardClassName="overflow-hidden rounded-[1.5rem] border border-border/50 bg-card/60 shadow-sm backdrop-blur-xl transition-all duration-300 hover:shadow-md hover:border-primary/20 hover:-translate-y-1 group"
             >
               <AdminCardHeaderWithActions menuSections={menuSections}>
-                <div className="flex flex-col gap-2">
-                  <h3 className="text-lg font-semibold leading-none">
+                <div className="flex flex-col gap-3">
+                  <h3 className="text-[1.35rem] font-bold leading-tight tracking-tight text-foreground transition-colors group-hover:text-primary">
                     {routine.name}
                   </h3>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="secondary">{volumeLabel}</Badge>
-                    <Badge variant="outline">
+                  <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                    <Badge variant="secondary" className="px-2.5 py-0.5 rounded-full font-medium bg-secondary/70 text-secondary-foreground border-transparent">
+                      {volumeLabel}
+                    </Badge>
+                    <Badge variant="outline" className="px-2.5 py-0.5 rounded-full font-medium border-border/60 text-muted-foreground bg-background/50">
                       {routine.goal
                         ? getGoalLabel(routine.goal)
                         : "Objetivo libre"}
@@ -141,43 +143,43 @@ export function RoutineCardsClient({
                   </div>
                 </div>
               </AdminCardHeaderWithActions>
-              <CardContent className="p-4 pt-3">
-                <div className="flex flex-col gap-4">
+              <CardContent className="p-5 pt-3">
+                <div className="flex flex-col gap-5">
                   {routine.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">
+                    <p className="text-[13px] leading-relaxed text-muted-foreground line-clamp-2">
                       {routine.description}
                     </p>
                   )}
-                  <div className="flex flex-col gap-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Nivel:</span>
-                      <span className="capitalize">
+                  <div className="flex flex-col gap-2.5 text-sm">
+                    <div className="flex justify-between items-center border-b border-border/30 pb-2">
+                      <span className="text-muted-foreground font-medium">Nivel</span>
+                      <span className="capitalize font-semibold text-foreground/90">
                         {routine.level || "No especificado"}
                       </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Duración:</span>
-                      <span>{durationWeeks || "-"} semanas</span>
+                    <div className="flex justify-between items-center border-b border-border/30 pb-2">
+                      <span className="text-muted-foreground font-medium">Duración</span>
+                      <span className="font-semibold text-foreground/90">{durationWeeks || "-"} semanas</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        Días/semana:
+                    <div className="flex justify-between items-center pb-1">
+                      <span className="text-muted-foreground font-medium">
+                        Días/semana
                       </span>
-                      <span>{daysPerWeek}</span>
+                      <span className="font-semibold text-foreground/90">{daysPerWeek}</span>
                     </div>
                   </div>
-                  <div className="flex flex-col gap-2 rounded-lg border border-dashed p-3">
-                    <div className="flex items-center justify-between text-[11px] uppercase tracking-wide text-muted-foreground">
+                  <div className="flex flex-col gap-3 rounded-[1rem] border border-border/40 bg-background/30 p-4 shadow-inner ring-1 ring-inset ring-black/5 dark:ring-white/5">
+                    <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                       <span>Carga semanal</span>
-                      <span>{intensity}%</span>
+                      <span className="text-primary">{intensity}%</span>
                     </div>
-                    <div className="overflow-hidden rounded-full border bg-muted">
+                    <div className="overflow-hidden rounded-full border border-border/50 bg-muted/60 h-2.5">
                       <div
-                        className="h-2 bg-primary/80"
+                        className="h-full bg-gradient-to-r from-primary/80 to-primary rounded-full shadow-[0_0_10px_rgba(var(--primary),0.4)]"
                         style={{ width: `${Math.max(intensity, 8)}%` }}
                       />
                     </div>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-[11px] font-medium text-muted-foreground/80 leading-snug">
                       Carga estimada por frecuencia para planificación semanal.
                     </p>
                   </div>

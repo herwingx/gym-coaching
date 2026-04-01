@@ -4,13 +4,14 @@ import { CLIENT_DATA_PAGE_SHELL } from '@/components/client/client-app-page-part
 
 export function ClientStackPageHeaderSkeleton() {
   return (
-    <header className="border-b border-border" aria-hidden>
-      <div className="container flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:py-5">
-        <div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
-          <Skeleton className="size-9 shrink-0 rounded-md sm:hidden" />
-          <div className="min-w-0">
-            <Skeleton className="h-7 w-[min(100%,14rem)] sm:h-8" />
-            <Skeleton className="mt-2 h-4 w-full max-w-md" />
+    <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl safe-area-header-pt min-h-[76px] sm:min-h-[112px] flex items-center" aria-hidden>
+      <div className="w-full flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:py-0 px-4 sm:px-6 md:px-8">
+        <div className="flex min-w-0 items-center gap-4">
+          <Skeleton className="size-10 sm:size-11 shrink-0 rounded-full" />
+          <div className="min-w-0 flex flex-col gap-2">
+            <Skeleton className="h-4 sm:h-5 w-24 sm:w-32 rounded-lg opacity-40" />
+            <Skeleton className="h-7 sm:h-9 w-48 sm:w-64 rounded-xl" />
+            <Skeleton className="h-3.5 sm:h-4 w-32 sm:w-48 rounded-lg opacity-60" />
           </div>
         </div>
       </div>
@@ -28,30 +29,30 @@ export function ClientWorkoutsPageSkeleton() {
         aria-busy="true"
         aria-label="Cargando historial"
       >
-        <section className="order-1 flex min-w-0 flex-col gap-6 lg:order-2 lg:col-span-8">
-          <Card className="overflow-hidden border-border/80 shadow-sm ring-1 ring-primary/5">
-            <CardHeader className="flex flex-col gap-2 pb-4">
+        <section className="order-1 flex min-w-0 flex-col gap-8 lg:order-2 lg:col-span-8">
+          <Card className="overflow-hidden border-border/80 shadow-md ring-1 ring-primary/5 rounded-3xl bg-card/60 backdrop-blur-sm">
+            <CardHeader className="flex flex-col gap-3 pb-6 pt-8 px-6 sm:px-8 border-b bg-muted/5">
               <div className="flex items-center gap-2">
-                <Skeleton className="size-9 shrink-0 rounded-lg" />
-                <Skeleton className="h-6 w-48" />
+                <Skeleton className="size-9 shrink-0 rounded-xl" />
+                <Skeleton className="h-6 w-48 rounded-lg" />
               </div>
             </CardHeader>
-            <CardContent className="flex flex-col gap-3">
+            <CardContent className="flex flex-col gap-4 p-6 sm:p-8">
               {[0, 1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-muted/15 p-4 sm:p-5"
+                  className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-background/50 p-5 shadow-sm"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex flex-col gap-2">
-                      <Skeleton className="h-5 w-36" />
-                      <Skeleton className="h-4 w-28" />
+                      <Skeleton className="h-5 w-36 rounded-md" />
+                      <Skeleton className="h-3 w-28 rounded-md opacity-60" />
                     </div>
-                    <Skeleton className="h-6 w-20 shrink-0 rounded-full" />
+                    <Skeleton className="h-6 w-20 shrink-0 rounded-lg" />
                   </div>
-                  <div className="flex flex-wrap gap-4">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-4 w-16" />
+                  <div className="flex flex-wrap gap-4 pt-2">
+                    <Skeleton className="h-4 w-32 rounded-md" />
+                    <Skeleton className="h-4 w-16 rounded-md" />
                   </div>
                 </div>
               ))}
@@ -59,21 +60,21 @@ export function ClientWorkoutsPageSkeleton() {
           </Card>
         </section>
 
-        <aside className="order-2 lg:order-1 lg:col-span-4">
-          <Card className="overflow-hidden border-border/80 shadow-sm ring-1 ring-primary/5">
-            <CardHeader className="pb-3">
+        <aside className="order-2 lg:order-1 lg:col-span-4 lg:sticky lg:top-[max(1rem,env(safe-area-inset-top))] lg:self-start">
+          <Card className="overflow-hidden border-border/80 shadow-md ring-1 ring-primary/5 rounded-3xl bg-card/60 backdrop-blur-sm">
+            <CardHeader className="pb-4 pt-6 px-6">
               <div className="flex items-center gap-2">
-                <Skeleton className="size-9 shrink-0 rounded-lg" />
+                <Skeleton className="size-9 shrink-0 rounded-xl" />
                 <div className="space-y-2">
-                  <Skeleton className="h-5 w-32" />
-                  <Skeleton className="h-3 w-full max-w-[12rem]" />
+                  <Skeleton className="h-5 w-32 rounded-md" />
+                  <Skeleton className="h-3 w-48 rounded-md opacity-60" />
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="flex flex-col gap-3">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-11 w-full rounded-lg" />
-              <Skeleton className="h-11 w-full rounded-lg" />
+            <CardContent className="flex flex-col gap-4 px-6 pb-6 pt-2">
+              <Skeleton className="h-4 w-full rounded-md" />
+              <Skeleton className="h-12 w-full rounded-xl" />
+              <Skeleton className="h-12 w-full rounded-xl" />
             </CardContent>
           </Card>
         </aside>
@@ -105,23 +106,23 @@ export function ClientProgressPageSkeleton() {
           </Card>
         </aside>
 
-        <section className="order-1 flex min-w-0 flex-col gap-6 lg:order-2 lg:col-span-8">
-          <div className="grid gap-6 lg:grid-cols-5">
-            <Card className="overflow-hidden border-border/80 shadow-sm ring-1 ring-primary/5 lg:col-span-2">
-              <CardHeader className="pb-3">
-                <Skeleton className="h-5 w-28" />
+        <section className="order-1 flex min-w-0 flex-col gap-8 lg:order-2 lg:col-span-8">
+          <div className="grid gap-8 lg:grid-cols-5">
+            <Card className="overflow-hidden border-border/80 shadow-md ring-1 ring-primary/5 rounded-3xl bg-card/60 backdrop-blur-sm lg:col-span-2">
+              <CardHeader className="pb-4 pt-6 px-6 sm:px-8">
+                <Skeleton className="h-5 w-28 rounded-md" />
               </CardHeader>
-              <CardContent>
-                <Skeleton className="h-[220px] w-full rounded-xl" />
+              <CardContent className="px-6 pb-8">
+                <Skeleton className="h-[220px] w-full rounded-2xl" />
               </CardContent>
             </Card>
-            <Card className="overflow-hidden border-border/80 shadow-sm ring-1 ring-primary/5 lg:col-span-3">
-              <CardHeader className="pb-3">
-                <Skeleton className="h-5 w-44" />
-                <Skeleton className="h-3 w-64" />
+            <Card className="overflow-hidden border-border/80 shadow-md ring-1 ring-primary/5 rounded-3xl bg-card/60 backdrop-blur-sm lg:col-span-3">
+              <CardHeader className="pb-4 pt-6 px-6 sm:px-8">
+                <Skeleton className="h-5 w-44 rounded-md" />
+                <Skeleton className="h-3 w-64 rounded-md opacity-60 mt-1.5" />
               </CardHeader>
-              <CardContent>
-                <Skeleton className="h-[280px] w-full rounded-xl" />
+              <CardContent className="px-6 pb-8">
+                <Skeleton className="h-[280px] w-full rounded-2xl" />
               </CardContent>
             </Card>
           </div>
@@ -141,24 +142,24 @@ export function ClientMeasurementsPageSkeleton() {
         aria-busy="true"
         aria-label="Cargando medidas"
       >
-        <aside className="flex flex-col gap-6 lg:col-span-4">
-          <Card className="overflow-hidden border-border/80 shadow-sm ring-1 ring-primary/5">
-            <CardHeader className="flex flex-col gap-4 pb-4">
-              <div className="flex items-start gap-3">
-                <Skeleton className="size-9 shrink-0 rounded-lg" />
-                <div className="flex flex-1 flex-col gap-2">
-                  <Skeleton className="h-6 w-32" />
-                  <Skeleton className="h-3 w-full max-w-xs" />
+        <aside className="flex flex-col gap-8 lg:col-span-4 lg:sticky lg:top-[max(1rem,env(safe-area-inset-top))] lg:self-start">
+          <Card className="overflow-hidden border-border/80 shadow-md ring-1 ring-primary/5 rounded-3xl bg-card/60 backdrop-blur-sm">
+            <CardHeader className="flex flex-col gap-5 pb-6 pt-8 px-6">
+              <div className="flex items-start gap-4">
+                <Skeleton className="size-10 shrink-0 rounded-[1.2rem]" />
+                <div className="flex flex-1 flex-col gap-2.5">
+                  <Skeleton className="h-6 w-32 rounded-lg" />
+                  <Skeleton className="h-3 w-48 rounded-md opacity-60" />
                 </div>
               </div>
-              <Skeleton className="h-10 w-full max-w-xs rounded-lg" />
+              <Skeleton className="h-11 w-full rounded-xl" />
             </CardHeader>
-            <CardContent className="flex flex-col gap-6 border-t border-border/60 pt-6">
+            <CardContent className="flex flex-col gap-6 border-t border-border/40 pt-8 px-6 pb-8">
               {[0, 1, 2].map((i) => (
                 <div key={i} className="flex flex-col gap-2">
-                  <Skeleton className="h-3 w-20" />
-                  <Skeleton className="h-9 w-28" />
-                  {i === 0 ? <Skeleton className="h-3 w-24" /> : null}
+                  <Skeleton className="h-3 w-20 rounded-md opacity-40 uppercase tracking-widest" />
+                  <Skeleton className="h-9 w-28 rounded-lg" />
+                  {i === 0 ? <Skeleton className="h-3 w-36 rounded-md opacity-60" /> : null}
                 </div>
               ))}
             </CardContent>
@@ -166,18 +167,18 @@ export function ClientMeasurementsPageSkeleton() {
         </aside>
 
         <section className="min-w-0 lg:col-span-8">
-          <Card className="overflow-hidden border-border/80 shadow-sm ring-1 ring-primary/5">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <Skeleton className="size-9 shrink-0 rounded-lg" />
-                <div className="space-y-2">
-                  <Skeleton className="h-5 w-36" />
-                  <Skeleton className="h-3 w-56" />
+          <Card className="overflow-hidden border-border/80 shadow-md ring-1 ring-primary/5 rounded-3xl bg-card/60 backdrop-blur-sm">
+            <CardHeader className="pb-4 pt-6 px-6 sm:px-8 border-b bg-muted/5">
+              <div className="flex items-center gap-3">
+                <Skeleton className="size-9 shrink-0 rounded-xl" />
+                <div className="space-y-1.5">
+                  <Skeleton className="h-5 w-36 rounded-md" />
+                  <Skeleton className="h-3 w-56 rounded-md opacity-60" />
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
-              <Skeleton className="h-[260px] w-full rounded-xl" />
+            <CardContent className="p-6 sm:p-8">
+              <Skeleton className="h-[280px] w-full rounded-2xl" />
             </CardContent>
           </Card>
         </section>

@@ -68,6 +68,7 @@ import {
   Clock,
   AlertCircle,
   Zap,
+  Dumbbell,
 } from "lucide-react";
 import {
   Tooltip,
@@ -318,59 +319,101 @@ export function CoachOverviewClient({
                 Puedes combinar pestañas con plan y rutina.
               </CardDescription>
             </div>
-            <Tabs
-              value={activeTab}
-              onValueChange={(v) => {
-                setActiveTab(v);
-                if (v === "attention") scrollToClientsSection();
-              }}
-              className="w-full sm:w-auto"
-            >
-              <ScrollArea className="w-full whitespace-nowrap">
-                <TabsList className="inline-flex w-auto bg-muted/50 p-1 h-11 rounded-xl border border-border/40 shadow-sm">
+            <div className="w-full sm:w-auto">
+              <Tabs
+                value={activeTab}
+                onValueChange={(v) => {
+                  setActiveTab(v);
+                  if (v === "attention") scrollToClientsSection();
+                }}
+                className="hidden sm:block"
+              >
+                <TabsList className="inline-flex w-auto bg-card/60 backdrop-blur-xl p-1 h-12 rounded-[1rem] border border-border/50 shadow-sm">
                   <TabsTrigger
                     value="all"
-                    className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs sm:text-sm"
+                    className="rounded-lg px-3.5 py-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:font-bold transition-all gap-2 text-[14px] font-medium"
                   >
-                    <Users className="size-3.5" />
+                    <Users className="size-4" />
                     Todos
                   </TabsTrigger>
                   <TabsTrigger
                     value="activeWeek"
-                    className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs sm:text-sm"
+                    className="rounded-lg px-3.5 py-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:font-bold transition-all gap-2 text-[14px] font-medium"
                   >
-                    <Zap className="size-3.5" />
+                    <Zap className="size-4" />
                     Activos 7d
                   </TabsTrigger>
                   <TabsTrigger
                     value="inactive3"
-                    className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs sm:text-sm"
+                    className="rounded-lg px-3.5 py-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:font-bold transition-all gap-2 text-[14px] font-medium"
                   >
-                    <Clock className="size-3.5" />
+                    <Clock className="size-4" />
                     Baja actividad
                   </TabsTrigger>
                   <TabsTrigger
                     value="attention"
-                    className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs sm:text-sm"
+                    className="rounded-lg px-3.5 py-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:font-bold transition-all gap-2 text-[14px] font-medium"
                   >
-                    <AlertCircle className="size-3.5" />
+                    <AlertCircle className="size-4" />
                     Atención
                   </TabsTrigger>
                 </TabsList>
-                <ScrollBar orientation="horizontal" className="invisible" />
-              </ScrollArea>
-            </Tabs>
+              </Tabs>
+              
+              <div className="block sm:hidden w-full mt-2">
+                <Select
+                  value={activeTab}
+                  onValueChange={(v) => {
+                    setActiveTab(v);
+                    if (v === "attention") scrollToClientsSection();
+                  }}
+                >
+                  <SelectTrigger className="h-12 w-full bg-card/60 backdrop-blur-xl border-border/50 shadow-sm rounded-[1rem] px-4 font-bold text-[15px] text-foreground hover:bg-card/80 transition-all" aria-label="Seleccionar vista">
+                    <SelectValue placeholder="Vista" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectGroup>
+                      <SelectLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70 px-2 py-1.5">Actividad</SelectLabel>
+                      <SelectItem value="all" className="rounded-lg py-2.5">
+                        <div className="flex items-center gap-2">
+                          <Users className="size-4" />
+                          <span>Todos los asesorados</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="activeWeek" className="rounded-lg py-2.5">
+                        <div className="flex items-center gap-2">
+                          <Zap className="size-4" />
+                          <span>Activos (7 días)</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="inactive3" className="rounded-lg py-2.5">
+                        <div className="flex items-center gap-2">
+                          <Clock className="size-4" />
+                          <span>Baja actividad (3+ días)</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="attention" className="rounded-lg py-2.5">
+                        <div className="flex items-center gap-2">
+                          <AlertCircle className="size-4" />
+                          <span>Requieren atención</span>
+                        </div>
+                      </SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent className="flex flex-col gap-4 p-4 pt-0 sm:p-5 sm:pt-0">
+          <CardContent className="flex flex-col gap-5 p-4 pt-0 sm:p-5 sm:pt-0">
             <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
               <Select value={planFilter} onValueChange={setPlanFilter}>
                 <SelectTrigger
-                  className="h-11 w-full sm:h-10 sm:min-w-[160px] sm:w-[200px]"
+                  className="h-12 w-full sm:w-[200px] bg-card/60 backdrop-blur-xl border-border/50 shadow-sm rounded-[1rem] px-4 font-medium text-[14px] transition-all hover:bg-card/80"
                   aria-label="Filtrar por plan"
                 >
                   <SelectValue placeholder="Plan" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-[1rem]">
                   <SelectGroup>
                     <SelectLabel>Plan</SelectLabel>
                     <SelectItem value="all">Todos los planes</SelectItem>
@@ -384,12 +427,12 @@ export function CoachOverviewClient({
               </Select>
               <Select value={routineFilter} onValueChange={setRoutineFilter}>
                 <SelectTrigger
-                  className="h-11 w-full sm:h-10 sm:min-w-[160px] sm:w-[200px]"
+                  className="h-12 w-full sm:w-[200px] bg-card/60 backdrop-blur-xl border-border/50 shadow-sm rounded-[1rem] px-4 font-medium text-[14px] transition-all hover:bg-card/80"
                   aria-label="Filtrar por rutina"
                 >
                   <SelectValue placeholder="Rutina" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-[1rem]">
                   <SelectGroup>
                     <SelectLabel>Rutina</SelectLabel>
                     <SelectItem value="all">Todas las rutinas</SelectItem>
@@ -403,8 +446,7 @@ export function CoachOverviewClient({
               </Select>
               <Button
                 variant="outline"
-                size="sm"
-                className="h-11 w-full sm:h-10 sm:w-auto"
+                className="h-12 w-full sm:w-auto rounded-[1rem] border-border/50 bg-card/60 backdrop-blur-xl shadow-sm text-[14px] px-6 transition-all hover:-translate-y-0.5"
                 type="button"
                 onClick={() => {
                   setActiveTab("all");
@@ -490,13 +532,14 @@ export function CoachOverviewClient({
                 key={c.id}
                 menuSections={menuSections}
                 cardClassName={cn(
+                  "border-border/50 bg-card/60 rounded-[1.5rem] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-primary/20 group pb-1 flex flex-col h-full",
                   c.needsAttention &&
-                    "border-border border-l-[3px] border-l-warning bg-warning/5 hover:bg-warning/10 hover:border-l-warning",
+                    "border-warning/30 border-l-[4px] border-l-warning bg-gradient-to-br from-warning/10 via-warning/5 to-transparent hover:border-warning/50"
                 )}
               >
                 <AdminCardHeaderWithActions menuSections={menuSections}>
-                  <div className="flex items-center gap-3">
-                    <Avatar className="size-10 rounded-xl">
+                  <div className="flex items-center gap-3.5">
+                    <Avatar className="size-[3.25rem] rounded-[1.1rem] border-2 border-background shadow-xs shrink-0 transition-transform group-hover:scale-105">
                       {c.avatarUrl ? (
                         <AvatarImage
                           src={c.avatarUrl}
@@ -504,164 +547,126 @@ export function CoachOverviewClient({
                           className="object-cover"
                         />
                       ) : null}
-                      <AvatarFallback>
+                      <AvatarFallback className="bg-primary/10 text-primary font-black text-sm">
                         {c.fullName.slice(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div className="min-w-0">
-                      <CardTitle className="text-base truncate">
+                      <CardTitle className="text-[17px] font-bold truncate leading-none mb-1 group-hover:text-primary transition-colors">
                         {c.fullName}
                       </CardTitle>
-                      <div className="text-xs text-muted-foreground truncate">
+                      <div className="text-[13px] font-medium opacity-80 text-muted-foreground truncate">
                         {c.planName ? `Plan: ${c.planName}` : "Sin plan"}
                       </div>
                     </div>
+                  </div>
+                  
+                  <div className="flex flex-wrap items-center gap-2 mt-4 ml-1">
                     {c.isRoutineCompleted ? (
                       <Badge
-                        variant="outline"
-                        className="max-w-[min(100%,12rem)] shrink-0 gap-1 border-success/35 bg-success/12 text-success sm:max-w-[240px] ml-auto [&>svg]:text-current"
+                        variant="secondary"
+                        className="font-bold text-[10px] bg-success/20 text-success shadow-sm uppercase tracking-widest px-2.5 py-0.5 gap-1 border-success/30"
                         title="Rutina completada"
                       >
-                        <Trophy className="size-3.5 shrink-0" aria-hidden />
-                        <span className="truncate text-xs font-bold uppercase tracking-tight">
-                          Completada
-                        </span>
+                        <Trophy className="size-3" aria-hidden />
+                        Completada
                       </Badge>
                     ) : c.needsAttention ? (
                       <Badge
-                        variant="outline"
-                        className="max-w-[min(100%,12rem)] shrink-0 gap-1 border-warning/35 bg-warning/12 text-warning-foreground sm:max-w-[240px] ml-auto [&>svg]:text-current"
+                        variant="secondary"
+                        className="font-bold text-[10px] bg-warning/20 text-warning-foreground shadow-sm uppercase tracking-widest px-2.5 py-0.5 gap-1 border-warning/30"
                         title={c.attentionReason || "Atención"}
                       >
-                        <AlertTriangle
-                          className="size-3.5 shrink-0"
-                          aria-hidden
-                        />
-                        <span className="truncate">
-                          {c.attentionReason || "Atención"}
-                        </span>
+                        <AlertTriangle className="size-3" aria-hidden />
+                        {c.attentionReason || "Atención"}
                       </Badge>
                     ) : c.streakDays != null && c.streakDays > 0 ? (
                       <Badge
-                        variant="outline"
-                        className="ml-auto shrink-0 tabular-nums border-primary/25 bg-primary/8"
+                        variant="secondary"
+                        className="font-bold text-[10px] bg-primary/20 text-primary shadow-sm uppercase tracking-widest px-2.5 py-0.5"
                       >
                         {c.streakDays}d racha
                       </Badge>
-                    ) : (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span className="ml-auto shrink-0 cursor-help text-[11px] font-medium tabular-nums text-muted-foreground underline decoration-dotted decoration-muted-foreground/50 underline-offset-2">
-                            Racha {c.streakDays ?? "—"}d
-                          </span>
-                        </TooltipTrigger>
-                        <TooltipContent
-                          side="top"
-                          className="max-w-xs text-pretty"
-                        >
-                          Viene del perfil (gamificación): días seguidos con
-                          entreno. Si es 0 o «—», el usuario puede haber
-                          entrenado hoy igualmente; la racha se reinicia si pasó
-                          un día sin completar sesión.
-                        </TooltipContent>
-                      </Tooltip>
-                    )}
+                    ) : null}
                   </div>
                 </AdminCardHeaderWithActions>
-                <CardContent className="flex flex-col gap-2.5 pt-2">
-                  <div className="flex items-baseline justify-between gap-2 border-b border-border/40 pb-2">
-                    <span className="text-xs text-muted-foreground">
-                      Última sesión
-                    </span>
-                    <span className="text-sm font-semibold tabular-nums">
-                      {c.daysSinceLastSession != null
-                        ? formatRelativeDays(c.daysSinceLastSession)
-                        : "—"}
-                    </span>
+                
+                <CardContent className="flex flex-col gap-2.5 pt-1 px-4.5 pb-4 flex-1 justify-end bg-gradient-to-b from-transparent to-background/30">
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div className="flex flex-col gap-1.5 rounded-[1rem] border border-border/40 bg-background/50 p-3 shadow-sm transition-colors hover:bg-background/80">
+                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-80">
+                        <Clock className="size-3.5" />
+                        Última sesión
+                      </div>
+                      <span className="text-[14px] font-bold tabular-nums text-foreground">
+                       {c.daysSinceLastSession != null
+                          ? formatRelativeDays(c.daysSinceLastSession)
+                          : "Nunca"}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col gap-1.5 rounded-[1rem] border border-border/40 bg-background/50 p-3 shadow-sm transition-colors hover:bg-background/80">
+                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-80">
+                         <Zap className="size-3.5" />
+                         Meta Sem/7d
+                      </div>
+                      <span className="text-[14px] font-bold tabular-nums text-foreground">
+                        {c.compliance7dPct != null ? (
+                          <>
+                            {Math.round(c.compliance7dPct * 100)}%
+                            {c.complianceSessionsDone7d != null &&
+                            c.complianceSessionsTarget != null ? (
+                              <span className="ml-1 text-[11px] font-medium text-muted-foreground">
+                                ({c.complianceSessionsDone7d}/{c.complianceSessionsTarget})
+                              </span>
+                            ) : null}
+                          </>
+                        ) : (
+                          "Sin meta"
+                        )}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col gap-1.5 rounded-[1rem] border border-border/40 bg-background/50 p-3 shadow-sm transition-colors hover:bg-background/80">
+                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-80">
+                        <Sparkles className="size-3.5" />
+                        Volumen
+                      </div>
+                      <span className="flex min-w-0 items-center justify-start gap-1 text-[14px] font-bold">
+                        {c.trend === "up" ? (
+                          <span className="flex items-center gap-0.5 text-primary">
+                            <ArrowUp className="size-3.5" aria-hidden />
+                            Sube
+                          </span>
+                        ) : c.trend === "down" ? (
+                          <span className="flex items-center gap-0.5 text-destructive">
+                            <ArrowDown className="size-3.5" aria-hidden />
+                            Baja
+                          </span>
+                        ) : (
+                          <span className="text-foreground/70">Igual</span>
+                        )}
+                      </span>
+                    </div>
+                    
+                    <div className="flex flex-col gap-1.5 rounded-[1rem] border border-border/40 bg-background/50 p-3 shadow-sm transition-colors hover:bg-background/80">
+                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-80">
+                        <Dumbbell className="size-3.5" />
+                        Series PR (30d)
+                      </div>
+                      <span className="text-[14px] font-bold tabular-nums text-foreground">
+                        {typeof c.prEvents30d === "number" ? c.prEvents30d : "0"}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="flex items-baseline justify-between gap-2">
-                    <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
-                      Objetivo semanal
-                      <MetricHint label="Cómo se calcula el objetivo semanal">
-                        Porcentaje según la rutina (días/semana esperados). La
-                        ventana son los últimos 7 días naturales, no “7
-                        entrenos”. Ejemplo: rutina 5×/sem → meta 5 sesiones en
-                        ese lapso.
-                      </MetricHint>
-                    </span>
-                    <span className="text-right text-sm font-semibold tabular-nums">
-                      {c.compliance7dPct != null ? (
-                        <>
-                          {Math.round(c.compliance7dPct * 100)}%
-                          {c.complianceSessionsDone7d != null &&
-                          c.complianceSessionsTarget != null ? (
-                            <span className="ml-1.5 text-xs font-normal text-muted-foreground">
-                              ({c.complianceSessionsDone7d}/
-                              {c.complianceSessionsTarget})
-                            </span>
-                          ) : null}
-                        </>
-                      ) : (
-                        "—"
-                      )}
-                    </span>
-                  </div>
-
-                  <div className="flex items-baseline justify-between gap-2">
-                    <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
-                      Volumen sesión
-                      <MetricHint label="Qué significa la tendencia de volumen">
-                        Compara el volumen total (kg) de la última sesión
-                        completada frente a la anterior. No es un PR ni mide un
-                        solo ejercicio.
-                      </MetricHint>
-                    </span>
-                    <span className="flex min-w-0 items-center justify-end gap-1.5 text-sm font-semibold">
-                      {c.trend === "up" ? (
-                        <span className="flex items-center gap-1 text-primary">
-                          <ArrowUp className="size-3.5 shrink-0" aria-hidden />
-                          Subiendo
-                        </span>
-                      ) : c.trend === "down" ? (
-                        <span className="flex items-center gap-1 text-destructive">
-                          <ArrowDown
-                            className="size-3.5 shrink-0"
-                            aria-hidden
-                          />
-                          Bajando
-                        </span>
-                      ) : (
-                        <span className="text-foreground/70">Sin cambio</span>
-                      )}
-                    </span>
-                  </div>
-
-                  <div className="flex items-baseline justify-between gap-2">
-                    <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
-                      Series PR · 30d
-                      <MetricHint label="Conteo de series PR">
-                        Suma series con marca PR en entrenos completados últimos
-                        30 días y eventos en historial PR. Debería acercarse a
-                        lo que el asesorado ve en Progreso.
-                      </MetricHint>
-                    </span>
-                    <span className="tabular-nums text-sm font-semibold">
-                      {typeof c.prEvents30d === "number" ? c.prEvents30d : "—"}
-                    </span>
-                  </div>
-
-                  <div className="flex items-baseline justify-between gap-2 border-t border-border/40 pt-2">
-                    <span className="text-xs text-muted-foreground">
-                      Rutina
-                    </span>
-                    <span className="max-w-[60%] truncate text-right text-sm font-semibold">
+                  <div className="mt-1 flex items-center justify-between gap-2 rounded-[1rem] border border-border/40 bg-background/50 px-4 py-2.5 shadow-sm">
+                    <span className="text-[11px] text-muted-foreground font-black tracking-widest uppercase opacity-80">Rutina</span>
+                    <span className="max-w-[70%] truncate text-right text-[13px] font-bold text-foreground">
                       {c.assignedRoutineName ? (
                         c.assignedRoutineName
                       ) : (
-                        <span className="font-normal text-muted-foreground">
-                          Sin asignar
-                        </span>
+                        <span className="text-muted-foreground">Sin asignar</span>
                       )}
                     </span>
                   </div>

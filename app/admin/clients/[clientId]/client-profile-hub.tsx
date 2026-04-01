@@ -53,6 +53,7 @@ import {
   Camera,
   LayoutGrid,
   Diff,
+  Trophy,
 } from "lucide-react";
 import { getGoalLabel } from "@/lib/constants";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -192,6 +193,7 @@ export function ClientProfileHub({
   sessionExerciseLogs,
   bodyMeasurements,
   progressPhotos,
+  personalRecords,
   clientId,
 }: {
   client: ClientHubClient;
@@ -201,6 +203,7 @@ export function ClientProfileHub({
   sessionExerciseLogs: SessionExerciseLogRow[];
   bodyMeasurements: BodyMeasurementRow[];
   progressPhotos: ProgressPhotoRow[];
+  personalRecords: any[];
   clientId?: string;
 }) {
   const [tab, setTab] = useState("summary");
@@ -280,52 +283,52 @@ export function ClientProfileHub({
       <Tabs value={tab} onValueChange={setTab} className="w-full">
         <div className="sticky top-0 z-10 -mx-4 px-4 py-2 bg-background/95 backdrop-blur-md border-b sm:static sm:z-auto sm:mx-0 sm:px-0 sm:py-0 sm:bg-transparent sm:border-none">
           <ScrollArea className="w-full whitespace-nowrap pb-1">
-            <TabsList className="inline-flex w-auto bg-muted/50 p-1 h-12 rounded-2xl border border-border/40 shadow-sm">
+            <TabsList className="inline-flex w-auto bg-card/60 backdrop-blur-xl p-1 h-12 rounded-[1rem] border border-border/50 shadow-sm mb-1">
               <TabsTrigger
                 value="summary"
-                className="rounded-xl px-4 py-2 data-[state=active]:shadow-md gap-2"
+                className="rounded-lg px-4 py-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:font-bold transition-all gap-2 text-[14px] font-medium"
               >
                 <Target className="size-4" />
                 Resumen
               </TabsTrigger>
               <TabsTrigger
                 value="routine"
-                className="rounded-xl px-4 py-2 data-[state=active]:shadow-md gap-2"
+                className="rounded-lg px-4 py-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:font-bold transition-all gap-2 text-[14px] font-medium"
               >
                 <Dumbbell className="size-4" />
                 Rutina
               </TabsTrigger>
               <TabsTrigger
                 value="history"
-                className="rounded-xl px-4 py-2 data-[state=active]:shadow-md gap-2"
+                className="rounded-lg px-4 py-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:font-bold transition-all gap-2 text-[14px] font-medium"
               >
                 <History className="size-4" />
                 Historial
               </TabsTrigger>
               <TabsTrigger
                 value="progress"
-                className="rounded-xl px-4 py-2 data-[state=active]:shadow-md gap-2"
+                className="rounded-lg px-4 py-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:font-bold transition-all gap-2 text-[14px] font-medium"
               >
                 <ArrowUpRight className="size-4" />
                 Progreso
               </TabsTrigger>
               <TabsTrigger
                 value="measurements"
-                className="rounded-xl px-4 py-2 data-[state=active]:shadow-md gap-2"
+                className="rounded-lg px-4 py-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:font-bold transition-all gap-2 text-[14px] font-medium"
               >
                 <Ruler className="size-4" />
                 Medidas
               </TabsTrigger>
               <TabsTrigger
                 value="photos"
-                className="rounded-xl px-4 py-2 data-[state=active]:shadow-md gap-2"
+                className="rounded-lg px-4 py-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:font-bold transition-all gap-2 text-[14px] font-medium"
               >
                 <Camera className="size-4" />
                 Fotos
               </TabsTrigger>
               <TabsTrigger
                 value="notes"
-                className="rounded-xl px-4 py-2 data-[state=active]:shadow-md gap-2"
+                className="rounded-lg px-4 py-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:font-bold transition-all gap-2 text-[14px] font-medium"
               >
                 <Notebook className="size-4" />
                 Notas
@@ -335,130 +338,182 @@ export function ClientProfileHub({
           </ScrollArea>
         </div>
 
-        {/* RESUMEN */}
-        <TabsContent value="summary" className="flex flex-col gap-4">
-          <div className="grid gap-4 md:grid-cols-3">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <ArrowUpRight className="size-4" />
-                  Última sesión
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
+        <TabsContent value="summary" className="flex flex-col gap-6 pt-2">
+          <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+            <div className="flex flex-col justify-between gap-3 rounded-[1.5rem] border border-border/50 bg-card/60 p-5 shadow-sm backdrop-blur-xl transition-all hover:shadow-md">
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground uppercase font-black tracking-widest opacity-80">
+                <ArrowUpRight className="size-4" />
+                Última sesión
+              </div>
+              <div className="flex flex-col gap-1">
+                <div className="text-2xl font-bold tracking-tight">
                   {formatRelativeDays(lastSessionAt)}
                 </div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xs font-medium text-muted-foreground">
                   Fecha: {formatDate(lastSessionAt)}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Dumbbell className="size-4" />
-                  Racha
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{streakDays ?? "-"}</div>
-                <div className="text-xs text-muted-foreground">
+            <div className="flex flex-col justify-between gap-3 rounded-[1.5rem] border border-border/50 bg-card/60 p-5 shadow-sm backdrop-blur-xl transition-all hover:shadow-md">
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground uppercase font-black tracking-widest opacity-80">
+                <Dumbbell className="size-4" />
+                Racha
+              </div>
+              <div className="flex flex-col gap-1">
+                <div className="text-2xl font-bold tracking-tight">{streakDays ?? "-"}</div>
+                <div className="text-xs font-medium text-muted-foreground">
                   días consecutivos
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <History className="size-4" />
-                  Tendencia
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {trend === "up"
-                    ? "Subiendo"
-                    : trend === "down"
-                      ? "Bajando"
-                      : "Estancado"}
+            <div className="flex flex-col justify-between gap-3 rounded-[1.5rem] border border-border/50 bg-card/60 p-5 shadow-sm backdrop-blur-xl transition-all hover:shadow-md">
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground uppercase font-black tracking-widest opacity-80">
+                <History className="size-4" />
+                Tendencia
+              </div>
+              <div className="flex flex-col gap-1">
+                <div className="text-2xl font-bold tracking-tight">
+                  {trend === "up" ? "Creciendo" : trend === "down" ? "Bajando" : "Estable"}
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  volumen total último vs anterior
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Datos del cliente</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-start gap-4">
-                <Avatar className="size-12 rounded-xl">
-                  {client?.avatar_url ? (
-                    <AvatarImage
-                      src={client.avatar_url}
-                      alt={client.full_name ?? "Cliente"}
-                      className="object-cover"
-                    />
-                  ) : null}
-                  <AvatarFallback>
-                    {(client?.full_name || "?").slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="text-lg font-semibold">
-                      {client?.full_name || "-"}
-                    </div>
-                    {client?.status ? (
-                      <AdminClientStatusBadge status={client.status} />
-                    ) : null}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {client?.email ? `Email: ${client.email}` : "Sin email"} ·{" "}
-                    {client?.phone ? `Tel: ${client.phone}` : "Sin teléfono"}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {client?.plan_name
-                      ? `Plan: ${client.plan_name}`
-                      : "Sin plan activo"}{" "}
-                    ·{" "}
-                    {client?.days_until_expiry != null
-                      ? client.days_until_expiry > 0
-                        ? `Vence en ${client.days_until_expiry} días`
-                        : "Membresía vencida"
-                      : "Sin fecha de vencimiento"}
-                  </div>
-                  {client?.goal && (
-                    <div className="text-sm text-muted-foreground flex items-center gap-1.5">
-                      <Target className="size-3.5 text-primary" />
-                      Objetivo: {getGoalLabel(client.goal)}
-                    </div>
-                  )}
-                  <div className="text-sm text-muted-foreground">
-                    Onboarding:{" "}
-                    {profile?.onboarding_completed ||
-                    client?.onboarding_completed ||
-                    (client?.user_id &&
-                      client?.goal &&
-                      client?.experience_level)
-                      ? "Completado"
-                      : "Pendiente"}
-                  </div>
+                <div className="text-xs font-medium text-muted-foreground">
+                  volumen total vs anterior
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+
+            <div className="flex flex-col justify-between gap-3 rounded-[1.5rem] border border-border/50 bg-card/60 p-5 shadow-sm backdrop-blur-xl transition-all hover:shadow-md">
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground uppercase font-black tracking-widest opacity-80">
+                <Trophy className="size-4" />
+                Récords (PR)
+              </div>
+              <div className="flex flex-col gap-1">
+                <div className="text-2xl font-bold tracking-tight">{personalRecords?.length ?? 0}</div>
+                <div className="text-xs font-medium text-muted-foreground">
+                  hitos de fuerza
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-12">
+             <div className="lg:col-span-8 flex flex-col gap-6">
+                <Card className="border-border/50 bg-card/60 backdrop-blur-xl rounded-[1.5rem] shadow-sm overflow-hidden">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-[17px] font-bold">Resumen del atleta</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-start gap-4">
+                      <Avatar className="size-[4rem] rounded-[1.2rem] border-2 border-background shadow-sm shrink-0">
+                        {client?.avatar_url ? (
+                          <AvatarImage
+                            src={client.avatar_url}
+                            alt={client.full_name ?? "Cliente"}
+                            className="object-cover"
+                          />
+                        ) : null}
+                        <AvatarFallback className="bg-primary/10 text-primary font-black text-lg">
+                          {(client?.full_name || "?").slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+
+                      <div className="flex flex-col gap-1.5 min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2.5">
+                          <div className="text-xl font-bold leading-none truncate">
+                            {client?.full_name || "-"}
+                          </div>
+                          {client?.status ? (
+                            <AdminClientStatusBadge status={client.status} />
+                          ) : null}
+                        </div>
+                        <div className="text-[13px] font-medium opacity-90 text-muted-foreground truncate">
+                          {client?.email ? `${client.email}` : "Sin email"}
+                          <span className="mx-2 opacity-50">·</span>
+                          {client?.phone ? `${client.phone}` : "Sin teléfono"}
+                        </div>
+                        <div className="mt-2 flex flex-col gap-2">
+                          <div className="inline-flex items-center gap-2 text-sm bg-muted/20 rounded-lg px-3 py-2 w-fit">
+                            <span className="font-semibold text-foreground">
+                            {client?.plan_name ? client.plan_name : "Sin plan activo"}
+                            </span>
+                            <span className="opacity-50 text-muted-foreground">·</span>
+                            <span className="font-medium text-muted-foreground">
+                              {client?.days_until_expiry != null
+                                ? client.days_until_expiry > 0
+                                  ? `Vence en ${client.days_until_expiry} días`
+                                  : "Membresía vencida"
+                                : "Sin fecha de vencimiento"}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="mt-1 flex flex-wrap gap-2 items-center">
+                          {client?.goal && (
+                            <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest gap-1 bg-primary/10 text-primary border-primary/20">
+                              <Target className="size-3" />
+                              {getGoalLabel(client.goal)}
+                            </Badge>
+                          )}
+                          <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest border-border/60">
+                            Onboarding:{" "}
+                            {profile?.onboarding_completed ||
+                            client?.onboarding_completed ||
+                            (client?.user_id && client?.goal && client?.experience_level)
+                              ? "LISTO"
+                              : "PENDIENTE"}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+             </div>
+
+             <div className="lg:col-span-4">
+                <Card className="h-full border-border/50 bg-card/60 backdrop-blur-xl rounded-[1.5rem] shadow-sm overflow-hidden transition-all hover:bg-card">
+                   <CardHeader className="pb-3 border-b border-border/30">
+                      <div className="flex items-center justify-between">
+                         <CardTitle className="text-[15px] font-bold">Top Records (PRs)</CardTitle>
+                         <Trophy className="size-4 text-primary" />
+                      </div>
+                   </CardHeader>
+                   <CardContent className="p-0">
+                      <ScrollArea className="h-[200px]">
+                         <div className="divide-y divide-border/20">
+                            {personalRecords?.length > 0 ? (
+                               personalRecords.slice(0, 5).map((pr) => (
+                                  <div key={pr.exercise_id} className="flex flex-col gap-1 p-4 transition-colors hover:bg-primary/5">
+                                     <div className="text-[13px] font-black uppercase tracking-tight text-foreground truncate">
+                                        {pr.exercise_name}
+                                     </div>
+                                     <div className="flex items-center justify-between">
+                                        <div className="text-lg font-black text-primary italic">
+                                           {pr.weight_kg} <span className="text-xs">kg</span>
+                                           <span className="mx-1 text-muted-foreground">×</span>
+                                           {pr.reps} <span className="text-xs">reps</span>
+                                        </div>
+                                        <time className="text-[10px] font-bold text-muted-foreground uppercase opacity-60">
+                                           {formatDate(pr.achieved_at)}
+                                        </time>
+                                     </div>
+                                  </div>
+                               ))
+                            ) : (
+                               <div className="flex flex-col items-center justify-center h-40 text-muted-foreground p-6 text-center">
+                                  <Dumbbell className="size-8 opacity-20 mb-3" />
+                                  <div className="text-xs font-bold uppercase tracking-widest opacity-60">Sin récords aún</div>
+                               </div>
+                            )}
+                         </div>
+                      </ScrollArea>
+                   </CardContent>
+                </Card>
+             </div>
+          </div>
         </TabsContent>
 
-        <TabsContent value="routine" className="flex flex-col gap-4">
-          <Card>
+        <TabsContent value="routine" className="flex flex-col gap-4 pt-2">
+          <Card className="border-border/50 bg-card/60 backdrop-blur-xl rounded-[1.5rem] shadow-sm overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Dumbbell className="size-4" />
@@ -513,8 +568,8 @@ export function ClientProfileHub({
           </Card>
         </TabsContent>
 
-        <TabsContent value="history" className="flex flex-col gap-4">
-          <Card>
+        <TabsContent value="history" className="flex flex-col gap-4 pt-2">
+          <Card className="border-border/50 bg-card/60 backdrop-blur-xl rounded-[1.5rem] shadow-sm overflow-hidden">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <History className="size-4" />
@@ -559,25 +614,25 @@ export function ClientProfileHub({
                       <AccordionItem
                         key={s.id}
                         value={s.id}
-                        className="rounded-xl border border-border/80 border-b-0 bg-card/50 px-3 last:border-b-0 data-[state=open]:bg-card"
+                        className="rounded-2xl border border-border/60 bg-card/40 px-4 last:border-b transition-all data-[state=open]:bg-card/80 data-[state=open]:shadow-sm"
                       >
-                        <AccordionTrigger className="py-3 hover:no-underline [&[data-state=open]>svg]:rotate-180">
-                          <div className="flex w-full flex-col gap-1 text-left sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                        <AccordionTrigger className="py-4 hover:no-underline [&[data-state=open]>svg]:rotate-180">
+                          <div className="flex w-full flex-col gap-1.5 text-left sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                             <div className="min-w-0 flex-1">
-                              <div className="font-medium leading-snug">
+                              <div className="font-bold tracking-tight leading-snug text-[15px]">
                                 {when.dateLine}
                               </div>
-                              <div className="text-muted-foreground text-xs">
+                              <div className="text-muted-foreground text-[13px] font-medium opacity-90">
                                 {when.timeLine ? `${when.timeLine} · ` : null}
-                                {volLabel}
-                                {typeof s.exercises_completed === "number"
-                                  ? ` · ${s.exercises_completed} ejercicios completados`
+                                <span className={vol > 0 ? "text-foreground font-semibold" : ""}>{volLabel}</span>
+                                {typeof s.exercises_completed === "number" && s.exercises_completed > 0
+                                  ? ` · ${s.exercises_completed} ejercicios`
                                   : null}
                               </div>
                               {routineDay ? (
-                                <div className="text-muted-foreground mt-0.5 text-xs">
-                                  Bloque de rutina:{" "}
-                                  <span className="text-foreground/90">
+                                <div className="text-muted-foreground mt-1 text-[13px] font-medium">
+                                  Bloque: {" "}
+                                  <span className="text-primary bg-primary/10 rounded-md px-1.5 py-0.5 font-bold">
                                     {routineDay}
                                   </span>
                                 </div>
@@ -585,7 +640,7 @@ export function ClientProfileHub({
                             </div>
                             <Badge
                               variant="outline"
-                              className={`shrink-0 font-medium ${workoutStatusBadgeClass(s.status)}`}
+                              className={`shrink-0 font-bold uppercase tracking-wider text-[10px] mt-2 sm:mt-0 ${workoutStatusBadgeClass(s.status)}`}
                             >
                               {workoutStatusLabelEs(s.status)}
                             </Badge>
@@ -608,9 +663,9 @@ export function ClientProfileHub({
                               {groups.map(({ name, sets }) => (
                                 <div
                                   key={name}
-                                  className="rounded-lg bg-muted/40 px-3 py-2"
+                                  className="rounded-xl bg-muted/40 border border-border/50 px-3.5 py-2.5"
                                 >
-                                  <div className="text-sm font-medium">
+                                  <div className="text-sm font-bold tracking-tight">
                                     {name}
                                   </div>
                                   <ul className="mt-1 flex flex-col gap-0.5 text-muted-foreground text-xs">
@@ -636,8 +691,8 @@ export function ClientProfileHub({
           </Card>
         </TabsContent>
 
-        <TabsContent value="progress" className="flex flex-col gap-4">
-          <Card>
+        <TabsContent value="progress" className="flex flex-col gap-4 pt-2">
+          <Card className="border-border/50 bg-card/60 backdrop-blur-xl rounded-[1.5rem] shadow-sm overflow-hidden">
             <CardHeader className="pb-3">
               <CardTitle className="text-base">
                 Progreso (volumen total)
@@ -683,7 +738,7 @@ export function ClientProfileHub({
                     return (
                       <div
                         key={s.id}
-                        className="flex flex-col gap-2 rounded-xl border border-border/60 bg-card/40 p-3 sm:grid sm:grid-cols-[minmax(0,1fr)_5.5rem_minmax(0,1.5fr)] sm:items-center sm:gap-4"
+                        className="flex flex-col gap-2 rounded-2xl border border-border/50 bg-card/40 p-4 transition-all hover:bg-card/60 hover:shadow-sm sm:grid sm:grid-cols-[minmax(0,1fr)_5.5rem_minmax(0,1.5fr)] sm:items-center sm:gap-4"
                       >
                         <div className="min-w-0">
                           <div
@@ -723,8 +778,8 @@ export function ClientProfileHub({
           </Card>
         </TabsContent>
 
-        <TabsContent value="measurements" className="flex flex-col gap-4">
-          <Card>
+        <TabsContent value="measurements" className="flex flex-col gap-4 pt-2">
+          <Card className="border-border/50 bg-card/60 backdrop-blur-xl rounded-[1.5rem] shadow-sm overflow-hidden">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Ruler className="size-4" />
@@ -749,7 +804,7 @@ export function ClientProfileHub({
                   </EmptyHeader>
                 </Empty>
               ) : (
-                <div className="flex flex-col gap-0 divide-y divide-border/70 rounded-xl border border-border/80">
+                <div className="flex flex-col gap-0 divide-y divide-border/50 rounded-2xl border border-border/60 bg-card/40 overflow-hidden">
                   {measurementRows.map((m) => (
                     <div
                       key={m.id}
@@ -780,29 +835,29 @@ export function ClientProfileHub({
 
         <TabsContent
           value="photos"
-          className="flex flex-col gap-8 focus-visible:outline-none"
+          className="flex flex-col gap-8 focus-visible:outline-none pt-2"
         >
           <Tabs defaultValue="gallery" className="w-full">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 px-1">
               <div>
-                <h3 className="text-lg font-bold">Registro Visual</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="text-[17px] font-bold tracking-tight">Registro Visual</h3>
+                <p className="text-sm font-medium text-muted-foreground">
                   Monitorea el progreso físico del asesorado.
                 </p>
               </div>
-              <TabsList className="grid grid-cols-2 w-full sm:w-[300px] h-11 p-1 bg-muted/50 rounded-xl">
+              <TabsList className="grid grid-cols-2 w-full sm:w-[300px] h-12 p-1 bg-card/60 backdrop-blur-xl border border-border/50 shadow-sm rounded-[1rem]">
                 <TabsTrigger
                   value="gallery"
-                  className="rounded-lg gap-2 text-xs"
+                  className="rounded-lg gap-2 text-[13px] font-bold data-[state=active]:bg-primary/10 data-[state=active]:text-primary transition-all"
                 >
-                  <LayoutGrid className="size-3.5" />
+                  <LayoutGrid className="size-4" />
                   Galería
                 </TabsTrigger>
                 <TabsTrigger
                   value="compare"
-                  className="rounded-lg gap-2 text-xs"
+                  className="rounded-lg gap-2 text-[13px] font-bold data-[state=active]:bg-primary/10 data-[state=active]:text-primary transition-all"
                 >
-                  <Diff className="size-3.5" />
+                  <Diff className="size-4" />
                   Comparador
                 </TabsTrigger>
               </TabsList>
@@ -836,8 +891,8 @@ export function ClientProfileHub({
           </Tabs>
         </TabsContent>
 
-        <TabsContent value="notes" className="flex flex-col gap-4">
-          <Card>
+        <TabsContent value="notes" className="flex flex-col gap-4 pt-2">
+          <Card className="border-border/50 bg-card/60 backdrop-blur-xl rounded-[1.5rem] shadow-sm overflow-hidden flex flex-col">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Notebook className="size-4" />

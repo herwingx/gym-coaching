@@ -18,17 +18,20 @@ function KpiTileSkeleton() {
 export default function AdminRoutinesLoading() {
   return (
     <div
-      className="bg-background"
+      className="min-h-dvh bg-background"
       aria-busy="true"
       aria-label="Cargando rutinas"
     >
-      <header className="border-b">
-        <div className="container flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-col gap-2">
-            <Skeleton className="h-8 w-72 sm:h-9" />
-            <Skeleton className="h-4 w-40" />
+      <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-md safe-area-header-pt">
+        <div className="container flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:py-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <Skeleton className="size-8 shrink-0 rounded-[10px]" />
+            <div className="min-w-0 flex flex-col gap-1.5">
+              <Skeleton className="h-6 w-[min(100%,14rem)] sm:h-7" />
+              <Skeleton className="h-3.5 w-32" />
+            </div>
           </div>
-          <Skeleton className="h-10 w-full rounded-md sm:h-10 sm:w-64" />
+          <Skeleton className="h-9 w-full rounded-xl sm:w-auto sm:min-w-[10rem]" />
         </div>
       </header>
 

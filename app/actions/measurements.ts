@@ -21,16 +21,29 @@ export async function addMeasurement(data: {
 
   const { data: client } = await supabase
     .from("clients")
-    .select("id")
+    .select("id, coach_id")
     .eq("user_id", user.id)
     .single();
 
   if (!client) return { success: false, error: "Cliente no encontrado" };
 
+  let timeZone = "America/Mexico_City";
+  if (client.coach_id) {
+    const { data: gymSettings } = await supabase
+      .from("gym_settings")
+      .select("timezone")
+      .eq("admin_id", client.coach_id)
+      .single();
+    if (gymSettings?.timezone) {
+      timeZone = gymSettings.timezone;
+    }
+  }
+
   const recordedAtRaw = data.recorded_at;
+  // en-CA format returns YYYY-MM-DD
   const recordedAt = recordedAtRaw
     ? recordedAtRaw.slice(0, 10)
-    : new Date().toISOString().slice(0, 10);
+    : new Date().toLocaleDateString("en-CA", { timeZone });
 
   const { error } = await supabase.from("body_measurements").insert({
     id: crypto.randomUUID(),

@@ -5,7 +5,17 @@ import { PhotoCard, type ProgressPhoto } from './photo-card'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Search, Filter, Camera, LayoutGrid, List } from 'lucide-react'
-import { Input } from '@/components/ui/input'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '@/components/ui/input-group'
 import {
   Select,
   SelectContent,
@@ -76,21 +86,26 @@ export function PhotoGallery({
   return (
     <div className="space-y-6">
       {/* Search & Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por notas o mes..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-11 rounded-xl"
-          />
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="flex-1">
+          <InputGroup>
+            <InputGroupAddon>
+              <Search data-icon="inline-start" className="text-muted-foreground" />
+            </InputGroupAddon>
+            <InputGroupInput
+              placeholder="Buscar por notas o mes..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </InputGroup>
         </div>
         <div className="flex gap-2">
           <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-[140px] h-11 rounded-xl">
-              <Filter className="size-4 mr-2" />
-              <SelectValue placeholder="Filtrar" />
+            <SelectTrigger className="w-[140px] md:w-[160px]">
+              <div className="flex items-center gap-2">
+                <Filter className="size-4 text-muted-foreground" />
+                <SelectValue placeholder="Filtrar" />
+              </div>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas</SelectItem>
@@ -101,20 +116,22 @@ export function PhotoGallery({
             </SelectContent>
           </Select>
           
-          <div className="hidden sm:flex border rounded-xl p-1 bg-muted/50">
+          <div className="flex rounded-md border bg-muted/50 p-1">
             <Button
               variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
               size="icon"
-              className="size-9 rounded-lg"
+              className="size-8"
               onClick={() => setViewMode('grid')}
+              aria-label="Vista de cuadrícula"
             >
               <LayoutGrid className="size-4" />
             </Button>
             <Button
               variant={viewMode === 'list' ? 'secondary' : 'ghost'}
               size="icon"
-              className="size-9 rounded-lg"
+              className="size-8"
               onClick={() => setViewMode('list')}
+              aria-label="Vista de lista"
             >
               <List className="size-4" />
             </Button>
@@ -124,36 +141,49 @@ export function PhotoGallery({
 
       {/* Gallery Groups */}
       <div className="space-y-10">
-        {Object.entries(groupedPhotos).map(([monthYear, monthPhotos]) => (
-          <div key={monthYear} className="space-y-4">
-            <div className="flex items-center gap-4">
-              <h4 className="text-lg font-bold capitalize">{monthYear}</h4>
-              <div className="h-px flex-1 bg-border/60" />
-              <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                {monthPhotos.length} {monthPhotos.length === 1 ? 'foto' : 'fotos'}
-              </span>
-            </div>
-
-            <div
-              className={cn(
-                'grid gap-4',
-                viewMode === 'grid' 
-                  ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4' 
-                  : 'grid-cols-1 max-w-2xl mx-auto'
-              )}
+        <Accordion 
+          type="multiple" 
+          defaultValue={Object.keys(groupedPhotos).slice(0, 2)} 
+          className="space-y-4"
+        >
+          {Object.entries(groupedPhotos).map(([monthYear, monthPhotos]) => (
+            <AccordionItem 
+              key={monthYear} 
+              value={monthYear} 
+              className="border border-border/50 rounded-[1.5rem] bg-card/40 px-5 overflow-hidden shadow-sm transition-all data-[state=open]:bg-card/60"
             >
-              {monthPhotos.map((photo) => (
-                <PhotoCard
-                  key={photo.id}
-                  photo={photo}
-                  onDelete={onDeleteSuccess}
-                  onView={onView}
-                  showActions={showActions}
-                />
-              ))}
-            </div>
-          </div>
-        ))}
+              <AccordionTrigger className="hover:no-underline py-5">
+                <div className="flex flex-1 items-center gap-4 w-full pr-4">
+                  <h4 className="text-[17px] font-bold tracking-tight capitalize">{monthYear}</h4>
+                  <div className="h-px flex-1 bg-border/60" />
+                  <span className="text-[11px] font-black uppercase tracking-widest text-primary bg-primary/10 px-2.5 py-1 rounded-full">
+                    {monthPhotos.length} {monthPhotos.length === 1 ? 'foto' : 'fotos'}
+                  </span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pt-2 pb-6">
+                <div
+                  className={cn(
+                    'grid gap-4',
+                    viewMode === 'grid' 
+                      ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4' 
+                      : 'grid-cols-1 max-w-2xl mx-auto'
+                  )}
+                >
+                  {monthPhotos.map((photo) => (
+                    <PhotoCard
+                      key={photo.id}
+                      photo={photo}
+                      onDelete={onDeleteSuccess}
+                      onView={onView}
+                      showActions={showActions}
+                    />
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
 
         {filteredPhotos.length === 0 && (
           <div className="py-20 text-center">

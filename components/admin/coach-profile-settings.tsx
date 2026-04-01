@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { FieldGroup, Field, FieldLabel } from '@/components/ui/field'
 import { ProfileAvatarSection } from '@/components/profile/profile-avatar-section'
 
 export function CoachProfileSettings({
@@ -49,27 +50,38 @@ export function CoachProfileSettings({
         title="Tu foto"
         description="La verán tus asesorados en mensajes. JPG, PNG o WebP · máx. 2 MB."
       />
-      <Card>
+      <Card className="border-muted/60 shadow-sm">
         <CardHeader>
           <CardTitle>Tu nombre</CardTitle>
           <CardDescription>Así apareces para tus asesorados en la app.</CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <div>
-            <label htmlFor="coach-full-name" className="text-sm font-medium">
-              Nombre completo
-            </label>
-            <Input
-              id="coach-full-name"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="mt-2"
-              autoComplete="name"
-            />
-          </div>
-          <Button type="button" onClick={handleSave} disabled={saving} className="w-full sm:w-auto">
-            {saving ? 'Guardando…' : 'Guardar nombre'}
-          </Button>
+        <CardContent>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              handleSave()
+            }}
+            className="flex flex-col gap-6"
+          >
+            <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor="coach-full-name">Nombre completo</FieldLabel>
+                <Input
+                  id="coach-full-name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  autoComplete="name"
+                  placeholder="Tu nombre y apellido"
+                />
+              </Field>
+            </FieldGroup>
+            
+            <div className="border-t pt-4">
+              <Button type="submit" disabled={saving} className="w-full sm:w-auto">
+                {saving ? 'Guardando…' : 'Guardar nombre'}
+              </Button>
+            </div>
+          </form>
         </CardContent>
       </Card>
     </div>

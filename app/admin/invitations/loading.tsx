@@ -4,14 +4,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function InvitationsLoading() {
   return (
     <div
-      className="min-h-full bg-background"
+      className="min-h-dvh bg-background"
       aria-busy="true"
       aria-label="Cargando invitaciones"
     >
-      <header className="sticky top-0 z-40 border-b bg-background safe-area-pt">
-        <div className="container space-y-2 py-4 sm:py-5">
-          <Skeleton className="h-8 w-64 sm:h-9 sm:w-72" />
-          <Skeleton className="h-4 w-full max-w-lg" />
+      <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-md safe-area-header-pt">
+        <div className="container flex flex-col gap-3 py-3 sm:py-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <Skeleton className="size-8 shrink-0 rounded-[10px]" />
+            <div className="min-w-0 flex flex-col gap-1.5">
+              <Skeleton className="h-6 w-56 sm:h-7 sm:w-64" />
+              <Skeleton className="h-3.5 w-full max-w-xs" />
+            </div>
+          </div>
         </div>
       </header>
 

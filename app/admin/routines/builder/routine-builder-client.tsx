@@ -24,7 +24,7 @@ import {
   Loader2,
   Dumbbell,
 } from "lucide-react";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Switch } from "@/components/ui/switch";
 import { FieldGroup, Field, FieldLabel } from "@/components/ui/field";
 import {
   saveRoutineFromBuilder,
@@ -332,29 +332,29 @@ export function RoutineBuilderClient({
         </div>
       )}
 
-      <Alert variant="default" className="border-primary/20 bg-primary/5">
-        <Lightbulb className="size-4 text-primary" aria-hidden />
-        <AlertTitle className="text-sm font-semibold text-foreground">
+      <Alert className="border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent shadow-sm">
+        <Lightbulb className="size-4 text-primary mt-0.5" aria-hidden />
+        <AlertTitle className="text-sm font-semibold tracking-tight text-primary">
           Flujo rápido
         </AlertTitle>
-        <AlertDescription className="text-sm text-muted-foreground">
+        <AlertDescription className="text-[13px] leading-relaxed text-muted-foreground">
           1) Nombre y duración → 2) Marca días de entreno o descanso → 3) Añade
           ejercicios por día, arrastra para ordenar → 4) Indica series, reps y
           descanso → Guardar.
         </AlertDescription>
       </Alert>
 
-      <Card className="overflow-hidden rounded-xl border shadow-sm">
+      <Card className="overflow-hidden rounded-2xl border-border/50 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.05)] bg-card/95 backdrop-blur-sm">
         <CardHeader className="gap-2 px-6 pb-2 pt-6">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3.5">
             <div
-              className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-primary"
+              className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-primary/20 to-primary/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] border border-primary/20 text-primary"
               aria-hidden
             >
-              <ClipboardList className="size-5" />
+              <ClipboardList className="size-5" strokeWidth={2.5} />
             </div>
             <div className="min-w-0">
-              <CardTitle className="text-lg font-semibold tracking-tight sm:text-xl">
+              <CardTitle className="text-lg font-bold tracking-tight sm:text-xl">
                 Datos de la rutina
               </CardTitle>
               <CardDescription className="text-sm">
@@ -363,20 +363,24 @@ export function RoutineBuilderClient({
             </div>
           </div>
         </CardHeader>
-        <CardContent className="flex flex-col gap-6 px-6 pb-6 pt-2">
-          <FieldGroup className="grid grid-cols-1 gap-6 md:grid-cols-12">
-            <Field className="md:col-span-8">
-              <FieldLabel htmlFor="routine-name">Nombre</FieldLabel>
+        <CardContent className="flex flex-col px-6 pb-6 pt-4">
+          <FieldGroup className="grid grid-cols-1 gap-6 md:grid-cols-12 md:gap-x-8 md:gap-y-6">
+            <Field className="md:col-span-8 gap-1.5">
+              <FieldLabel htmlFor="routine-name" className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                Nombre de la rutina
+              </FieldLabel>
               <Input
                 id="routine-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ej. Hipertrofia — tren superior"
-                className="h-11 rounded-xl"
+                className="h-11 rounded-xl bg-muted/30 focus-visible:bg-background shadow-xs border-border/60 transition-colors"
               />
             </Field>
-            <Field className="md:col-span-4">
-              <FieldLabel htmlFor="routine-duration">Semanas</FieldLabel>
+            <Field className="md:col-span-4 gap-1.5">
+              <FieldLabel htmlFor="routine-duration" className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                Semanas (Duración)
+              </FieldLabel>
               <Input
                 id="routine-duration"
                 type="number"
@@ -384,11 +388,11 @@ export function RoutineBuilderClient({
                 value={durationWeeks}
                 onChange={(e) => setDurationWeeks(Number(e.target.value) || 4)}
                 min={1}
-                className="h-11 rounded-xl text-center tabular-nums"
+                className="h-11 rounded-xl text-center tabular-nums bg-muted/30 focus-visible:bg-background shadow-xs border-border/60 transition-colors"
               />
             </Field>
-            <Field className="md:col-span-12">
-              <FieldLabel htmlFor="routine-desc">
+            <Field className="md:col-span-12 gap-1.5">
+              <FieldLabel htmlFor="routine-desc" className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                 Descripción (opcional)
               </FieldLabel>
               <Textarea
@@ -396,8 +400,7 @@ export function RoutineBuilderClient({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Objetivo, progresión o recordatorios para el cliente…"
-                className="min-h-20 rounded-xl md:text-sm"
-                rows={3}
+                className="min-h-[88px] resize-none py-3 rounded-xl md:text-sm bg-muted/30 focus-visible:bg-background shadow-xs border-border/60 transition-colors"
               />
             </Field>
           </FieldGroup>
@@ -478,56 +481,37 @@ export function RoutineBuilderClient({
                       </div>
                     </div>
                     <div className="flex w-full flex-col gap-1.5 sm:w-auto sm:items-end">
-                      <p
-                        id={`day-kind-label-${day.id}`}
-                        className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
+                      <label
+                        htmlFor={`day-kind-switch-${day.id}`}
+                        className={cn(
+                          "flex w-full cursor-pointer flex-row items-center justify-between gap-6 rounded-xl border p-3 shadow-sm transition-colors hover:bg-muted/20 sm:w-auto sm:px-4",
+                          day.isRestDay
+                            ? "border-border/50 bg-muted/10"
+                            : "border-primary/20 bg-primary/5 hover:bg-primary/10"
+                        )}
                       >
-                        Tipo de día
-                      </p>
-                      <ToggleGroup
-                        type="single"
-                        value={day.isRestDay ? "rest" : "train"}
-                        onValueChange={(v) => {
-                          if (v === "train" || v === "rest")
-                            setDayKind(day.id, v);
-                        }}
-                        variant="outline"
-                        size="sm"
-                        rovingFocus={false}
-                        className="flex w-full rounded-xl border border-border/80 bg-muted/25 p-1 shadow-none sm:w-auto"
-                        aria-labelledby={`day-kind-label-${day.id}`}
-                      >
-                        <ToggleGroupItem
-                          value="train"
-                          className={cn(
-                            "min-h-10 flex-1 gap-2 rounded-lg border-0 px-3 py-2 text-xs font-semibold shadow-none sm:flex-initial sm:text-sm",
-                            "data-[state=on]:bg-primary data-[state=on]:text-primary-foreground",
-                            "data-[state=off]:text-muted-foreground",
-                          )}
-                          aria-label="Marcar como día de entreno"
-                        >
-                          <Dumbbell
-                            className="opacity-90"
-                            data-icon="inline-start"
-                          />
-                          Entreno
-                        </ToggleGroupItem>
-                        <ToggleGroupItem
-                          value="rest"
-                          className={cn(
-                            "min-h-10 flex-1 gap-2 rounded-lg border-0 px-3 py-2 text-xs font-semibold shadow-none sm:flex-initial sm:text-sm",
-                            "data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:ring-2 data-[state=on]:ring-ring/60",
-                            "data-[state=off]:text-muted-foreground",
-                          )}
-                          aria-label="Marcar como día de descanso"
-                        >
-                          <Moon
-                            className="opacity-90"
-                            data-icon="inline-start"
-                          />
-                          Descanso
-                        </ToggleGroupItem>
-                      </ToggleGroup>
+                        <div className="flex flex-col gap-0.5 pointer-events-none">
+                          <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground sm:text-right">
+                            Tipo de día
+                          </p>
+                          <span
+                            className={cn(
+                              "text-sm font-semibold transition-colors",
+                              day.isRestDay ? "text-muted-foreground" : "text-primary"
+                            )}
+                          >
+                            {day.isRestDay ? "Descanso" : "Entreno"}
+                          </span>
+                        </div>
+                        <Switch
+                          id={`day-kind-switch-${day.id}`}
+                          checked={!day.isRestDay}
+                          onCheckedChange={(checked) =>
+                            setDayKind(day.id, checked ? "train" : "rest")
+                          }
+                          aria-label="Alternar tipo de día"
+                        />
+                      </label>
                     </div>
                   </div>
                 </CardHeader>
@@ -611,10 +595,10 @@ export function RoutineBuilderClient({
 
       <div
         className={cn(
-          "fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95",
-          "backdrop-blur-sm",
-          "px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6",
-          "lg:static lg:z-auto lg:border-0 lg:bg-transparent lg:px-0 lg:py-0 lg:backdrop-blur-none",
+          "fixed inset-x-0 bottom-[calc(60px+env(safe-area-inset-bottom))] md:bottom-0 z-40 border-t border-border bg-background/95",
+          "backdrop-blur-md shadow-[0_-4px_16px_rgba(0,0,0,0.05)]",
+          "px-4 py-3 sm:px-6",
+          "md:static md:z-auto md:border-0 md:bg-transparent md:shadow-none md:px-0 md:py-0 md:backdrop-blur-none",
         )}
       >
         <div className="mx-auto w-full max-w-3xl lg:max-w-none">

@@ -19,8 +19,8 @@ type PaymentQueryRow = {
   paid_at: string | null;
   payment_method: string | null;
   clients:
-    | { full_name: string; email?: string | null }
-    | { full_name: string; email?: string | null }[]
+    | { full_name: string; email?: string | null; avatar_url?: string | null }
+    | { full_name: string; email?: string | null; avatar_url?: string | null }[]
     | null;
 };
 
@@ -65,7 +65,7 @@ export default async function AdminPaymentsPage() {
         amount,
         paid_at,
         payment_method,
-        clients (full_name, email)
+        clients (full_name, email, avatar_url)
       `,
       )
       .in("client_id", clientIds)
@@ -94,24 +94,28 @@ export default async function AdminPaymentsPage() {
       <main className="container py-8">
         <div className="grid gap-6">
           {/* Stats */}
-          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4">
             <AdminKpiStatCard
               icon={CreditCard}
               value={`$${totalRevenue.toFixed(2)}`}
               label="Ingresos Totales"
-              description="Pagos completados"
+              description="Completados"
+              tone="success"
+              className="col-span-2 md:col-span-1"
             />
             <AdminKpiStatCard
               icon={Hourglass}
               value={`$${pendingAmount.toFixed(2)}`}
-              label="Pagos Pendientes"
+              label="Pendiente"
               description="Por cobrar"
+              tone="warning"
             />
             <AdminKpiStatCard
               icon={ClipboardList}
               value={payments.length}
-              label="Total de Pagos"
+              label="Pagos"
               description="Registrados"
+              tone="primary"
             />
           </div>
 

@@ -4,7 +4,7 @@ import * as React from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { FieldGroup, Field, FieldLabel } from '@/components/ui/field'
 import {
   Select,
   SelectContent,
@@ -226,46 +226,46 @@ export function PhotoUpload({
             )}
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-             <div className="space-y-2">
-               <Label>Categoría de la vista</Label>
-               <Select value={viewType} onValueChange={setViewType}>
-                 <SelectTrigger className="h-11 rounded-xl">
-                   <SelectValue placeholder="Elige vista" />
-                 </SelectTrigger>
-                 <SelectContent>
-                   {VIEW_TYPES.map((v) => (
-                     <SelectItem key={v.value} value={v.value}>
-                       {v.label}
-                     </SelectItem>
-                   ))}
-                 </SelectContent>
-               </Select>
-             </div>
-             <div className="space-y-2">
-               <Label htmlFor="weight">Peso (kg - opcional)</Label>
-               <Input
-                 id="weight"
-                 type="number"
-                 step="0.1"
-                 placeholder="75.0"
-                 className="h-11 rounded-xl"
-                 value={weightKg}
-                 onChange={(e) => setWeightKg(e.target.value)}
-               />
-             </div>
-          </div>
+          <FieldGroup>
+            <div className="grid gap-4 sm:grid-cols-2">
+               <Field>
+                 <FieldLabel>Categoría de la vista</FieldLabel>
+                 <Select value={viewType} onValueChange={setViewType}>
+                   <SelectTrigger>
+                     <SelectValue placeholder="Elige vista" />
+                   </SelectTrigger>
+                   <SelectContent>
+                     {VIEW_TYPES.map((v) => (
+                       <SelectItem key={v.value} value={v.value}>
+                         {v.label}
+                       </SelectItem>
+                     ))}
+                   </SelectContent>
+                 </Select>
+               </Field>
+               <Field>
+                 <FieldLabel htmlFor="weight">Peso (kg - opcional)</FieldLabel>
+                 <Input
+                   id="weight"
+                   type="number"
+                   step="0.1"
+                   placeholder="75.0"
+                   value={weightKg}
+                   onChange={(e) => setWeightKg(e.target.value)}
+                 />
+               </Field>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notas / Sensaciones (opcional)</Label>
-            <Input
-              id="notes"
-              placeholder="Ej: Ayunas, post-entreno, etc."
-              className="h-11 rounded-xl"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-            />
-          </div>
+            <Field>
+              <FieldLabel htmlFor="notes">Notas / Sensaciones (opcional)</FieldLabel>
+              <Input
+                id="notes"
+                placeholder="Ej: Ayunas, post-entreno, etc."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
+            </Field>
+          </FieldGroup>
 
           {error && (
             <Alert variant="destructive" className="rounded-2xl">

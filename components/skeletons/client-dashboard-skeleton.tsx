@@ -5,33 +5,32 @@ import { CLIENT_DATA_PAGE_SHELL } from '@/components/client/client-app-page-part
 
 function ClientStatTileSkeleton() {
   return (
-    <Card className="overflow-hidden border-muted/70 shadow-none">
-      <CardHeader className="p-4 pb-2">
-        <Skeleton className="size-8 rounded-lg" />
-      </CardHeader>
-      <CardContent className="flex flex-col gap-1 p-4 pt-0">
+    <div className="flex flex-col justify-between gap-3 rounded-2xl border border-border/80 bg-card/60 p-5 shadow-sm backdrop-blur-sm h-28">
+      <Skeleton className="size-8 rounded-lg" />
+      <div className="flex flex-col gap-1">
         <Skeleton className="h-8 w-14" />
         <Skeleton className="h-3 w-20" />
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
 
-/** Alineado con `ClientDashboardContent`: aside 4 cols (nivel + stats) · main 8 cols (gráfico, próximo, hitos). */
+/** Alineado con `ClientDashboardContent`: aside 4 cols · main 8 cols (XL breakpoints). */
 export function ClientDashboardSkeleton() {
   return (
     <>
       <ClientStackPageHeaderSkeleton />
       <div
-        className={`${CLIENT_DATA_PAGE_SHELL} grid gap-6 lg:grid-cols-12`}
+        className={`${CLIENT_DATA_PAGE_SHELL} grid gap-8 lg:grid-cols-12 pb-safe-area`}
         aria-busy="true"
         aria-label="Cargando panel"
       >
-        <aside className="flex flex-col gap-6 lg:col-span-4">
-          <Card className="overflow-hidden border-muted/70 shadow-none">
+        <aside className="flex flex-col gap-8 lg:col-span-12 xl:col-span-4">
+          {/* Level Progress Skeleton */}
+          <Card className="overflow-hidden border-border/80 shadow-md rounded-3xl bg-card/60 backdrop-blur-sm">
             <CardContent className="p-6">
               <div className="flex items-center gap-6">
-                <Skeleton className="size-20 shrink-0 rounded-full" />
+                <Skeleton className="size-20 shrink-0 rounded-[1.2rem]" />
                 <div className="flex min-w-0 flex-1 flex-col gap-2">
                   <Skeleton className="h-6 w-40" />
                   <Skeleton className="h-2 w-full rounded-full" />
@@ -41,6 +40,7 @@ export function ClientDashboardSkeleton() {
             </CardContent>
           </Card>
 
+          {/* Stats Grid */}
           <div className="grid grid-cols-2 gap-4">
             {[1, 2, 3, 4].map((i) => (
               <ClientStatTileSkeleton key={i} />
@@ -48,45 +48,52 @@ export function ClientDashboardSkeleton() {
           </div>
         </aside>
 
-        <section className="flex min-w-0 flex-col gap-6 lg:col-span-8">
-          <Card className="border-muted/70 shadow-none">
-            <CardHeader className="flex flex-col gap-1 pb-2">
-              <Skeleton className="h-5 w-44" />
-              <Skeleton className="h-3 w-56" />
+        <section className="flex min-w-0 flex-col gap-8 lg:col-span-12 xl:col-span-8">
+          {/* Analysis Chart Skeleton */}
+          <Card className="overflow-hidden border-border/80 shadow-md rounded-3xl bg-card/60 backdrop-blur-sm">
+            <CardHeader className="pb-2 pt-6 px-6 sm:px-8">
+              <div className="flex items-center gap-2">
+                <Skeleton className="size-2 rounded-full" />
+                <Skeleton className="h-3 w-32" />
+              </div>
             </CardHeader>
-            <CardContent>
-              <Skeleton className="h-[220px] w-full rounded-xl" />
+            <CardContent className="px-2 sm:px-6 pb-6">
+              <Skeleton className="h-[220px] w-full rounded-2xl" />
             </CardContent>
           </Card>
 
-          <Card className="overflow-hidden border-muted/70 shadow-none">
-            <CardContent className="flex flex-col gap-4 p-6">
+          {/* Next Workout Skeleton */}
+          <Card className="overflow-hidden border-border/80 shadow-md rounded-3xl bg-card/60 backdrop-blur-sm">
+            <CardContent className="flex flex-col gap-4 p-6 sm:p-8">
               <div className="flex items-center justify-between gap-3">
-                <Skeleton className="h-5 w-40" />
-                <Skeleton className="h-9 w-28 rounded-md" />
+                <div className="space-y-1">
+                   <Skeleton className="h-5 w-40" />
+                   <Skeleton className="h-3 w-24" />
+                </div>
+                <Skeleton className="h-10 w-32 rounded-xl" />
               </div>
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 pt-2">
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-full max-w-md" />
-                <Skeleton className="h-4 w-full max-w-sm" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="overflow-hidden border-muted/70 bg-linear-to-br from-background to-muted/20 shadow-none">
-            <CardHeader className="pb-3">
+          {/* Achievements Skeleton */}
+          <Card className="overflow-hidden border-border/80 shadow-md rounded-3xl bg-card/60 backdrop-blur-sm">
+            <CardHeader className="pb-4 pt-6 px-6 sm:px-8">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <Skeleton className="size-4 rounded" />
-                  <Skeleton className="h-4 w-36" />
+                   <Skeleton className="size-5 rounded-full" />
+                   <Skeleton className="h-5 w-36" />
                 </div>
-                <Skeleton className="h-8 w-24 rounded-md" />
+                <Skeleton className="h-8 w-24 rounded-lg" />
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="-mx-1 flex gap-5 overflow-hidden px-1 pb-2">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="flex min-w-[76px] flex-col items-center gap-2">
+            <CardContent className="px-6 sm:px-8 pb-6">
+              <div className="flex gap-6 overflow-hidden pb-4 pt-1">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="flex min-w-[84px] flex-col items-center gap-3">
                     <Skeleton className="size-14 shrink-0 rounded-2xl" />
                     <Skeleton className="h-3 w-14" />
                   </div>

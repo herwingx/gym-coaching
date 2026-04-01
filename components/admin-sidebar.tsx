@@ -1,6 +1,7 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useEffect, useState } from 'react'
+import { useTheme } from 'next-themes'
 import Link from 'next/link'
 import { useLayoutBasePath } from '@/hooks/use-layout-base-path'
 import {
@@ -14,6 +15,8 @@ import {
   Ticket,
   MessageCircle,
   Library,
+  Moon,
+  Sun,
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
 import {
@@ -27,6 +30,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarTrigger,
 } from '@/components/ui/sidebar'
 import { cn } from '@/lib/utils'
 
@@ -56,25 +60,34 @@ function activeMenuHref(path: string): string | null {
 
 export function AdminSidebar() {
   const path = useLayoutBasePath('/admin')
+  const { theme, setTheme } = useTheme()
   const activeHref = useMemo(() => activeMenuHref(path), [path])
+  const [mounted, setMounted] = useState(false)
+  
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   return (
     <Sidebar side="left" collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border h-12 sm:h-14 flex flex-row items-center px-4 shrink-0 py-0 bg-sidebar/50 backdrop-blur-sm">
-        <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:-ml-2">
-          <div className="size-8 rounded-lg overflow-hidden flex items-center justify-center shrink-0 group-data-[collapsible=icon]:size-8 ring-1 ring-border/50 shadow-sm">
-            <img 
-              src="/android-chrome-512x512.png" 
-              alt="RU Coach Logo" 
-              className="size-full object-cover"
-            />
+      <SidebarHeader className="border-b border-sidebar-border/50 flex flex-row items-center px-4 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center shrink-0 bg-sidebar/50 backdrop-blur-xl min-h-[76px] sm:min-h-[112px] safe-area-header-pt">
+        <div className="flex items-center justify-between w-full gap-3 group-data-[collapsible=icon]:justify-center h-full">
+          <div className="flex items-center gap-4 transition-opacity duration-300 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:hidden h-full">
+            <div className="size-10 rounded-xl overflow-hidden flex items-center justify-center shrink-0 ring-1 ring-border/50 shadow-md bg-primary/10">
+              <img 
+                src="/android-chrome-512x512.png" 
+                alt="RU Coach Logo" 
+                className="size-full object-cover"
+              />
+            </div>
+            <div className="min-w-0 flex-1 flex flex-col justify-center">
+              <h1 className="text-sm font-black tracking-tight truncate leading-none bg-gradient-to-br from-foreground to-foreground/60 bg-clip-text text-transparent uppercase">
+                RU Coach
+              </h1>
+              <p className="text-[10px] text-muted-foreground/80 truncate mt-1.5 font-bold uppercase tracking-widest leading-none">Rodrigo Urbina</p>
+            </div>
           </div>
-          <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-            <h1 className="text-sm font-black tracking-tight truncate leading-none bg-gradient-to-br from-foreground to-foreground/60 bg-clip-text text-transparent uppercase">
-              RU Coach
-            </h1>
-            <p className="text-[9px] text-muted-foreground/80 truncate mt-1 font-medium uppercase tracking-wider">Rodrigo Urbina</p>
-          </div>
+          <SidebarTrigger className="shrink-0 size-9 transition-transform hover:scale-110 active:scale-95" />
         </div>
       </SidebarHeader>
 
@@ -106,23 +119,32 @@ export function AdminSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border">
-        <div className="flex flex-col gap-2 p-2">
-          <div className="flex items-center justify-between px-2 py-1 group-data-[collapsible=icon]:hidden">
-            <span className="text-sm text-muted-foreground">Tema</span>
-            <ThemeToggle />
-          </div>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Cerrar sesión">
-                <Link href="/auth/logout" prefetch={false}>
-                  <LogOut className="size-4 shrink-0" />
-                  <span>Cerrar sesión</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </div>
+      <SidebarFooter className="border-t border-sidebar-border/50 shrink-0 bg-sidebar/50 backdrop-blur-xl h-[118px] flex flex-col justify-center">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              tooltip="Cambiar tema"
+            >
+              {!mounted ? (
+                <Moon className="size-4 text-transparent transition-all group-data-[collapsible=icon]:scale-110" />
+              ) : theme === 'dark' ? (
+                <Sun className="size-4 text-primary transition-all group-data-[collapsible=icon]:scale-110" />
+              ) : (
+                <Moon className="size-4 transition-all group-data-[collapsible=icon]:scale-110" />
+              )}
+              <span>Tema {!mounted ? '' : theme === 'dark' ? 'Claro' : 'Oscuro'}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Cerrar sesión">
+              <Link href="/auth/logout" prefetch={false}>
+                <LogOut className="size-4 shrink-0 transition-all group-data-[collapsible=icon]:scale-110" />
+                <span>Cerrar sesión</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

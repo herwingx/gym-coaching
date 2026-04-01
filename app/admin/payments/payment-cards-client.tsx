@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
@@ -31,7 +31,7 @@ export type PaymentCardItem = {
   amount: number;
   paid_at: string | null;
   payment_method?: string | null;
-  clients: { full_name: string; email?: string | null } | null;
+  clients: { full_name: string; email?: string | null; avatar_url?: string | null } | null;
 };
 
 interface PaymentCardsClientProps {
@@ -45,13 +45,17 @@ export function PaymentCardsClient({
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  useEffect(() => {
+    setPayments(initialPayments);
+  }, [initialPayments]);
+
   const handleDelete = async () => {
     if (!deleteId) return;
     setIsDeleting(true);
     try {
       const result = await deletePayment(deleteId);
       if (result.success) {
-        setPayments(payments.filter((p) => p.id !== deleteId));
+        setPayments((prev) => prev.filter((p) => p.id !== deleteId));
         toast.success("Pago eliminado correctamente");
       } else {
         toast.error(result.error || "No se pudo eliminar el pago");
@@ -109,20 +113,29 @@ export function PaymentCardsClient({
             },
           ];
 
+          console.log("Avatar URL in client:", payment.clients?.avatar_url, "Full name:", clientName);
+
           return (
-            <AdminCardWithActions key={payment.id} menuSections={menuSections}>
+            <AdminCardWithActions key={payment.id} menuSections={menuSections} className="overflow-hidden transition-all hover:shadow-md hover:border-primary/20">
               <AdminCardHeaderWithActions menuSections={menuSections}>
                 <div className="flex items-center gap-3">
-                  <Avatar className="size-12 rounded-xl border-2 border-background shadow-sm">
-                    <AvatarFallback className="bg-primary/5 text-primary font-bold">
+                  <Avatar className="size-10 rounded-full border border-border shadow-sm">
+                    {payment.clients?.avatar_url && (
+                      <AvatarImage
+                        src={payment.clients.avatar_url}
+                        alt={clientName}
+                        className="object-cover"
+                      />
+                    )}
+                    <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
                       {initials || "??"}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="min-w-0">
-                    <p className="text-base font-semibold truncate leading-none">
+                  <div className="min-w-0 pr-4">
+                    <p className="text-sm font-bold tracking-tight truncate text-foreground leading-tight">
                       {clientName}
                     </p>
-                    <p className="text-xs text-muted-foreground truncate">
+                    <p className="text-[11px] text-muted-foreground truncate mt-0.5 font-medium">
                       {payment.paid_at
                         ? format(new Date(payment.paid_at), "d MMM yyyy", {
                             locale: es,
@@ -133,24 +146,25 @@ export function PaymentCardsClient({
                   </div>
                 </div>
               </AdminCardHeaderWithActions>
-              <CardContent className="flex flex-col gap-3 p-4 pt-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Monto</span>
-                  <span className="text-lg font-bold">
-                    ${payment.amount?.toFixed(2) || "0.00"}
-                  </span>
+              <div className="px-4 pb-4">
+                <div className="flex flex-row items-center justify-between bg-muted/30 border border-border/50 rounded-lg p-2.5 px-3">
+                  <Badge
+                    variant="outline"
+                    className={
+                      payment.paid_at
+                        ? "border-success/30 bg-success/15 text-success text-[10px] uppercase font-bold tracking-wider rounded-md py-0.5 px-1.5"
+                        : "border-warning/35 bg-warning/12 text-warning-foreground text-[10px] uppercase font-bold tracking-wider rounded-md py-0.5 px-1.5"
+                    }
+                  >
+                    {payment.paid_at ? "Pagado" : "Pendiente"}
+                  </Badge>
+                  <div className="flex flex-row items-baseline gap-1.5">
+                    <span className="text-base font-black tabular-nums tracking-tight text-foreground">
+                      ${payment.amount?.toFixed(2) || "0.00"}
+                    </span>
+                  </div>
                 </div>
-                <Badge
-                  variant="outline"
-                  className={
-                    payment.paid_at
-                      ? "border-success/30 bg-success/15 text-success"
-                      : "border-warning/35 bg-warning/12 text-warning-foreground"
-                  }
-                >
-                  {payment.paid_at ? "Pagado" : "Pendiente"}
-                </Badge>
-              </CardContent>
+              </div>
             </AdminCardWithActions>
           );
         })}

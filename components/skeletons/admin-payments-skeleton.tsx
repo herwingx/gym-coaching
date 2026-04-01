@@ -3,14 +3,14 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 function KpiTileSkeleton() {
   return (
-    <Card className="min-w-0 overflow-visible border-muted/70 shadow-none">
-      <CardHeader className="flex flex-row items-start gap-3 p-4 pb-2">
-        <Skeleton className="size-9 shrink-0 rounded-lg" />
+    <Card className="min-w-0 overflow-visible border-border/50 shadow-md ring-1 ring-primary/5 rounded-3xl bg-card/60 backdrop-blur-sm">
+      <CardHeader className="flex flex-row items-start gap-4 p-6 pb-2">
+        <Skeleton className="size-10 shrink-0 rounded-[1.2rem]" />
       </CardHeader>
-      <CardContent className="flex flex-col gap-1 p-4 pt-0">
-        <Skeleton className="h-8 w-28 sm:h-9" />
-        <Skeleton className="h-3 w-32" />
-        <Skeleton className="h-3 w-40" />
+      <CardContent className="flex flex-col gap-1 p-6 pt-0">
+        <Skeleton className="h-9 w-28 sm:h-10 rounded-lg" />
+        <Skeleton className="h-3.5 w-32 rounded-md opacity-40 uppercase tracking-widest mt-1" />
+        <Skeleton className="h-3 w-40 rounded-md opacity-60" />
       </CardContent>
     </Card>
   )
@@ -19,40 +19,46 @@ function KpiTileSkeleton() {
 export function AdminPaymentsSkeleton() {
   return (
     <div className="min-h-dvh bg-background">
-      <header className="sticky top-0 z-40 border-b bg-background safe-area-header-pt">
-        <div className="container py-4">
-          <Skeleton className="h-8 w-[min(100%,20rem)] sm:h-9" />
+      <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl safe-area-header-pt min-h-[76px] sm:min-h-[112px] flex items-center">
+        <div className="w-full h-full flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:py-0 px-4 sm:px-6 md:px-8">
+          <div className="flex min-w-0 items-center gap-4 h-full">
+            <Skeleton className="size-10 sm:size-11 shrink-0 rounded-full" />
+            <div className="min-w-0 flex flex-col justify-center py-1">
+              <Skeleton className="h-7 sm:h-9 w-48 sm:w-64 rounded-xl" />
+              <Skeleton className="mt-1.5 h-3.5 w-44 rounded-md opacity-60" />
+            </div>
+          </div>
         </div>
       </header>
 
-      <main className="container py-8">
-        <div className="grid gap-6">
-          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3">
+      <main className="px-4 sm:px-6 md:px-8 py-8">
+        <div className="grid gap-8">
+          <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3].map((i) => (
               <KpiTileSkeleton key={i} />
             ))}
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <Skeleton className="h-7 w-48" />
-            <Skeleton className="h-9 w-full rounded-md sm:w-36" />
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-2">
+            <Skeleton className="h-7 w-48 rounded-lg" />
+            <Skeleton className="h-11 w-full rounded-2xl sm:w-40" />
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Card key={i} className="overflow-hidden border-muted/70 shadow-none">
-                <CardHeader className="pb-2">
+              <Card key={i} className="overflow-hidden border-border/50 shadow-md ring-1 ring-primary/5 rounded-3xl bg-card/60 backdrop-blur-sm">
+                <CardHeader className="p-6 border-b bg-muted/5">
                   <div className="flex items-start justify-between gap-3">
                     <div className="space-y-2">
-                      <Skeleton className="h-5 w-36" />
-                      <Skeleton className="h-3 w-48" />
+                      <Skeleton className="h-5 w-36 rounded-md" />
+                      <Skeleton className="h-3.5 w-48 rounded-md opacity-60" />
                     </div>
-                    <Skeleton className="h-6 w-20 shrink-0 rounded-full" />
+                    <Skeleton className="h-6 w-20 shrink-0 rounded-lg" />
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <Skeleton className="h-9 w-full rounded-md" />
-                  <Skeleton className="h-4 w-24" />
+                <CardContent className="flex flex-col gap-4 p-6">
+                  <Skeleton className="h-12 w-full rounded-2xl" />
+                  <Skeleton className="h-4 w-24 rounded-md opacity-60 mt-1" />
                 </CardContent>
               </Card>
             ))}

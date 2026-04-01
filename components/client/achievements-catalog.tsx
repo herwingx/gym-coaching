@@ -55,21 +55,25 @@ export function AchievementsCatalog({
 
   return (
     <Tabs defaultValue="all" className="flex w-full flex-col gap-6">
-      <ScrollArea className="w-full whitespace-nowrap">
-        <TabsList className="inline-flex w-auto bg-muted/50 p-1 h-11 rounded-xl border border-border/40 shadow-sm">
-          {TAB_DEFS.map((tab) => (
-            <TabsTrigger
-              key={tab.id}
-              value={tab.id}
-              className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs font-semibold"
-            >
-              <tab.icon className="size-3.5" />
-              {tab.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-        <ScrollBar orientation="horizontal" className="invisible" />
-      </ScrollArea>
+      <div className="relative overflow-hidden -mx-1 px-1">
+        <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-card/80 to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-card/80 to-transparent z-10 pointer-events-none" />
+        <ScrollArea className="w-full whitespace-nowrap pb-2">
+          <TabsList className="inline-flex w-auto h-12 items-center bg-muted/10 p-1.5 rounded-2xl border border-border/20 shadow-inner">
+            {TAB_DEFS.map((tab) => (
+              <TabsTrigger
+                key={tab.id}
+                value={tab.id}
+                className="rounded-xl px-5 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg transition-all gap-2.5 text-xs font-black uppercase tracking-widest active:scale-95"
+              >
+                <tab.icon className={cn("size-4 transition-transform", "group-data-[state=active]:scale-110")} />
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <ScrollBar orientation="horizontal" className="h-1.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+        </ScrollArea>
+      </div>
 
       {TAB_DEFS.map((tab) => (
         <TabsContent key={tab.id} value={tab.id} className="mt-0 outline-none">

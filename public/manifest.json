@@ -1,7 +1,7 @@
 {
-  "name": "RU Coach - Rodrigo Urbina Premium",
+  "name": "RU Coach - Rodrigo Urbina",
   "short_name": "RU Coach",
-  "description": "La aplicación definitiva para el seguimiento de entrenamiento personal con Rodrigo Urbina, con IA y progresión científica.",
+  "description": "La aplicación definitiva para el seguimiento de entrenamiento personal con Rodrigo Urbina y progresión científica.",
   "id": "/",
   "start_url": "/?source=pwa",
   "scope": "/",

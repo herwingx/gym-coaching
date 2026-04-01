@@ -19,6 +19,7 @@ interface AchievementBadgeProps {
   progress?: number
   showProgress?: boolean
   showMilestoneBadge?: boolean
+  className?: string
 }
 
 const sizeClasses = {
@@ -43,6 +44,7 @@ export function AchievementBadge({
   progress = 0,
   showProgress = false,
   showMilestoneBadge = false,
+  className,
 }: AchievementBadgeProps) {
   const Icon = achievementLucideIcon(achievement)
   const { percent } = formatAchievementProgress(achievement, progress, unlocked)
@@ -53,6 +55,7 @@ export function AchievementBadge({
       className={cn(
         'flex flex-col items-center transition-colors duration-200',
         !unlocked && 'opacity-70',
+        className,
       )}
     >
       <div className="relative flex flex-col items-center gap-2">

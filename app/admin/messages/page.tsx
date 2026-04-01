@@ -8,6 +8,7 @@ type CoachClientRow = {
   id: string;
   user_id: string | null;
   full_name: string | null;
+  avatar_url?: string | null;
 };
 
 type MessageRow = {
@@ -47,7 +48,7 @@ export default async function AdminMessagesPage() {
 
   const { data: myClients } = await supabase
     .from("clients")
-    .select("id, user_id, full_name")
+    .select("id, user_id, full_name, avatar_url")
     .eq("coach_id", user.id);
 
   const clients: CoachClientRow[] = myClients ?? [];
@@ -107,7 +108,7 @@ export default async function AdminMessagesPage() {
         return {
           id: c.user_id,
           name: c.full_name || p?.full_name || "Cliente",
-          avatarUrl: p?.avatar_url,
+          avatarUrl: p?.avatar_url || c.avatar_url,
           lastMessage: last?.content,
           lastAt: last?.at,
           unread: last?.unread ?? 0,
@@ -117,7 +118,7 @@ export default async function AdminMessagesPage() {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-background">
+    <div className="flex h-full w-full min-h-0 flex-1 flex-col bg-background">
       <ChatViewLazy
         currentUserId={user.id}
         role={role}

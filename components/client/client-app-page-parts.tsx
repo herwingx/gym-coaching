@@ -1,8 +1,7 @@
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { SidebarTrigger } from '@/components/ui/sidebar'
 import { cn } from '@/lib/utils'
 
 /** Misma envolvente que Mis rutinas / logros: móvil primero, ancho hasta 7xl en desktop. */
@@ -13,17 +12,18 @@ export const CLIENT_DATA_PAGE_SHELL =
 export function ClientStackPageHeader({
   title,
   subtitle,
+  kicker,
   backHref = '/client/dashboard',
   backLabel = 'Volver',
   backIcon,
-  /** Si se define, el botón móvil llama aquí en lugar de navegar directo (p. ej. confirmar salida del entreno). */
   onBackClick,
   actions,
-  sticky = false,
+  sticky = true,
   className,
 }: {
   title: string
   subtitle?: string | React.ReactNode
+  kicker?: string | React.ReactNode
   backHref?: string | null
   backLabel?: string
   backIcon?: React.ReactNode
@@ -35,67 +35,75 @@ export function ClientStackPageHeader({
   return (
     <header
       className={cn(
-        'border-b border-border bg-background/80 backdrop-blur-md',
-        sticky && 'sticky top-0 z-50 safe-area-header-pt',
+        'border-b border-border/50 bg-background/80 backdrop-blur-xl safe-area-header-pt min-h-[76px] sm:min-h-[112px] flex items-center',
+        sticky && 'sticky top-0 z-50',
         className,
       )}
     >
-      <div className="container flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:py-5">
-        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-          {backHref ? (
-            onBackClick ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="shrink-0"
-                aria-label={backLabel}
-                onClick={onBackClick}
-              >
-                {backIcon ?? <ArrowLeft className="size-5" aria-hidden />}
-              </Button>
+      <div className="w-full h-full flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:py-0 px-4 sm:px-6 md:px-8">
+        {/* Leading icon + title always on the same row */}
+        <div className="flex min-w-0 items-center gap-4 h-full">
+          {/* Back arrow or App logo */}
+          <div className="shrink-0 flex items-center h-full">
+            {backHref ? (
+              onBackClick ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="-ml-3 size-10 sm:size-11 rounded-full hover:bg-primary/10 hover:text-primary transition-all duration-300 md:ml-0"
+                  aria-label={backLabel}
+                  onClick={onBackClick}
+                >
+                  {backIcon ?? <ChevronLeft className="size-6 sm:size-7" aria-hidden strokeWidth={2.5} />}
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  asChild
+                  className="-ml-3 size-10 sm:size-11 rounded-full hover:bg-primary/10 hover:text-primary transition-all duration-300 md:ml-0"
+                  aria-label={backLabel}
+                >
+                  <Link href={backHref}>
+                    {backIcon ?? <ChevronLeft className="size-6 sm:size-7" aria-hidden strokeWidth={2.5} />}
+                  </Link>
+                </Button>
+              )
             ) : (
-              <Button
-                variant="ghost"
-                size="icon"
-                asChild
-                className="shrink-0"
-                aria-label={backLabel}
-              >
-                <Link href={backHref}>
-                  {backIcon ?? <ArrowLeft className="size-5" aria-hidden />}
-                </Link>
-              </Button>
-            )
-          ) : (
-            <div className="flex items-center gap-2">
-              <SidebarTrigger className="-ml-1 size-9 shrink-0 sm:size-8" />
-              <div className="flex items-center gap-2 lg:hidden">
-                <div className="size-7 rounded-lg overflow-hidden ring-1 ring-border shadow-sm shrink-0">
-                  <img src="/android-chrome-192x192.png" alt="Logo" className="size-full object-cover" />
+              <div className="flex items-center md:hidden">
+                <div className="size-11 rounded-xl overflow-hidden ring-1 ring-border/50 shadow-md shrink-0 bg-primary/10 flex items-center justify-center p-1.5">
+                  <img src="/android-chrome-192x192.png" alt="Logo" className="size-full object-contain" />
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          <div className="min-w-0">
-            <h1 className="text-xl font-bold tracking-tight text-pretty sm:text-2xl">
+          {/* Title + subtitle */}
+          <div className="min-w-0 flex flex-col justify-center py-1 sm:h-full">
+            {kicker ? (
+              <div className="mb-0.5 text-[10px] font-black uppercase tracking-[0.2em] text-primary sm:text-[11px] leading-none">
+                {kicker}
+              </div>
+            ) : null}
+            <h1 className="text-xl font-black tracking-tight text-pretty sm:text-2xl md:text-3xl lg:text-4xl text-foreground leading-[1.1]">
               {title}
             </h1>
             {subtitle ? (
               typeof subtitle === 'string' ? (
-                <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground text-pretty sm:text-sm">
+                <p className="mt-1 line-clamp-1 text-xs text-muted-foreground/90 sm:text-sm font-medium sm:mt-1.5">
                   {subtitle}
                 </p>
               ) : (
-                <div className="mt-0.5">{subtitle}</div>
+                <div className="mt-1 text-xs text-muted-foreground/90 sm:text-sm font-medium sm:mt-1.5">{subtitle}</div>
               )
             ) : null}
           </div>
         </div>
 
+        {/* Actions */}
         {actions ? (
-          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
+          <div className="flex w-full flex-wrap gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end shrink-0 sm:h-full">
             {actions}
           </div>
         ) : null}
@@ -116,4 +124,3 @@ export function ClientIncompleteProfileCard() {
     </Card>
   )
 }
-

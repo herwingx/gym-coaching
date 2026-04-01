@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
@@ -229,14 +229,16 @@ export default function ClientRoutinesPage() {
 
   return (
     <>
-      <ClientStackPageHeader title="Mis rutinas" subtitle={routinesSubtitle} />
-      <div
-        className={`${CLIENT_DATA_PAGE_SHELL} flex flex-col gap-6 lg:grid lg:grid-cols-12 lg:items-start`}
+      <ClientStackPageHeader 
+        title="Mis planes" 
+        subtitle={routinesSubtitle} 
+      />
+      <div 
+        className={`${CLIENT_DATA_PAGE_SHELL} flex flex-col gap-8 lg:grid lg:grid-cols-12 lg:items-start pb-safe-area`}
       >
-        <section className="order-1 flex min-w-0 flex-col gap-6 lg:order-2 lg:col-span-8">
+        <section className="order-1 flex min-w-0 flex-col gap-8 lg:order-2 lg:col-span-8">
           {routines.map((routine) => {
-            const progress =
-              (routine.current_week / routine.routines.duration_weeks) * 100;
+            const progress = (routine.current_week / routine.routines.duration_weeks) * 100;
             const nw = nextWorkout as {
               isComplete?: boolean;
               message?: string;
@@ -253,177 +255,156 @@ export default function ClientRoutinesPage() {
             return (
               <Card
                 key={routine.id}
-                className="overflow-hidden border-border/80 shadow-sm ring-1 ring-primary/5"
+                className="overflow-hidden border-border/80 shadow-md ring-1 ring-primary/5 rounded-3xl bg-card/60 backdrop-blur-sm transition-all hover:bg-card"
               >
-                <CardHeader className="flex flex-col gap-4 pb-4">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-                    <div className="min-w-0 flex-1 text-center sm:text-left">
-                      <CardTitle className="text-balance text-xl sm:text-2xl">
+                <CardHeader className="pb-6 pt-8 px-6 sm:px-8 border-b bg-muted/5">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-1.5 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <Dumbbell className="size-4 text-primary" aria-hidden />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Plan de Entrenamiento</span>
+                      </div>
+                      <CardTitle className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
                         {routine.routines.name}
                       </CardTitle>
-                      {routine.routines.description ? (
-                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                      {routine.routines.description && (
+                        <p className="text-sm font-medium text-muted-foreground leading-relaxed max-w-2xl">
                           {routine.routines.description}
                         </p>
-                      ) : null}
+                      )}
                     </div>
-                    {nw?.isComplete ? (
-                      <Badge
-                        variant="secondary"
-                        className="mx-auto shrink-0 gap-1.5 border border-primary/30 bg-primary/10 text-primary sm:mx-0"
-                      >
-                        <CheckCircle2 data-icon="inline-start" />
-                        Completada
+                    {nw?.isComplete && (
+                      <Badge className="w-fit self-start sm:self-center font-black text-[10px] uppercase tracking-widest px-3 py-1.5 bg-green-500/10 text-green-700 border-none shadow-none rounded-lg">
+                        <CheckCircle2 className="size-3 mr-1.5" />
+                        Completado
                       </Badge>
-                    ) : null}
+                    )}
                   </div>
                 </CardHeader>
-                <CardContent className="flex flex-col gap-6">
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between gap-4 text-sm">
-                      <span className="font-medium">Progreso de la rutina</span>
-                      <span className="tabular-nums text-muted-foreground">
-                        Semana {routine.current_week} de{" "}
-                        {routine.routines.duration_weeks}
-                      </span>
+                
+                <CardContent className="flex flex-col gap-8 p-6 sm:p-8">
+                  {/* Progress Section */}
+                  <div className="flex flex-col gap-4 bg-muted/10 rounded-2xl p-5 border border-border/40">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Progreso Actual</span>
+                        <span className="text-xl font-black tracking-tighter tabular-nums">
+                          Semana {routine.current_week} <span className="text-muted-foreground/40 font-bold mx-1">/</span> {routine.routines.duration_weeks}
+                        </span>
+                      </div>
+                      <div className="flex size-14 items-center justify-center rounded-full bg-primary/10 border-4 border-primary/5 ring-4 ring-primary/5">
+                        <span className="text-sm font-black text-primary tabular-nums">{Math.round(progress)}%</span>
+                      </div>
                     </div>
-                    <Progress value={progress} className="h-2" />
+                    <Progress value={progress} className="h-2.5 bg-muted rounded-full" />
                   </div>
 
-                  {nw ? (
-                    <div className="rounded-xl border border-border/60 bg-muted/15 p-4 sm:p-5">
+                  {/* High Density Stats Row */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-2 rounded-2xl border border-border/40 p-4 bg-background/50">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Sesiones / Ciclo</span>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-2xl font-black tabular-nums">{routine.routines.training_days_per_week}</span>
+                        <span className="text-xs font-bold text-muted-foreground uppercase">Días</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2 rounded-2xl border border-border/40 p-4 bg-background/50">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Ciclo Total</span>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-2xl font-black tabular-nums">{routine.routines.duration_weeks}</span>
+                        <span className="text-xs font-bold text-muted-foreground uppercase">Semanas</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Next Session Area */}
+                  {nw && (
+                    <div className="flex flex-col gap-6 pt-8 border-t border-border/40">
+                      <div className="flex items-center gap-3">
+                        <div className="size-2 rounded-full bg-primary animate-pulse" />
+                        <h3 className="text-sm font-black uppercase tracking-[0.15em] text-foreground/80">Tu Próxima Cita</h3>
+                      </div>
+
                       {nw.isComplete ? (
-                        <div className="flex flex-col items-center gap-2 text-center">
-                          <p className="font-medium text-success">
-                            Rutina completada
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {nw.suggestedAction}
-                          </p>
+                        <div className="flex flex-col items-center justify-center py-6 text-center bg-muted/10 rounded-2xl border border-dashed border-border/60">
+                           <TrendingUp className="size-8 text-primary/40 mb-3" />
+                           <p className="font-bold text-success text-lg">{nw.message || "¡Objetivo cumplido!"}</p>
+                           <p className="text-sm font-medium text-muted-foreground mt-1">{nw.suggestedAction}</p>
                         </div>
                       ) : (
-                        <div className="flex flex-col gap-4">
-                          <div className="text-center sm:text-left">
-                            <p className="font-medium leading-snug">
+                        <div className="flex flex-col gap-6">
+                          <div className="p-5 rounded-2xl bg-primary/5 border border-primary/10">
+                            <p className="text-base font-bold leading-tight text-foreground">
                               {nw.message}
                             </p>
-                            {nw.isRestDay ? (
-                              <p className="mt-2 text-sm text-muted-foreground">
-                                Usa este día para recuperarte y prepararte para
-                                el próximo entrenamiento.
+                            {nw.isRestDay && (
+                              <p className="mt-2 text-sm font-medium text-muted-foreground leading-relaxed">
+                                Aprovecha hoy para optimizar tu recuperación. El descanso es parte del crecimiento.
                               </p>
-                            ) : null}
+                            )}
                           </div>
 
-                          {!nw.isRestDay &&
-                          nw.exercises &&
-                          nw.exercises.length > 0 ? (
-                            <div className="flex flex-col gap-3">
-                              <p className="text-center text-[10px] font-semibold uppercase tracking-wider text-muted-foreground sm:text-left">
-                                Ejercicios de hoy
-                              </p>
+                          {!nw.isRestDay && nw.exercises && nw.exercises.length > 0 && (
+                            <div className="flex flex-col gap-4">
+                              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Contenido de la sesión</span>
                               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                                 {nw.exercises.map((exercise) => {
                                   const raw = exercise.exercises;
-                                  const exDetails = Array.isArray(raw)
-                                    ? raw[0]
-                                    : raw;
-                                  const label = exDetails?.name
-                                    ? `Ver detalles: ${exDetails.name}`
-                                    : "Detalles del ejercicio";
+                                  const exDetails = Array.isArray(raw) ? raw[0] : raw;
                                   return (
                                     <button
                                       key={exercise.id}
                                       type="button"
                                       disabled={!exDetails}
-                                      onClick={() =>
-                                        exDetails &&
-                                        handleExerciseClick(exDetails)
-                                      }
-                                      className="group flex w-full items-center gap-3 rounded-2xl border border-border/60 bg-background p-3 text-left shadow-sm transition-[border-color,box-shadow,transform] duration-200 hover:border-primary/40 hover:shadow-md active:scale-[0.99] disabled:pointer-events-none disabled:opacity-60 motion-reduce:transition-none motion-reduce:active:scale-100"
-                                      aria-label={label}
+                                      onClick={() => exDetails && handleExerciseClick(exDetails)}
+                                      className="group flex items-center gap-4 rounded-2xl border border-border/40 bg-background/50 p-3 text-left transition-all hover:bg-background hover:border-primary/30 hover:shadow-lg active:scale-[0.98]"
                                     >
-                                      <ExerciseMedia
-                                        src={
-                                          exDetails?.gif_url ||
-                                          exDetails?.image_url
-                                        }
-                                        alt={exDetails?.name ?? "Ejercicio"}
-                                        variant="thumb"
-                                        className="size-16 shrink-0 rounded-xl"
-                                      />
-                                      <div className="flex min-w-0 flex-1 flex-col gap-1.5 py-0.5">
-                                        <h4 className="truncate text-sm font-semibold capitalize">
+                                      <div className="relative size-14 shrink-0 overflow-hidden rounded-xl bg-muted">
+                                        <ExerciseMedia
+                                          src={exDetails?.gif_url || exDetails?.image_url}
+                                          alt={exDetails?.name ?? "Ejercicio"}
+                                          variant="thumb"
+                                          className="size-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                        />
+                                        <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                      </div>
+                                      <div className="flex flex-col min-w-0 flex-1">
+                                        <span className="truncate text-sm font-black capitalize tracking-tight group-hover:text-primary transition-colors">
                                           {exDetails?.name ?? "Ejercicio"}
-                                        </h4>
-                                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                                          <Badge
-                                            variant="secondary"
-                                            className="h-5 px-1.5 text-[10px] font-medium capitalize"
-                                          >
-                                            {exDetails?.primary_muscle ??
-                                              "General"}
-                                          </Badge>
-                                          <span className="tabular-nums">
-                                            {exercise.sets} series ×{" "}
-                                            {exercise.reps}
-                                          </span>
+                                        </span>
+                                        <div className="flex items-center gap-3 mt-1">
+                                           <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest tabular-nums">
+                                             {exercise.sets} <span className="font-medium text-[8px] opacity-40">SET</span>
+                                           </span>
+                                           <div className="size-1 rounded-full bg-border" />
+                                           <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest tabular-nums">
+                                             {exercise.reps} <span className="font-medium text-[8px] opacity-40">REPS</span>
+                                           </span>
                                         </div>
                                       </div>
-                                      <span className="flex size-11 shrink-0 items-center justify-center text-muted-foreground transition-opacity group-hover:text-foreground">
-                                        <Info className="size-4" aria-hidden />
-                                      </span>
+                                      <Info className="size-4 text-muted-foreground/40 group-hover:text-primary transition-colors mr-1" />
                                     </button>
                                   );
                                 })}
                               </div>
                             </div>
-                          ) : null}
+                          )}
 
-                          {!nw.isRestDay ? (
+                          {!nw.isRestDay && (
                             <Button
                               asChild
-                              className="min-h-12 w-full text-base font-semibold shadow-sm"
+                              className="h-14 w-full text-base font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:translate-y-[-2px] active:translate-y-[0] active:scale-[0.98]"
                             >
                               <Link href="/client/workout/start">
-                                Comenzar entrenamiento
-                                <ChevronRight data-icon="inline-end" />
+                                Iniciar Sesión Ahora
+                                <ChevronRight className="size-5 ml-2" />
                               </Link>
                             </Button>
-                          ) : null}
+                          )}
                         </div>
                       )}
                     </div>
-                  ) : null}
-
-                  <div className="grid grid-cols-2 gap-6 border-t border-border/60 pt-6 text-center sm:text-left">
-                    <div className="flex flex-col gap-1">
-                      <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                        Días de entreno
-                      </p>
-                      <p className="text-2xl font-bold tabular-nums sm:text-3xl">
-                        {routine.routines.training_days_per_week}
-                      </p>
-                      {routine.routines.training_days_per_week !==
-                      routine.routines.days_per_week ? (
-                        <p className="text-[11px] leading-snug text-muted-foreground">
-                          {routine.routines.days_per_week} bloques en el ciclo
-                          (incl. descansos)
-                        </p>
-                      ) : null}
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                        Duración total
-                      </p>
-                      <p className="text-2xl font-bold tabular-nums sm:text-3xl">
-                        {routine.routines.duration_weeks}{" "}
-                        <span className="text-lg font-semibold text-muted-foreground">
-                          sem
-                        </span>
-                      </p>
-                    </div>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
             );
@@ -432,72 +413,95 @@ export default function ClientRoutinesPage() {
 
         <aside className="order-2 flex flex-col gap-6 lg:order-1 lg:col-span-4 lg:sticky lg:top-[max(1rem,env(safe-area-inset-top))] lg:self-start">
           {suggestions.length > 0 ? (
-            <Card className="overflow-hidden border-primary/25 bg-primary/5 shadow-sm ring-1 ring-primary/10">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center justify-center gap-2 text-base sm:justify-start">
-                  <TrendingUp
-                    className="size-4 shrink-0 text-primary"
-                    aria-hidden
-                  />
-                  Sugerencias de progresión
-                </CardTitle>
+            <Card className="overflow-hidden border-primary/20 bg-primary/5 shadow-md ring-1 ring-primary/5 rounded-3xl backdrop-blur-md">
+              <CardHeader className="pb-4 pt-6 px-6">
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="size-4 text-primary" />
+                    <CardTitle className="text-lg font-black tracking-tight">Progresión</CardTitle>
+                  </div>
+                  <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
+                    Sugerencias Semanales
+                  </CardDescription>
+                </div>
               </CardHeader>
-              <CardContent>
-                <div className="flex flex-col gap-2">
+              <CardContent className="px-6 pb-6 pt-2">
+                <div className="flex flex-col gap-3">
                   {suggestions.map((suggestion) => (
                     <div
                       key={suggestion.exerciseId}
-                      className="rounded-lg border border-border/50 bg-background/90 p-3 text-center sm:text-left"
+                      className="group flex flex-col gap-3 rounded-2xl border border-primary/10 bg-background/80 p-4 transition-all hover:bg-background hover:shadow-md"
                     >
-                      <p className="font-medium capitalize">
-                        {suggestion.exercise}
-                      </p>
-                      {suggestion.suggestedWeight != null ? (
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          Siguiente carga sugerida:{" "}
-                          <span className="font-semibold tabular-nums text-foreground">
-                            {suggestion.suggestedWeight} kg
-                          </span>
+                      <div className="flex items-center justify-between gap-4">
+                        <p className="font-black text-sm capitalize group-hover:text-primary transition-colors">
+                          {suggestion.exercise}
                         </p>
-                      ) : null}
-                      {suggestion.suggestedReps != null ? (
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          Objetivo de reps:{" "}
-                          <span className="font-semibold tabular-nums text-foreground">
-                            {suggestion.suggestedReps}
-                          </span>
+                        <Badge className="h-5 rounded-md px-1.5 text-[9px] font-black uppercase tracking-tighter bg-primary/10 text-primary border-none">
+                          Goal
+                        </Badge>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4 items-center">
+                        {suggestion.suggestedWeight != null && (
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Carga</span>
+                            <span className="text-lg font-black tabular-nums text-foreground">{suggestion.suggestedWeight} kg</span>
+                          </div>
+                        )}
+                        {suggestion.suggestedReps != null && (
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Reps</span>
+                            <span className="text-lg font-black tabular-nums text-foreground">{suggestion.suggestedReps}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex items-start gap-2 pt-3 border-t border-primary/5">
+                        <Info className="size-3 text-primary/40 mt-0.5 shrink-0" />
+                        <p className="text-[11px] font-medium leading-relaxed text-muted-foreground italic">
+                          {suggestion.reason}
                         </p>
-                      ) : null}
-                      <p className="mt-2 text-xs leading-snug italic text-muted-foreground">
-                        {suggestion.reason}
-                      </p>
+                      </div>
                     </div>
                   ))}
                 </div>
               </CardContent>
             </Card>
           ) : (
-            <Card className="overflow-hidden border-border/80 shadow-sm ring-1 ring-primary/5">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center justify-center gap-2 text-base sm:justify-start">
-                  <TrendingUp
-                    className="size-4 shrink-0 text-primary"
-                    aria-hidden
-                  />
-                  Progresión
-                </CardTitle>
+            <Card className="overflow-hidden border-border/80 shadow-md ring-1 ring-primary/5 rounded-3xl bg-card/50">
+              <CardHeader className="pb-4 pt-6 px-6">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="size-4 text-primary" />
+                  <CardTitle className="text-lg font-black tracking-tight">Progresión</CardTitle>
+                </div>
               </CardHeader>
-              <CardContent className="flex flex-col gap-3 text-center sm:text-left">
-                <p className="text-sm text-muted-foreground text-pretty">
-                  Cuando tengas historial suficiente, aquí verás sugerencias
-                  para subir peso o repeticiones de forma ordenada.
-                </p>
-                <Button asChild variant="outline" className="w-full sm:w-auto">
-                  <Link href="/client/progress">Ver gráficos de progreso</Link>
-                </Button>
+              <CardContent className="px-6 pb-6">
+                <div className="rounded-2xl bg-muted/15 p-5 border border-dashed border-border/60">
+                   <p className="text-sm font-medium text-muted-foreground text-pretty leading-relaxed mb-4">
+                     Registra tus entrenamientos para que nuestro sistema de inteligencia deportiva calcule tus cargas óptimas.
+                   </p>
+                   <Button asChild variant="secondary" className="w-full font-bold rounded-xl h-10 transition-all active:scale-[0.98]">
+                     <Link href="/client/progress">Ver mis métricas</Link>
+                   </Button>
+                </div>
               </CardContent>
             </Card>
           )}
+          
+          {/* Quick Tip / Motivation Card */}
+          <Card className="overflow-hidden border-border/40 shadow-sm rounded-3xl bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent border-t-indigo-500/20">
+             <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="size-8 rounded-xl bg-indigo-500/20 flex items-center justify-center">
+                    <Info className="size-4 text-indigo-600" />
+                  </div>
+                  <span className="text-xs font-black uppercase tracking-widest text-indigo-700">Tip de hoy</span>
+                </div>
+                <p className="text-sm font-medium text-indigo-900/80 leading-relaxed">
+                  "La consistencia vence al talento cuando el talento no se esfuerza. Sigue tu plan al pie de la letra."
+                </p>
+             </CardContent>
+          </Card>
         </aside>
       </div>
       <ExerciseDetailDrawer

@@ -38,9 +38,9 @@ export function CircularProgress({
         width={size}
         height={size}
       >
-        {/* Background circle */}
+        {/* Background track circle with very low opacity */}
         <circle
-          className="text-muted"
+          className="text-primary/10"
           strokeWidth={strokeWidth}
           stroke="currentColor"
           fill="transparent"
@@ -48,11 +48,11 @@ export function CircularProgress({
           cx={size / 2}
           cy={size / 2}
         />
-        {/* Progress circle */}
+        {/* Progress circle with glow shadow */}
         <circle
           className={cn(
-            "transition-all duration-500 ease-out",
-            variant === "primary" ? "text-primary" : "text-muted-foreground"
+            "transition-all duration-700 ease-out",
+            variant === "primary" ? "text-primary drop-shadow-[0_0_8px_rgba(var(--primary),0.8)]" : "text-muted-foreground"
           )}
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}
@@ -63,11 +63,14 @@ export function CircularProgress({
           r={radius}
           cx={size / 2}
           cy={size / 2}
+          style={{
+            filter: variant === "primary" ? 'drop-shadow(0 0 12px currentColor)' : 'none'
+          }}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         {children || (showValue && (
-          <span className="text-2xl font-bold">{Math.round(progress * 100)}%</span>
+          <span className="text-2xl font-black tabular-nums">{Math.round(progress * 100)}%</span>
         ))}
       </div>
     </div>

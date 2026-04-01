@@ -28,6 +28,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
   Users,
@@ -196,85 +205,130 @@ export function ClientManagementContent({
           value={stats.total}
           label="Total"
           tone="primary"
+          className="bg-card/60 backdrop-blur-xl border-border/50 rounded-[1.5rem] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
         />
         <AdminKpiStatCard
           icon={UserCheck}
           value={stats.active}
           label="Activos"
           tone="success"
+          className="bg-card/60 backdrop-blur-xl border-border/50 rounded-[1.5rem] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
         />
         <AdminKpiStatCard
           icon={CalendarX}
           value={stats.expired}
           label="Vencidos"
           tone="destructive"
+          className="bg-card/60 backdrop-blur-xl border-border/50 rounded-[1.5rem] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
         />
         <AdminKpiStatCard
           icon={UserX}
           value={stats.suspended}
           label="Suspendidos"
           tone="warning"
+          className="bg-card/60 backdrop-blur-xl border-border/50 rounded-[1.5rem] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
         />
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-1">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4.5 text-muted-foreground/70" />
             <Input
               placeholder="Buscar por nombre, email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
+              className="pl-10 h-12 rounded-[1rem] bg-card/60 border-border/50 backdrop-blur-xl shadow-sm focus-visible:ring-primary/20 text-[15px] transition-all hover:bg-card/80"
             />
           </div>
-          <Tabs
-            value={activeTab}
-            onValueChange={setActiveTab}
-            className="w-full sm:w-auto"
-          >
-            <ScrollArea className="w-full whitespace-nowrap">
+          <div className="w-full sm:w-auto">
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="hidden sm:block"
+            >
               <TabsList className="inline-flex w-auto bg-muted/50 p-1 h-11 rounded-xl border border-border/40 shadow-sm">
                 <TabsTrigger
                   value="all"
-                  className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs"
+                  className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-sm"
                 >
                   <Users className="size-3.5" />
                   Todos
                 </TabsTrigger>
                 <TabsTrigger
                   value="active"
-                  className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs"
+                  className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-sm"
                 >
                   <UserCheck className="size-3.5" />
                   Activos
                 </TabsTrigger>
                 <TabsTrigger
                   value="pending"
-                  className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs"
+                  className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-sm"
                 >
                   <AlertCircle className="size-3.5" />
                   Pendientes
                 </TabsTrigger>
                 <TabsTrigger
                   value="expired"
-                  className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs"
+                  className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-sm"
                 >
                   <CalendarX className="size-3.5" />
                   Vencidos
                 </TabsTrigger>
                 <TabsTrigger
                   value="suspended"
-                  className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-xs"
+                  className="rounded-lg px-3 py-1.5 data-[state=active]:shadow-sm gap-2 text-sm"
                 >
                   <UserX className="size-3.5" />
                   Susp.
                 </TabsTrigger>
               </TabsList>
-              <ScrollBar orientation="horizontal" className="invisible" />
-            </ScrollArea>
-          </Tabs>
+            </Tabs>
+            <div className="block sm:hidden w-full">
+              <Select value={activeTab} onValueChange={setActiveTab}>
+                <SelectTrigger className="h-12 w-full bg-card/60 backdrop-blur-xl border-border/50 shadow-sm rounded-[1rem] px-4 font-bold text-[15px] text-foreground hover:bg-card/80 transition-all" aria-label="Seleccionar estado">
+                  <SelectValue placeholder="Estado" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectGroup>
+                    <SelectLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70 px-2 py-1.5">Estado</SelectLabel>
+                    <SelectItem value="all" className="rounded-lg py-2.5">
+                      <div className="flex items-center gap-2">
+                        <Users className="size-4 text-muted-foreground" />
+                        <span>Todos</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="active" className="rounded-lg py-2.5">
+                      <div className="flex items-center gap-2">
+                        <UserCheck className="size-4 text-muted-foreground" />
+                        <span>Activos</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="pending" className="rounded-lg py-2.5">
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="size-4 text-muted-foreground" />
+                        <span>Pendientes</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="expired" className="rounded-lg py-2.5">
+                      <div className="flex items-center gap-2">
+                        <CalendarX className="size-4 text-muted-foreground" />
+                        <span>Vencidos</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="suspended" className="rounded-lg py-2.5">
+                      <div className="flex items-center gap-2">
+                        <UserX className="size-4 text-muted-foreground" />
+                        <span>Suspendidos</span>
+                      </div>
+                    </SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
 
         {/* Bento Grid */}
@@ -347,10 +401,11 @@ export function ClientManagementContent({
                 <AdminCardWithActions
                   key={client.id}
                   menuSections={menuSections}
+                  cardClassName="border-border/50 bg-card/60 rounded-[1.5rem] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-primary/20 group pb-1"
                 >
                   <AdminCardHeaderWithActions menuSections={menuSections}>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="size-12 rounded-xl border-2 border-background shadow-sm">
+                    <div className="flex items-center gap-3.5">
+                      <Avatar className="size-[3.25rem] rounded-[1.1rem] border-2 border-background shadow-xs shrink-0 transition-transform group-hover:scale-105">
                         {client.avatarUrl ? (
                           <AvatarImage
                             src={client.avatarUrl}
@@ -358,55 +413,55 @@ export function ClientManagementContent({
                             className="object-cover"
                           />
                         ) : null}
-                        <AvatarFallback className="bg-primary/5 text-primary font-bold">
+                        <AvatarFallback className="bg-primary/10 text-primary font-black text-sm">
                           {client.fullName.slice(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0">
-                        <CardTitle className="text-base truncate leading-none mb-1">
+                        <CardTitle className="text-[17px] font-bold truncate leading-none mb-1 group-hover:text-primary transition-colors">
                           {client.fullName}
                         </CardTitle>
-                        <CardDescription className="text-xs truncate">
+                        <CardDescription className="text-[13px] font-medium opacity-80 truncate">
                           {client.email || "Sin email"}
                         </CardDescription>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 mt-3">
+                    <div className="flex items-center gap-2 mt-4 ml-1">
                       <AdminClientStatusBadge status={client.status} />
                       {client.planName && (
                         <Badge
                           variant="secondary"
-                          className="font-normal text-[10px] uppercase tracking-wider"
+                          className="font-bold text-[10px] bg-secondary/60 text-secondary-foreground shadow-sm uppercase tracking-widest px-2.5 py-0.5"
                         >
                           {client.planName}
                         </Badge>
                       )}
                     </div>
                   </AdminCardHeaderWithActions>
-                  <CardContent className="flex flex-col gap-3 p-4 pt-3">
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="flex flex-col gap-1 rounded-lg border border-muted-foreground/5 bg-muted/30 p-2">
-                        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase font-bold">
-                          <Dumbbell className="size-3" />
+                  <CardContent className="flex flex-col gap-3 p-4 pt-4 px-4.5 bg-gradient-to-b from-transparent to-background/30">
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <div className="flex flex-col gap-1.5 rounded-[1rem] border border-border/40 bg-background/50 p-3 shadow-sm transition-colors hover:bg-background/80">
+                        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-80">
+                          <Dumbbell className="size-3.5" />
                           Último Entreno
                         </div>
                         <div className="min-h-0">
-                          <p className="text-xs font-semibold leading-tight">
+                          <p className="text-[14px] font-bold leading-tight text-foreground">
                             {lastWorkout.primary}
                           </p>
                           {lastWorkout.secondary ? (
-                            <p className="mt-0.5 text-[10px] capitalize leading-snug text-muted-foreground">
+                            <p className="mt-0.5 text-[11px] capitalize font-medium leading-snug text-muted-foreground">
                               {lastWorkout.secondary}
                             </p>
                           ) : null}
                         </div>
                       </div>
-                      <div className="flex flex-col gap-1 rounded-lg border border-muted-foreground/5 bg-muted/30 p-2">
-                        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase font-bold">
-                          <Calendar className="size-3" />
+                      <div className="flex flex-col gap-1.5 rounded-[1rem] border border-border/40 bg-background/50 p-3 shadow-sm transition-colors hover:bg-background/80">
+                        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-80">
+                          <Calendar className="size-3.5" />
                           Vencimiento
                         </div>
-                        <p className="text-xs font-semibold">
+                        <p className="text-[14px] font-bold leading-tight text-foreground">
                           {client.membershipEnd
                             ? format(
                                 new Date(client.membershipEnd),
@@ -416,7 +471,7 @@ export function ClientManagementContent({
                             : "Sin fecha"}
                         </p>
                         {client.latestPaidPeriodEnd ? (
-                          <p className="text-[10px] leading-snug text-muted-foreground">
+                          <p className="text-[11px] leading-snug text-muted-foreground font-medium mt-0.5">
                             Último pago: hasta{" "}
                             {format(
                               new Date(client.latestPaidPeriodEnd),
@@ -443,14 +498,12 @@ export function ClientManagementContent({
                       </div>
                     ) : null}
 
-                    {client.goal && (
-                      <div className="flex items-center gap-2 px-1 text-xs text-muted-foreground">
-                        <Target className="size-3.5 text-primary" />
-                        <span className="truncate">
-                          Objetivo: {getGoalLabel(client.goal)}
-                        </span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2 px-1.5 mt-0.5 text-[12px] text-muted-foreground font-medium">
+                      <Target className="size-3.5 text-primary/70" />
+                      <span className="truncate opacity-80">
+                        {client.goal ? `Objetivo: ${getGoalLabel(client.goal)}` : "Sin objetivo especificado"}
+                      </span>
+                    </div>
 
                     {client.status === "pending" && (
                       <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/5 text-[11px] text-primary border border-primary/10">

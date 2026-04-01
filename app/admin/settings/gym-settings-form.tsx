@@ -222,7 +222,7 @@ export function GymSettingsForm({ initialData }: GymSettingsFormProps) {
             </div>
           </FieldGroup>
 
-          <div className="border-t pt-4">
+          <div className="sticky bottom-0 z-10 -mx-6 -mb-6 mt-2 border-t bg-background/80 p-6 backdrop-blur-md md:static md:mx-0 md:mb-0 md:mt-2 md:bg-transparent md:p-0 md:pt-4">
             <Button
               type="submit"
               disabled={loading}

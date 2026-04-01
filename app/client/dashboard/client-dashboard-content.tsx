@@ -15,7 +15,7 @@ const ClientWorkoutChart = dynamic(
     })),
   {
     ssr: false,
-    loading: () => <Skeleton className="h-[220px] w-full rounded-xl" />,
+    loading: () => <Skeleton className="h-[220px] w-full rounded-3xl" />,
   },
 );
 import { NextWorkoutCard } from "@/components/client/next-workout-card";
@@ -65,12 +65,13 @@ export function ClientDashboardContent({
   return (
     <>
       <ClientStackPageHeader
-        title={`Hola, ${userLabel}`}
-        subtitle="Tu resumen: nivel, entrenos, progreso y la próxima sesión."
+        kicker={new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' }).toUpperCase()}
+        title={`¿Listo para el reto, ${userLabel}?`}
+        subtitle="Sigue tu plan, supera tus marcas y desbloquea el siguiente nivel."
         backHref={null}
       />
-      <div className={`${CLIENT_DATA_PAGE_SHELL} grid gap-6 lg:grid-cols-12`}>
-        <aside className="flex flex-col gap-6 lg:col-span-4 lg:sticky lg:top-[max(1rem,env(safe-area-inset-top))] lg:self-start">
+      <div className={`${CLIENT_DATA_PAGE_SHELL} grid gap-8 lg:grid-cols-12 pb-safe-area`}>
+        <aside className="flex flex-col gap-8 lg:col-span-12 xl:col-span-4 lg:sticky lg:top-[max(1rem,env(safe-area-inset-top))] lg:self-start">
           <LevelProgress
             levelInfo={levelInfo}
             username={profile?.username || profile?.full_name}
@@ -84,73 +85,86 @@ export function ClientDashboardContent({
           />
         </aside>
 
-        <section className="flex min-w-0 flex-col gap-6 lg:col-span-8">
-          <ClientWorkoutChart data={chartData} />
+        <section className="flex min-w-0 flex-col gap-8 lg:col-span-12 xl:col-span-8">
+          <Card className="overflow-hidden border-border/80 shadow-md ring-1 ring-primary/5 rounded-3xl bg-card/60 backdrop-blur-sm">
+             <CardHeader className="pb-2 pt-6 px-6 sm:px-8">
+                <div className="flex items-center gap-2">
+                   <div className="size-2 rounded-full bg-primary" />
+                   <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Análisis de Rendimiento</span>
+                </div>
+             </CardHeader>
+             <CardContent className="px-2 sm:px-6 pb-6">
+                <ClientWorkoutChart data={chartData} />
+             </CardContent>
+          </Card>
+
           <NextWorkoutCard
             routineDay={nextWorkoutRoutineDay as any}
             routineName={assignedRoutine?.name}
             hasAssignedRoutine={!!assignedRoutine}
             isRoutineCompleted={isRoutineCompleted}
           />
+
           {userAchievements.length > 0 ? (
-            <Card className="overflow-hidden border-muted/70 shadow-none bg-linear-to-br from-background to-muted/15">
-              <CardHeader className="pb-3">
+            <Card className="overflow-hidden border-border/80 shadow-md ring-1 ring-primary/5 rounded-3xl bg-card/60 backdrop-blur-sm">
+              <CardHeader className="pb-4 pt-6 px-6 sm:px-8">
                 <div className="flex items-center justify-between gap-3">
-                  <CardTitle className="flex items-center gap-2 text-sm font-semibold tracking-tight">
-                    <Award
-                      className="size-4 shrink-0 text-primary"
-                      aria-hidden
-                    />
-                    Hitos recientes
-                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                     <Award className="size-5 text-primary" aria-hidden />
+                     <CardTitle className="text-lg font-black tracking-tight">Hitos Recientes</CardTitle>
+                  </div>
                   <Button
                     variant="ghost"
                     size="sm"
                     asChild
-                    className="h-8 shrink-0 px-2 text-xs font-semibold"
+                    className="h-9 px-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-primary/5 hover:text-primary transition-all"
                   >
                     <Link
                       href="/client/achievements"
-                      className="inline-flex items-center gap-1"
+                      className="inline-flex items-center gap-1.5"
                     >
-                      Ver progreso
-                      <ChevronRight className="size-3.5 shrink-0" aria-hidden />
+                      Muro de títulos
+                      <ChevronRight className="size-4 shrink-0 transition-transform group-hover:translate-x-0.5" aria-hidden />
                     </Link>
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="-mx-1 flex gap-5 overflow-x-auto px-1 pb-3 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                  {userAchievements.slice(0, 5).map((ua) => (
-                    <div
-                      key={ua.id}
-                      className="flex min-w-[76px] flex-col items-center gap-2"
-                    >
-                      <AchievementBadge
-                        achievement={ua.achievements!}
-                        unlocked
-                        size="md"
-                      />
-                      <span className="line-clamp-2 w-full text-center text-[10px] font-medium leading-tight text-foreground">
-                        {ua.achievements!.name}
-                      </span>
-                    </div>
-                  ))}
-                  {userAchievements.length > 5 && (
-                    <Link
-                      href="/client/achievements"
-                      className="group flex min-w-[76px] flex-col items-center justify-center gap-2"
-                    >
-                      <div className="flex size-14 items-center justify-center rounded-2xl border border-dashed border-muted-foreground/35 bg-muted/30 transition-colors group-hover:border-primary/40 group-hover:bg-primary/5">
-                        <span className="text-xs font-bold text-muted-foreground group-hover:text-primary tabular-nums">
-                          +{userAchievements.length - 5}
+              <CardContent className="px-6 sm:px-8 pb-6">
+                <div className="relative -mx-2 px-2 overflow-hidden">
+                  <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-card/90 to-transparent z-10 pointer-events-none" />
+                  <div className="flex gap-6 overflow-x-auto pb-4 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    {userAchievements.slice(0, 6).map((ua) => (
+                      <div
+                        key={ua.id}
+                        className="group flex min-w-[84px] flex-col items-center gap-3"
+                      >
+                        <AchievementBadge
+                          achievement={ua.achievements!}
+                          unlocked
+                          size="md"
+                          className="transition-transform group-hover:scale-110 duration-300"
+                        />
+                        <span className="line-clamp-2 w-full text-center text-[10px] font-black uppercase tracking-tight text-foreground/80 group-hover:text-primary transition-colors">
+                          {ua.achievements!.name}
                         </span>
                       </div>
-                      <span className="text-[10px] font-semibold text-muted-foreground group-hover:text-primary">
-                        Más
-                      </span>
-                    </Link>
-                  )}
+                    ))}
+                    {userAchievements.length > 6 && (
+                      <Link
+                        href="/client/achievements"
+                        className="group flex min-w-[84px] flex-col items-center justify-center gap-3"
+                      >
+                        <div className="flex size-14 items-center justify-center rounded-2xl border-2 border-dashed border-primary/20 bg-primary/5 transition-all group-hover:border-primary group-hover:bg-primary/10">
+                          <span className="text-xs font-black text-primary tabular-nums">
+                            +{userAchievements.length - 6}
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary">
+                          Ver más
+                        </span>
+                      </Link>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>

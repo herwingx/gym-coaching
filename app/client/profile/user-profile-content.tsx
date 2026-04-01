@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { ProfileAvatarSection } from "@/components/profile/profile-avatar-section";
+import { FieldGroup, Field, FieldLabel } from "@/components/ui/field";
 
 interface Profile {
   id: string;
@@ -239,28 +240,6 @@ export function UserProfileContent({
           </Card>
         )}
 
-        <Card className="border-border/80 ring-1 ring-primary/5">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="size-4 text-primary" aria-hidden />
-              Acceso rápido
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            <Button
-              onClick={handleSaveProfile}
-              size="lg"
-              className="w-full"
-              disabled={saving}
-            >
-              {saving ? "Guardando…" : "Guardar cambios"}
-            </Button>
-            <p className="text-xs text-muted-foreground text-pretty">
-              Tip: completa tu perfil para que las recomendaciones y el coach
-              sean más precisos.
-            </p>
-          </CardContent>
-        </Card>
       </aside>
 
       <section className="flex flex-col gap-6 lg:col-span-8">
@@ -269,55 +248,50 @@ export function UserProfileContent({
           <CardHeader>
             <CardTitle>Información personal</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <div>
-              <label className="text-sm font-medium">Email</label>
-              <Input value={userEmail} disabled className="mt-2 bg-muted" />
-            </div>
+          <CardContent>
+            <FieldGroup>
+              <Field>
+                <FieldLabel>Email</FieldLabel>
+                <Input value={userEmail} disabled className="bg-muted" />
+              </Field>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label className="text-sm font-medium">Usuario</label>
-                <Input
-                  value={profile.username || ""}
-                  onChange={(e) =>
-                    setProfile({ ...profile, username: e.target.value })
-                  }
-                  placeholder="Tu usuario"
-                  className="mt-2"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Nombre completo</label>
-                <Input
-                  value={profile.full_name || ""}
-                  onChange={(e) =>
-                    setProfile({ ...profile, full_name: e.target.value })
-                  }
-                  placeholder="Tu nombre"
-                  className="mt-2"
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label className="text-sm font-medium">Teléfono</label>
-                <Input
-                  value={profile.phone || ""}
-                  onChange={(e) =>
-                    setProfile({ ...profile, phone: e.target.value })
-                  }
-                  placeholder="Tu número"
-                  className="mt-2"
-                />
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field>
+                  <FieldLabel>Usuario</FieldLabel>
+                  <Input
+                    value={profile.username || ""}
+                    onChange={(e) =>
+                      setProfile({ ...profile, username: e.target.value })
+                    }
+                    placeholder="Tu usuario"
+                  />
+                </Field>
+                <Field>
+                  <FieldLabel>Nombre completo</FieldLabel>
+                  <Input
+                    value={profile.full_name || ""}
+                    onChange={(e) =>
+                      setProfile({ ...profile, full_name: e.target.value })
+                    }
+                    placeholder="Tu nombre"
+                  />
+                </Field>
               </div>
 
-              <div>
-                <label className="text-sm font-medium">
-                  Fecha de nacimiento
-                </label>
-                <div className="mt-2">
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field>
+                  <FieldLabel>Teléfono</FieldLabel>
+                  <Input
+                    value={profile.phone || ""}
+                    onChange={(e) =>
+                      setProfile({ ...profile, phone: e.target.value })
+                    }
+                    placeholder="Tu número"
+                  />
+                </Field>
+
+                <Field>
+                  <FieldLabel>Fecha de nacimiento</FieldLabel>
                   <DatePicker
                     date={
                       profile.birth_date
@@ -334,13 +308,11 @@ export function UserProfileContent({
                     }
                     placeholder="Tu fecha"
                   />
-                </div>
+                </Field>
               </div>
-            </div>
 
-            <div>
-              <label className="text-sm font-medium">Género</label>
-              <div className="mt-2">
+              <Field>
+                <FieldLabel>Género</FieldLabel>
                 <Select
                   value={profile.gender || ""}
                   onValueChange={(value) =>
@@ -359,8 +331,8 @@ export function UserProfileContent({
                     <SelectItem value="other">Otro</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-            </div>
+              </Field>
+            </FieldGroup>
           </CardContent>
         </Card>
 
@@ -369,11 +341,11 @@ export function UserProfileContent({
           <CardHeader>
             <CardTitle>Perfil de fitness</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label className="text-sm font-medium">Objetivo</label>
-                <div className="mt-2">
+          <CardContent>
+            <FieldGroup>
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field>
+                  <FieldLabel>Objetivo</FieldLabel>
                   <Select
                     value={profile.fitness_goal || ""}
                     onValueChange={(value) =>
@@ -391,12 +363,10 @@ export function UserProfileContent({
                       <SelectItem value="endurance">Resistencia</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-              </div>
+                </Field>
 
-              <div>
-                <label className="text-sm font-medium">Experiencia</label>
-                <div className="mt-2">
+                <Field>
+                  <FieldLabel>Experiencia</FieldLabel>
                   <Select
                     value={profile.experience_level || ""}
                     onValueChange={(value) =>
@@ -412,11 +382,23 @@ export function UserProfileContent({
                       <SelectItem value="advanced">Avanzado</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
+                </Field>
               </div>
-            </div>
+            </FieldGroup>
           </CardContent>
         </Card>
+
+        {/* Sticky Mobile Save Action for Profile info */}
+        <div className="sticky bottom-0 z-10 -mx-6 -mt-2 border-t bg-background/80 p-6 backdrop-blur-md md:static md:mx-0 md:mt-0 md:bg-transparent md:p-0 md:pt-2 md:border-none">
+          <Button
+            onClick={handleSaveProfile}
+            size="lg"
+            className="w-full gap-2 sm:w-auto"
+            disabled={saving}
+          >
+            {saving ? "Guardando…" : "Guardar cambios de perfil"}
+          </Button>
+        </div>
 
         {/* Pain / Injury Intake */}
         {clientId ? (
@@ -433,10 +415,11 @@ export function UserProfileContent({
                 dolor activo, evitamos subidas agresivas de carga y priorizamos
                 continuidad y seguridad.
               </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="text-sm font-medium">Zona</label>
-                  <div className="mt-2">
+
+              <FieldGroup>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field>
+                    <FieldLabel>Zona</FieldLabel>
                     <Select value={painRegion} onValueChange={setPainRegion}>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Selecciona una zona" />
@@ -446,9 +429,7 @@ export function UserProfileContent({
                         <SelectItem value="hombro">Hombro</SelectItem>
                         <SelectItem value="codo">Codo</SelectItem>
                         <SelectItem value="muñeca">Muñeca</SelectItem>
-                        <SelectItem value="espalda_baja">
-                          Espalda baja
-                        </SelectItem>
+                        <SelectItem value="espalda_baja">Espalda baja</SelectItem>
                         <SelectItem value="rodilla">Rodilla</SelectItem>
                         <SelectItem value="cadera">Cadera</SelectItem>
                         <SelectItem value="tobillo">Tobillo</SelectItem>
@@ -456,44 +437,41 @@ export function UserProfileContent({
                         <SelectItem value="otro">Otro</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
+                  </Field>
+
+                  <Field>
+                    <FieldLabel>Severidad (0-10)</FieldLabel>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={10}
+                      value={painSeverity}
+                      onChange={(e) =>
+                        setPainSeverity(
+                          Math.max(0, Math.min(10, Number(e.target.value) || 0)),
+                        )
+                      }
+                    />
+                  </Field>
                 </div>
-                <div>
-                  <label className="text-sm font-medium">
-                    Severidad (0-10)
-                  </label>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={10}
-                    value={painSeverity}
-                    onChange={(e) =>
-                      setPainSeverity(
-                        Math.max(0, Math.min(10, Number(e.target.value) || 0)),
-                      )
-                    }
-                    className="mt-2"
+
+                <Field>
+                  <FieldLabel>Notas</FieldLabel>
+                  <Textarea
+                    value={painNotes}
+                    onChange={(e) => setPainNotes(e.target.value)}
+                    placeholder="¿Qué sientes? ¿Cuándo aparece? ¿Qué lo empeora/mejora?"
                   />
-                </div>
-              </div>
+                </Field>
 
-              <div>
-                <label className="text-sm font-medium">Notas</label>
-                <Textarea
-                  value={painNotes}
-                  onChange={(e) => setPainNotes(e.target.value)}
-                  placeholder="¿Qué sientes? ¿Cuándo aparece? ¿Qué lo empeora/mejora?"
-                  className="mt-2"
-                />
-              </div>
-
-              <Button
-                onClick={handleSavePainReport}
-                disabled={painSaving}
-                className="w-full"
-              >
-                {painSaving ? "Guardando…" : "Guardar reporte"}
-              </Button>
+                <Button
+                  onClick={handleSavePainReport}
+                  disabled={painSaving}
+                  className="w-full"
+                >
+                  {painSaving ? "Guardando…" : "Guardar reporte"}
+                </Button>
+              </FieldGroup>
 
               {activePainReports.length > 0 ? (
                 <div className="flex flex-col gap-2">
