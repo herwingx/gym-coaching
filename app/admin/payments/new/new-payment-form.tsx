@@ -35,6 +35,7 @@ import { registerPayment } from "@/app/actions/payments";
 import { toast } from "sonner";
 import { addDays, format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { unstable_rethrow } from "next/navigation";
 
 interface Client {
   id: string;
@@ -115,9 +116,8 @@ export function NewPaymentForm({ clients, plans }: NewPaymentFormProps) {
     try {
       await registerPayment(formData);
       toast.success("¡Pago registrado correctamente!");
-      router.push("/admin/payments");
-      router.refresh();
     } catch (error) {
+      unstable_rethrow(error);
       toast.error(
         "No pudimos registrar el pago. Revisa los datos e intenta de nuevo.",
       );

@@ -1,26 +1,27 @@
-'use client'
+"use client";
 
-import dynamic from 'next/dynamic'
-import { Spinner } from '@/components/ui/spinner'
-import type { ChatViewProps } from '@/components/chat/chat-view'
+import dynamic from "next/dynamic";
+import { ChatShellSkeleton } from "@/components/skeletons/chat-shell-skeleton";
+import type { ChatViewProps } from "@/components/chat/chat-view";
 
 const ChatViewDynamic = dynamic(
-  () => import('@/components/chat/chat-view').then((m) => ({ default: m.ChatView })),
+  () =>
+    import("@/components/chat/chat-view").then((m) => ({ default: m.ChatView })),
   {
     ssr: true,
-    loading: () => (
-      <div
-        className="flex min-h-[50dvh] flex-1 flex-col items-center justify-center gap-3 bg-background text-muted-foreground"
-        aria-busy="true"
-        aria-label="Cargando chat"
-      >
-        <Spinner className="size-8" />
-        <span className="text-sm">Cargando mensajes…</span>
-      </div>
-    ),
+    loading: () => <ChatShellSkeleton role="admin" />,
   },
-)
+);
 
+/**
+ * Lazy loaded chat view with a specific skeleton for Admin/Client.
+ * Provides a high-fidelity placeholder that matches the "UI/UX Pro Max" tokens.
+ */
 export function ChatViewLazy(props: ChatViewProps) {
-  return <ChatViewDynamic {...props} />
+  return (
+    <div className="flex h-full w-full min-h-0 flex-1 flex-col overflow-hidden animate-in fade-in duration-500">
+      <ChatViewDynamic {...props} />
+    </div>
+  );
 }
+

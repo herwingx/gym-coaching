@@ -442,8 +442,8 @@ function ThreadPane({
             </div>
 
             {/* Text area + send */}
-            <div className="flex items-end gap-2">
-              <div className="relative flex-1">
+            <div className="flex items-end gap-2 pb-0.5">
+              <div className="relative flex-1 min-w-0">
                 <Textarea
                   ref={textareaRef}
                   value={input}
@@ -456,7 +456,7 @@ function ThreadPane({
                   }}
                   placeholder="Escribe un mensaje…"
                   rows={1}
-                  className="max-h-32 min-h-11 rounded-2xl pr-12 text-base sm:text-sm"
+                  className="max-h-[120px] min-h-11 w-full resize-none overflow-y-auto rounded-2xl pr-12 text-base scrollbar-hide sm:text-sm"
                   aria-label="Mensaje"
                 />
                 <Popover open={emojiOpen} onOpenChange={setEmojiOpen}>
@@ -494,7 +494,7 @@ function ThreadPane({
               <Button
                 type="button"
                 size="icon"
-                className="size-11 shrink-0 rounded-2xl"
+                className="mb-0.5 size-11 shrink-0 rounded-2xl shadow-sm active:scale-95 transition-all"
                 onClick={() => void handleSend()}
                 disabled={!input.trim() || sending}
                 aria-label="Enviar"

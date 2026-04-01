@@ -455,16 +455,13 @@ export function ClientProfileHub({
                             ) : null}
                           </div>
                         </div>
-                        <div className="text-[13px] sm:text-[14px] font-medium opacity-90 text-muted-foreground break-all">
+                        <div className="flex flex-col gap-0.5 text-[13px] sm:text-[14px] font-medium opacity-90 text-muted-foreground items-center xs:items-start">
                           {client?.email ? (
-                            <span className="inline-block">{client.email}</span>
-                          ) : "Sin email"}
-                          {client?.phone && (
-                            <>
-                              <span className="mx-2 opacity-30 hidden xs:inline">·</span>
-                              <span className="inline-block">{client.phone}</span>
-                            </>
+                            <span className="break-all">{client.email}</span>
+                          ) : (
+                            <span>Sin email</span>
                           )}
+                          {client?.phone && <span className="break-all">{client.phone}</span>}
                         </div>
                         <div className="mt-1 flex flex-col items-center xs:items-start gap-3">
                           <div className="inline-flex flex-wrap items-center justify-center xs:justify-start gap-x-2 gap-y-1 text-sm bg-muted/30 rounded-xl px-4 py-2.5 w-full xs:w-fit border border-border/20">
@@ -488,14 +485,6 @@ export function ClientProfileHub({
                                 {getGoalLabel(client.goal)}
                               </Badge>
                             )}
-                            <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest border-border/60 py-1 px-2.5">
-                              Paso:{" "}
-                              {profile?.onboarding_completed ||
-                              client?.onboarding_completed ||
-                              (client?.user_id && client?.goal && client?.experience_level)
-                                ? "COMPLETADO"
-                                : "PENDIENTE"}
-                            </Badge>
                           </div>
                         </div>
                       </div>

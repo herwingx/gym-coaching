@@ -8,28 +8,33 @@ import { cn } from '@/lib/utils'
 function InboxAsideSkeleton() {
   return (
     <aside
-      className="hidden min-h-0 w-[min(100%,20rem)] shrink-0 flex-col border-r border-border bg-muted/20 md:flex"
+      className="hidden min-h-0 w-full flex-col border-r border-border bg-muted/10 backdrop-blur-sm md:flex md:w-[min(100%,20rem)] md:shrink-0"
       aria-hidden
     >
       {/* Header — matches AdminPageHeader structure */}
-      <header className="shrink-0 border-b border-border bg-background/80 backdrop-blur-md">
-        <div className="flex flex-col gap-2.5 px-4 py-3">
+      <header className="shrink-0 border-b border-border/50 bg-background/80 backdrop-blur-xl safe-area-header-pt min-h-[76px] sm:min-h-[112px] flex flex-col justify-center">
+        <div className="flex flex-col gap-3 px-4 py-3 sm:px-6">
           <div className="flex items-center gap-3">
-            {/* Sidebar trigger placeholder (md+) */}
-            <Skeleton className="size-8 shrink-0 rounded-md" />
-            <Skeleton className="h-7 w-24" />
+            <Skeleton className="size-11 shrink-0 rounded-xl overflow-hidden ring-1 ring-border/50 shadow-md bg-primary/5 flex items-center justify-center p-1.5" />
+            <Skeleton className="h-7 w-32 rounded-xl" />
           </div>
           {/* Search bar */}
-          <Skeleton className="h-10 w-full rounded-md" />
+          <Skeleton className="h-10 w-full rounded-2xl" />
         </div>
       </header>
       <ul className="flex-1 space-y-0 overflow-hidden" role="presentation">
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <li key={i} className="flex items-center gap-3 border-l-[3px] border-l-transparent px-4 py-3">
+          <li key={i} className={cn(
+            "flex items-center gap-3 px-4 py-3 border-l-[3px] border-l-transparent",
+            i === 1 && "bg-primary/5 border-l-primary"
+          )}>
             <Skeleton className="size-11 shrink-0 rounded-full" />
             <div className="min-w-0 flex-1 space-y-2">
-              <Skeleton className="h-4 w-3/4 max-w-40" />
-              <Skeleton className="h-3 w-full max-w-48" />
+              <div className="flex items-center justify-between gap-2">
+                <Skeleton className="h-4 w-2/3 rounded-md" />
+                <Skeleton className="h-3 w-10 rounded-md opacity-40 tabular-nums" />
+              </div>
+              <Skeleton className="h-3 w-full rounded-md opacity-60" />
             </div>
           </li>
         ))}
@@ -43,20 +48,21 @@ function InboxAsideSkeleton() {
  * Matches the real ThreadPane component header structure:
  * sticky header with container + leading icon + avatar + peer info.
  */
-function ThreadPaneSkeleton({ variant }: { variant: 'admin' | 'client' }) {
+function ThreadPaneSkeleton({ role }: { role: 'admin' | 'client' }) {
   return (
     <section className="flex min-h-0 min-w-0 flex-1 flex-col" aria-busy="true" aria-label="Cargando chat">
       {/* Thread header — matches consistent app header */}
       <header className="shrink-0 border-b border-border/50 bg-background/80 backdrop-blur-xl safe-area-header-pt min-h-[76px] sm:min-h-[112px] flex items-center">
         <div className="w-full flex flex-row items-center gap-4 px-4 sm:px-6 md:px-8">
-          {/* Back icon placeholder */}
-          <Skeleton className="size-10 sm:size-11 shrink-0 rounded-full" />
+          {/* Leading icon / Back placeholder */}
+          <Skeleton className="size-10 sm:size-11 shrink-0 rounded-full md:hidden" />
+          
           {/* Avatar + Peer info */}
-          <div className="flex items-center gap-3 flex-1">
-             <Skeleton className="size-10 sm:size-12 shrink-0 rounded-full" />
-             <div className="min-w-0 flex flex-col gap-1.5">
+          <div className="flex items-center gap-3 flex-1 h-full">
+             <Skeleton className="size-10 sm:size-11 shrink-0 rounded-full ring-2 ring-primary/10" />
+             <div className="min-w-0 flex flex-col gap-1.5 justify-center">
                <Skeleton className="h-5 w-32 sm:w-48 rounded-lg" />
-               <Skeleton className="h-3 w-20 rounded-md opacity-60" />
+               <Skeleton className="h-3 w-20 rounded-md opacity-40 uppercase tracking-widest" />
              </div>
           </div>
         </div>
@@ -97,11 +103,12 @@ function ThreadPaneSkeleton({ variant }: { variant: 'admin' | 'client' }) {
   )
 }
 
-export function ChatShellSkeleton({ variant }: { variant: 'admin' | 'client' }) {
+export function ChatShellSkeleton({ role }: { role: string }) {
+  const isAdmin = role === 'admin'
   return (
-    <div className="flex min-h-0 flex-1 bg-background">
-      {variant === 'admin' ? <InboxAsideSkeleton /> : null}
-      <ThreadPaneSkeleton variant={variant} />
+    <div className="flex min-h-0 flex-1 bg-background h-full">
+      {isAdmin ? <InboxAsideSkeleton /> : null}
+      <ThreadPaneSkeleton role={isAdmin ? 'admin' : 'client'} />
     </div>
   )
 }
