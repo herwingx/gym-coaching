@@ -176,6 +176,8 @@ export async function updateClient(clientId: string, formData: FormData) {
   redirect(`/admin/clients/${clientId}`);
 }
 
+import { createAdminClient } from "@/lib/supabase/admin";
+
 export async function deleteClient(clientId: string) {
   const user = await getAuthUser();
   const profile = await getUserProfile();
@@ -186,14 +188,38 @@ export async function deleteClient(clientId: string) {
 
   const supabase = await createClient();
 
-  const { error } = await supabase
+  // First fetch the client to check if they have an associated user_id
+  const { data: clientToDelete, error: fetchError } = await supabase
     .from("clients")
-    .delete()
+    .select("user_id")
     .eq("id", clientId)
-    .eq("coach_id", user.id);
+    .eq("coach_id", user.id)
+    .single();
 
-  if (error) {
-    return { success: false, error: error.message };
+  if (fetchError || !clientToDelete) {
+    return { success: false, error: fetchError?.message || "Cliente no encontrado" };
+  }
+
+  // If the client has registered and has a user_id, wiping their auth account cleans up everything thanks to ON DELETE CASCADE
+  if (clientToDelete.user_id) {
+    const adminAuth = createAdminClient();
+    const { error: deleteAuthError } = await adminAuth.auth.admin.deleteUser(
+      clientToDelete.user_id
+    );
+    if (deleteAuthError) {
+      return { success: false, error: deleteAuthError.message };
+    }
+  } else {
+    // If the client never registered, just delete the client row
+    const { error } = await supabase
+      .from("clients")
+      .delete()
+      .eq("id", clientId)
+      .eq("coach_id", user.id);
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
   }
 
   return { success: true };

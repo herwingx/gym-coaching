@@ -26,6 +26,11 @@ interface OnboardingData {
   userId: string;
   fullName: string;
   username: string;
+  phone?: string;
+  birthDate?: string;
+  gender?: string;
+  height?: number;
+  initialWeight?: number;
   fitnessGoal: FitnessGoal;
   experienceLevel: ExperienceLevel;
   notificationsEnabled?: boolean;
@@ -53,13 +58,16 @@ export async function completeOnboarding(data: OnboardingData) {
     .single();
 
   if (existingUser) {
-    return { success: false, error: "Este nombre de usuario ya esta en uso" };
+    return { success: false, error: "Este nombre de usuario ya está en uso" };
   }
 
   // Update profile (admin bypassa RLS, evita recursión)
   const profileUpdate: Record<string, unknown> = {
     full_name: data.fullName,
     username: data.username,
+    phone: data.phone || null,
+    birth_date: data.birthDate || null,
+    gender: data.gender || null,
     fitness_goal: data.fitnessGoal,
     experience_level: data.experienceLevel,
     onboarding_completed: true,
@@ -100,27 +108,25 @@ export async function completeOnboarding(data: OnboardingData) {
 
   if (!existingClient && user.email) {
     // Fallback: cliente pre-creado por admin con mismo email pero sin user_id
-    // (useInvitationCode pudo fallar si no hubo sesión en signup)
     const { data: clientByEmail } = await admin
       .from("clients")
-      .select("id, coach_id")
+      .select("id, coach_id, goal, experience_level, full_name")
       .eq("email", user.email)
       .is("user_id", null)
       .limit(1)
       .maybeSingle();
 
     if (clientByEmail) {
-      const { data: clientData } = await admin
-        .from("clients")
-        .select("goal, experience_level, full_name")
-        .eq("id", clientByEmail.id)
-        .single();
-
-      const preserveAdminData =
-        clientData?.goal && clientData?.experience_level;
+      const preserveAdminData = clientByEmail.goal && clientByEmail.experience_level;
       const updatePayload: Record<string, unknown> = {
         user_id: data.userId,
         full_name: data.fullName,
+        phone: data.phone || null,
+        birth_date: data.birthDate || null,
+        gender: data.gender || null,
+        height: data.height || null,
+        initial_weight: data.initialWeight || null,
+        current_weight: data.initialWeight || null,
         onboarding_completed: true,
       };
       if (!preserveAdminData) {
@@ -168,8 +174,13 @@ export async function completeOnboarding(data: OnboardingData) {
         user_id: data.userId,
         coach_id: coachId,
         full_name: data.fullName,
-        phone: "",
+        phone: data.phone || null,
         email: user.email || "",
+        birth_date: data.birthDate || null,
+        gender: data.gender || null,
+        height: data.height || null,
+        initial_weight: data.initialWeight || null,
+        current_weight: data.initialWeight || null,
         goal: clientGoal,
         experience_level: data.experienceLevel,
         status: "active",
