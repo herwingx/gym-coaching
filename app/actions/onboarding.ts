@@ -106,7 +106,29 @@ export async function completeOnboarding(data: OnboardingData) {
     .eq("user_id", data.userId)
     .maybeSingle();
 
-  if (!existingClient && user.email) {
+  const clientUpdatePayload: Record<string, unknown> = {
+    full_name: data.fullName,
+    phone: data.phone || null,
+    birth_date: data.birthDate || null,
+    gender: data.gender || null,
+    height: data.height || null,
+    initial_weight: data.initialWeight || null,
+    current_weight: data.initialWeight || null,
+    goal: clientGoal,
+    experience_level: data.experienceLevel,
+  };
+
+  if (existingClient) {
+    // Si el cliente ya existe vinculado, actualizamos sus datos
+    const { error: updateError } = await admin
+      .from("clients")
+      .update(clientUpdatePayload)
+      .eq("id", existingClient.id);
+      
+    if (updateError) {
+      console.error("Error updating existing client with onboarding data:", updateError);
+    }
+  } else if (user.email) {
     // Fallback: cliente pre-creado por admin con mismo email pero sin user_id
     const { data: clientByEmail } = await admin
       .from("clients")
@@ -127,7 +149,6 @@ export async function completeOnboarding(data: OnboardingData) {
         height: data.height || null,
         initial_weight: data.initialWeight || null,
         current_weight: data.initialWeight || null,
-        onboarding_completed: true,
       };
       if (!preserveAdminData) {
         updatePayload.goal = clientGoal;
@@ -184,7 +205,6 @@ export async function completeOnboarding(data: OnboardingData) {
         goal: clientGoal,
         experience_level: data.experienceLevel,
         status: "active",
-        onboarding_completed: true,
       });
 
       if (clientError) {
@@ -251,11 +271,6 @@ export async function trySkipOnboardingForPreCreatedClient(
     console.error("[trySkipOnboarding] Error:", error);
     return { skipped: false };
   }
-
-  await admin
-    .from("clients")
-    .update({ onboarding_completed: true })
-    .eq("id", client.id);
 
   return {
     skipped: true,
