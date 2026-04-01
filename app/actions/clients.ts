@@ -31,6 +31,17 @@ export async function createNewClient(formData: FormData) {
   const phone = formData.get("phone") as string;
   const notes = formData.get("notes") as string;
 
+  // Check if email already exists in profiles (includes admins)
+  const { data: existingProfile } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("email", email)
+    .single();
+
+  if (existingProfile) {
+    throw new Error("Este correo ya está registrado en el sistema. Los asesores deben usar correos únicos.");
+  }
+
   const clientId = crypto.randomUUID();
 
   const { data, error } = await supabase
