@@ -32,7 +32,7 @@ export function NewInvitationForm() {
 
     try {
       const result = await createInvitationCode(formData);
-      if (result.success) {
+      if (result && result.success) {
         toast.success(
           `¡Código ${result.code} generado! Cópialo y compártelo cuando quieras.`,
         );
@@ -40,7 +40,7 @@ export function NewInvitationForm() {
         // But since we want to clear the form:
         form.reset();
       } else {
-        toast.error("No pudimos generar el código. Intenta de nuevo.");
+        toast.error(result?.error || "No pudimos generar el código. Intenta de nuevo.");
       }
     } catch (error) {
       toast.error("No pudimos generar el código. Revisa tu conexión.");

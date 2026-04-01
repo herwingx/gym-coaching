@@ -7,6 +7,7 @@ import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
+  InputOTPSeparator,
 } from '@/components/ui/input-otp'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, Suspense } from 'react'
@@ -115,32 +116,37 @@ function VerifyOtpFormInner({
       <div className="flex flex-col items-center gap-2 text-center overflow-hidden">
         <h1 className="text-2xl font-bold tracking-tight">Verifica tu correo</h1>
         <p className="text-sm text-balance text-muted-foreground">
-          Enviamos un código de 6 dígitos a <span className="font-medium text-foreground">{email || "tu correo"}</span>.
+          Enviamos un código de 8 dígitos a <span className="font-medium text-foreground">{email || "tu correo"}</span>.
           Ingrésalo abajo para activar tu cuenta.
         </p>
       </div>
 
       <form onSubmit={handleVerify} className="flex flex-col items-center gap-6 w-full">
         <InputOTP
-          maxLength={6}
+          maxLength={8}
           value={token}
           onChange={setToken}
           disabled={isLoading || isResending}
           autoFocus
         >
           <InputOTPGroup>
-            <InputOTPSlot index={0} className="w-12 h-14 text-2xl font-semibold" />
-            <InputOTPSlot index={1} className="w-12 h-14 text-2xl font-semibold" />
-            <InputOTPSlot index={2} className="w-12 h-14 text-2xl font-semibold" />
-            <InputOTPSlot index={3} className="w-12 h-14 text-2xl font-semibold" />
-            <InputOTPSlot index={4} className="w-12 h-14 text-2xl font-semibold" />
-            <InputOTPSlot index={5} className="w-12 h-14 text-2xl font-semibold" />
+            <InputOTPSlot index={0} className="w-9 h-12 sm:w-12 sm:h-14 text-xl sm:text-2xl font-semibold" />
+            <InputOTPSlot index={1} className="w-9 h-12 sm:w-12 sm:h-14 text-xl sm:text-2xl font-semibold" />
+            <InputOTPSlot index={2} className="w-9 h-12 sm:w-12 sm:h-14 text-xl sm:text-2xl font-semibold" />
+            <InputOTPSlot index={3} className="w-9 h-12 sm:w-12 sm:h-14 text-xl sm:text-2xl font-semibold" />
+          </InputOTPGroup>
+          <InputOTPSeparator />
+          <InputOTPGroup>
+            <InputOTPSlot index={4} className="w-9 h-12 sm:w-12 sm:h-14 text-xl sm:text-2xl font-semibold" />
+            <InputOTPSlot index={5} className="w-9 h-12 sm:w-12 sm:h-14 text-xl sm:text-2xl font-semibold" />
+            <InputOTPSlot index={6} className="w-9 h-12 sm:w-12 sm:h-14 text-xl sm:text-2xl font-semibold" />
+            <InputOTPSlot index={7} className="w-9 h-12 sm:w-12 sm:h-14 text-xl sm:text-2xl font-semibold" />
           </InputOTPGroup>
         </InputOTP>
 
         <Button
           type="submit"
-          disabled={isLoading || token.length !== 6}
+          disabled={isLoading || token.length !== 8}
           className="w-full h-11 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold transition-all duration-200"
         >
           {isLoading ? (
