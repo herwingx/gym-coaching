@@ -5,11 +5,13 @@ import { CLIENT_DATA_PAGE_SHELL } from '@/components/client/client-app-page-part
 export function ClientStackPageHeaderSkeleton() {
   return (
     <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl safe-area-header-pt min-h-[76px] sm:min-h-[112px] flex items-center" aria-hidden>
-      <div className="w-full flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:py-0 px-4 sm:px-6 md:px-8">
-        <div className="flex min-w-0 items-center gap-4">
-          <Skeleton className="size-10 sm:size-11 shrink-0 rounded-full" />
-          <div className="min-w-0 flex flex-col gap-2">
-            <Skeleton className="h-4 sm:h-5 w-24 sm:w-32 rounded-lg opacity-40" />
+      <div className="w-full h-full flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:py-0 px-4 sm:px-6 md:px-8">
+        <div className="flex min-w-0 items-center gap-4 h-full">
+          <div className="shrink-0 flex items-center h-full">
+             <Skeleton className="size-10 sm:size-11 rounded-full" />
+          </div>
+          <div className="min-w-0 flex flex-col justify-center py-1 sm:h-full gap-1.5">
+            <Skeleton className="h-3 sm:h-3.5 w-16 sm:w-20 rounded-[4px] opacity-40" />
             <Skeleton className="h-7 sm:h-9 w-48 sm:w-64 rounded-xl" />
             <Skeleton className="h-3.5 sm:h-4 w-32 sm:w-48 rounded-lg opacity-60" />
           </div>

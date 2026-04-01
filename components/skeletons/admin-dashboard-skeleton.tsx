@@ -24,22 +24,24 @@ export function AdminDashboardSkeleton() {
       <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl safe-area-header-pt min-h-[76px] sm:min-h-[112px] flex items-center">
         <div className="w-full h-full flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:py-0 px-4 sm:px-6 md:px-8">
           <div className="flex min-w-0 items-center gap-4 h-full">
-            <Skeleton className="size-10 sm:size-11 shrink-0 rounded-full" />
-            <div className="min-w-0 flex flex-col justify-center py-1">
-              <Skeleton className="h-3.5 w-24 rounded-md opacity-40 uppercase tracking-[0.2em] mb-1.5" />
+            <div className="shrink-0 flex items-center h-full">
+              <Skeleton className="size-10 sm:size-11 rounded-full" />
+            </div>
+            <div className="min-w-0 flex flex-col justify-center py-1 sm:h-full gap-1.5">
+              <Skeleton className="h-3.5 w-24 rounded-md opacity-40 uppercase tracking-[0.2em]" />
               <Skeleton className="h-7 sm:h-9 w-48 sm:w-64 rounded-xl" />
-              <Skeleton className="mt-1.5 h-3.5 w-64 rounded-md opacity-60" />
+              <Skeleton className="h-3.5 w-64 rounded-md opacity-60" />
             </div>
           </div>
-          <div className="flex w-full flex-wrap gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end shrink-0">
+          <div className="flex w-full flex-wrap gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end shrink-0 sm:h-full">
             {[1, 2].map((i) => (
-              <Skeleton key={i} className="h-11 w-32 rounded-2xl" />
+              <Skeleton key={i} className="h-10 sm:h-11 w-32 rounded-2xl" />
             ))}
           </div>
         </div>
       </header>
 
-      <main className="px-4 sm:px-6 md:px-8 py-8">
+      <main className="container py-4 sm:py-6 lg:py-8">
         <div className="flex flex-1 flex-col gap-8 lg:gap-12">
           <section className="flex flex-col gap-6" aria-hidden>
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

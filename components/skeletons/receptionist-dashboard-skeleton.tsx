@@ -6,15 +6,19 @@ export function ReceptionistDashboardSkeleton() {
     <div className="min-h-dvh bg-background">
       <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl safe-area-header-pt min-h-[76px] sm:min-h-[112px] flex items-center">
         <div className="w-full h-full flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:py-0 px-4 sm:px-6 md:px-8">
-          <div className="min-w-0 flex flex-col justify-center">
-            <Skeleton className="h-7 sm:h-9 w-48 sm:w-64 rounded-xl" />
-            <Skeleton className="h-3.5 w-36 mt-1.5 rounded-md opacity-60" />
+          <div className="flex min-w-0 items-center gap-4 h-full">
+            <div className="min-w-0 flex flex-col justify-center py-1 sm:h-full gap-1.5">
+              <Skeleton className="h-7 sm:h-9 w-48 sm:w-64 rounded-xl" />
+              <Skeleton className="h-3.5 w-36 rounded-md opacity-60" />
+            </div>
           </div>
-          <Skeleton className="h-11 w-full sm:w-36 rounded-2xl" />
+          <div className="flex w-full flex-wrap gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end shrink-0 sm:h-full">
+             <Skeleton className="h-10 sm:h-11 w-full sm:w-36 rounded-2xl" />
+          </div>
         </div>
       </header>
 
-      <main className="px-4 sm:px-6 md:px-8 py-8">
+      <main className="container py-8">
         <div className="grid gap-8">
           {/* Welcome card */}
           <Card className="border-border/50 shadow-md ring-1 ring-primary/5 rounded-3xl bg-card/60 backdrop-blur-sm p-2">
