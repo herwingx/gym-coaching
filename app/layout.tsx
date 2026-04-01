@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "sonner";
 import { PWASetup } from "@/components/pwa-setup";
 import { PWAInstallCTA } from "@/components/pwa-install-cta";
+import { PersonSchema, OrganizationSchema } from "@/components/seo-schema";
 import "./globals.css";
 
 const geist = Geist({
@@ -18,9 +19,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "RU Coach | Rodrigo Urbina - Entrenamiento Personal Premium",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://ru-coach.app"),
+  title: {
+    default: "Entrenamiento Personal Premium | RU Coach - Rodrigo Urbina",
+    template: "%s | RU Coach",
+  },
   description:
-    "Eleva tu entrenamiento con Rodrigo Urbina. Seguimiento avanzado, progresión automática y coaching de élite en RU Coach.",
+    "Transforma tu físico con el coaching de élite de Rodrigo Urbina en RU Coach. Progresión automática, seguimiento avanzado y resultados garantizados. ¡Comienza hoy!",
   manifest: "/manifest.json",
   keywords: [
     "Rodrigo Urbina",
@@ -34,13 +39,20 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Rodrigo Urbina" }],
   openGraph: {
-    title:
-      "RU Coach - Rodrigo Urbina | Tu plataforma de entrenamiento personal",
+    title: "RU Coach | Rodrigo Urbina - Entrenamiento Personal Premium",
     description:
-      "La plataforma definitiva para el seguimiento de fitness de élite, diseñada por Rodrigo Urbina.",
+      "La plataforma de fitness definitiva para el seguimiento de entrenamiento de élite, diseñada por Rodrigo Urbina.",
     type: "website",
     url: "https://ru-coach.app",
     siteName: "RU Coach",
+    images: [
+      {
+        url: "/android-chrome-512x512.png",
+        width: 512,
+        height: 512,
+        alt: "RU Coach Premium Fitness",
+      },
+    ],
   },
   icons: {
     icon: [
@@ -74,25 +86,9 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta
-          name="apple-mobile-web-app-status-bar-style"
-          content="black-translucent"
-        />
-        <meta name="apple-mobile-web-app-title" content="RU Coach" />
-        <meta
-          name="theme-color"
-          content="#0A0A0A"
-          media="(prefers-color-scheme: dark)"
-        />
-        <meta
-          name="theme-color"
-          content="#FAFAFA"
-          media="(prefers-color-scheme: light)"
-        />
-        <meta name="msapplication-TileColor" content="#e5a84d" />
         <link rel="alternate" href="https://ru-coach.app" hrefLang="es" />
+        <PersonSchema />
+        <OrganizationSchema />
       </head>
       <body
         className={`${geist.variable} ${geistMono.variable} font-sans antialiased min-h-dvh`}

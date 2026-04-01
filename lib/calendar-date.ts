@@ -20,12 +20,22 @@ export function formatDateKeyLocal(dateKey: string, locale: string, options?: In
 }
 
 /** Días enteros desde un instante ISO hasta ahora (misma lógica que el dashboard coach). */
-export function diffWholeDaysFromNow(fromIso?: string | null): number | null {
+export function diffWholeDaysFromNow(fromIso?: string | null, now = new Date()): number | null {
   if (!fromIso) return null
   const from = new Date(fromIso)
   if (Number.isNaN(from.getTime())) return null
-  const now = new Date()
   return Math.floor((now.getTime() - from.getTime()) / (1000 * 60 * 60 * 24))
+}
+
+/**
+ * Returns a Date object representing "now" but in the specific timezone.
+ * Useful for server-side calculations where process.env.TZ might be UTC.
+ */
+export function getNowInTimezone(timeZone: string): Date {
+  const now = new Date()
+  // Adjust the date string based on the timezone and parse it back to a Date object
+  const tzString = now.toLocaleString('en-US', { timeZone })
+  return new Date(tzString)
 }
 
 /** Útil para comparar `clients.membership_end` vs `payments.period_end`. */

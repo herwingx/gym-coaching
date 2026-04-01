@@ -1,7 +1,13 @@
 import { SignupForm } from "@/components/signup-form";
 import { ThemeToggle } from "@/components/theme-toggle";
-
 import Link from "next/link";
+import Image from "next/image";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Crea tu cuenta",
+  description: "Únete a la plataforma RU Coach de Rodrigo Urbina y comienza tu transformación hoy mismo.",
+};
 
 export default async function SignUpPage() {
   return (
@@ -36,10 +42,13 @@ export default async function SignUpPage() {
         </div>
       </div>
       <div className="relative hidden bg-muted lg:block">
-        <img
+        <Image
           src="/img-login.jpg"
           alt="RU Coach Training"
+          fill
+          priority
           className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.4] dark:grayscale-[0.2] transition-all duration-500"
+          sizes="50vw"
         />
         <div className="absolute inset-0 bg-linear-to-t from-background/80 via-transparent to-transparent lg:from-background/20" />
       </div>

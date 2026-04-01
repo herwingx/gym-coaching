@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { calculateLevel, type RoutineDay } from "@/lib/types";
 import { CLIENT_DASHBOARD_SESSIONS_CAP } from "@/lib/performance-limits";
 import { getNextRoutineDay } from "@/lib/next-routine-day";
+import { getNowInTimezone } from "@/lib/calendar-date";
 import { ClientDashboardContent } from "./client-dashboard-content";
 
 export default async function ClientDashboard() {
@@ -16,10 +17,6 @@ export default async function ClientDashboard() {
   const supabase = await createClient();
 
   // Batch 1: client, userAchievements (independent, only need user.id)
-  const startOfMonth = new Date();
-  startOfMonth.setDate(1);
-  startOfMonth.setHours(0, 0, 0, 0);
-
   const [clientRes, userAchievementsRes] = await Promise.all([
     supabase.from("clients").select("*").eq("user_id", user.id).single(),
     supabase
@@ -30,6 +27,24 @@ export default async function ClientDashboard() {
 
   const client = clientRes.data;
   const userAchievements = userAchievementsRes.data || [];
+
+  // Obtener zona horaria del gimnasio (vía coach del cliente)
+  let timeZone = "America/Mexico_City";
+  if (client?.coach_id) {
+    const { data: gymSettings } = await supabase
+      .from("gym_settings")
+      .select("timezone")
+      .eq("admin_id", client.coach_id)
+      .single();
+    if (gymSettings?.timezone) {
+      timeZone = gymSettings.timezone;
+    }
+  }
+  const nowInTz = getNowInTimezone(timeZone);
+
+  const startOfMonth = new Date(nowInTz);
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
 
   // Batch 2: workoutSessions, prsThisMonth, client_routines (need client.id)
   let workoutSessions:
@@ -130,9 +145,8 @@ export default async function ClientDashboard() {
   );
   const totalWorkoutsCompleted = completedSessions.length;
   const chartDataMap = new Map<string, number>();
-  const now = new Date();
   for (let i = 89; i >= 0; i--) {
-    const d = new Date(now);
+    const d = new Date(nowInTz);
     d.setDate(d.getDate() - i);
     d.setHours(0, 0, 0, 0);
     chartDataMap.set(d.toISOString().slice(0, 10), 0);

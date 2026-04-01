@@ -1,93 +1,45 @@
-"use client";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { PremiumSplash } from "@/components/ui/premium-splash";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
+/**
+ * Ru Coach | Homepage (Route: /)
+ *
+ * This is a server component that handles:
+ * 1. Auth check (via Supabase SSR)
+ * 2. Role-based redirection
+ * 3. Fallback to login
+ *
+ * While it performs the server-side work, Next.js will show the
+ * app-wide loading.tsx (which uses PremiumSplash).
+ */
+export default async function HomePage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-export default function HomePage() {
-  const router = useRouter();
+  if (!user) {
+    redirect("/auth/login");
+  }
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+  // Get user role and redirect to appropriate dashboard
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
 
-      if (!user) {
-        router.replace("/auth/login");
-        return;
-      }
+  const role = profile?.role || "client";
 
-      // Get user role and redirect to appropriate dashboard
-      const { data } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
+  if (role === "admin") {
+    redirect("/admin/dashboard");
+  } else if (role === "receptionist") {
+    redirect("/receptionist/dashboard");
+  } else {
+    redirect("/client/dashboard");
+  }
 
-      const role = data?.role || "client";
-
-      if (role === "admin") {
-        router.replace("/admin/dashboard");
-      } else if (role === "receptionist") {
-        router.replace("/receptionist/dashboard");
-      } else {
-        router.replace("/client/dashboard");
-      }
-    };
-
-    checkAuth();
-  }, [router]);
-
-  return (
-    <div
-      id="main-content"
-      className="min-h-dvh flex items-center justify-center bg-background"
-      tabIndex={-1}
-    >
-      <div className="text-center space-y-8">
-        <div className="flex justify-center">
-          <div className="size-20 rounded-3xl overflow-hidden shadow-2xl ring-1 ring-white/10 p-0.5 bg-gradient-to-br from-primary/20 to-transparent">
-            <img
-              src="/android-chrome-512x512.png"
-              alt="RU Coach Logo"
-              className="size-full object-cover rounded-[22px]"
-            />
-          </div>
-        </div>
-        <div className="space-y-3">
-          <div className="flex flex-col items-center">
-            <h1 className="text-4xl font-black tracking-tighter bg-gradient-to-br from-foreground to-foreground/60 bg-clip-text text-transparent uppercase">
-              RU Coach
-            </h1>
-            <span className="text-xs font-medium text-muted-foreground uppercase tracking-[0.3em] mt-1">
-              Rodrigo Urbina
-            </span>
-          </div>
-          <p className="text-sm text-muted-foreground/80 font-medium italic">
-            Cargando tu experiencia premium...
-          </p>
-        </div>
-        <div className="flex justify-center gap-2.5" aria-hidden="true">
-          <div
-            className="size-1.5 rounded-full bg-primary/80 animate-bounce motion-reduce:animate-none"
-            style={{ animationDelay: "0ms" }}
-            aria-hidden
-          />
-          <div
-            className="size-1.5 rounded-full bg-primary/80 animate-bounce motion-reduce:animate-none"
-            style={{ animationDelay: "150ms" }}
-            aria-hidden
-          />
-          <div
-            className="size-1.5 rounded-full bg-primary/80 animate-bounce motion-reduce:animate-none"
-            style={{ animationDelay: "300ms" }}
-            aria-hidden
-          />
-        </div>
-      </div>
-    </div>
-  );
+  // In the extremely unlikely event that redirection fails
+  return <PremiumSplash />;
 }

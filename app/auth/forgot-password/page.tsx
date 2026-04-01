@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/theme-toggle";
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
@@ -148,10 +149,13 @@ export default function ForgotPasswordPage() {
         </div>
       </div>
       <div className="relative hidden bg-muted lg:block">
-        <img
+        <Image
           src="/img-login.jpg"
           alt="RU Coach Training"
+          fill
+          priority
           className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.4] dark:grayscale-[0.2] transition-all duration-500"
+          sizes="50vw"
         />
         <div className="absolute inset-0 bg-linear-to-t from-background/80 via-transparent to-transparent lg:from-background/20" />
       </div>

@@ -1,5 +1,5 @@
-import { PageSkeleton } from "@/components/skeletons";
+import { PremiumSplash } from "@/components/ui/premium-splash";
 
 export default function Loading() {
-  return <PageSkeleton />;
+  return <PremiumSplash />;
 }

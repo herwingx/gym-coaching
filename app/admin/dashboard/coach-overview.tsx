@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { COACH_OVERVIEW_SESSIONS_CAP } from "@/lib/performance-limits";
 import { fetchLatestCompletedSessionByClients } from "@/lib/admin-client-rollups";
-import { diffWholeDaysFromNow } from "@/lib/calendar-date";
+import { diffWholeDaysFromNow, getNowInTimezone } from "@/lib/calendar-date";
 import { CoachOverviewClient } from "./coach-overview-client";
 
 export type CoachOverviewMetrics = {
@@ -120,6 +120,16 @@ export async function CoachOverview() {
 
   const clientIds = clientsList.map((c) => c.id).filter(Boolean);
 
+  // 1.5) Obtener zona horaria del gimnasio para reportes consistentes
+  const { data: gymSettings } = await supabase
+    .from("gym_settings")
+    .select("timezone")
+    .eq("admin_id", user.id)
+    .single();
+
+  const timeZone = gymSettings?.timezone || "America/Mexico_City";
+  const nowInTz = getNowInTimezone(timeZone);
+
   const latestCompletedByClient = await fetchLatestCompletedSessionByClients(
     supabase,
     clientIds,
@@ -229,19 +239,19 @@ export async function CoachOverview() {
   }
 
   // 4) Fetch workout sessions to compute trend + attention + metrics
-  const startOfWeek = new Date();
+  const startOfWeek = new Date(nowInTz);
   startOfWeek.setDate(startOfWeek.getDate() - 6);
   startOfWeek.setHours(0, 0, 0, 0);
 
-  const startOfLastWeek = new Date();
+  const startOfLastWeek = new Date(nowInTz);
   startOfLastWeek.setDate(startOfLastWeek.getDate() - 13);
   startOfLastWeek.setHours(0, 0, 0, 0);
 
-  const startOfMonth = new Date();
+  const startOfMonth = new Date(nowInTz);
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
 
-  const startOfLast30Days = new Date();
+  const startOfLast30Days = new Date(nowInTz);
   startOfLast30Days.setDate(startOfLast30Days.getDate() - 29);
   startOfLast30Days.setHours(0, 0, 0, 0);
 
@@ -296,7 +306,7 @@ export async function CoachOverview() {
 
   const monthStartMs = startOfMonth.getTime();
   const prevMonthStartMs = startOfPrevMonth.getTime();
-  const nowMs = Date.now();
+  const nowMs = nowInTz.getTime();
 
   const sessionIdsThisMonth = [
     ...new Set(
@@ -397,9 +407,8 @@ export async function CoachOverview() {
 
   // Chart data: sessions per day for last 90 days
   const chartDataMap = new Map<string, number>();
-  const now = new Date();
   for (let i = 89; i >= 0; i--) {
-    const d = new Date(now);
+    const d = new Date(nowInTz);
     d.setDate(d.getDate() - i);
     d.setHours(0, 0, 0, 0);
     chartDataMap.set(d.toISOString().slice(0, 10), 0);
@@ -447,7 +456,7 @@ export async function CoachOverview() {
       last?.started_at ??
       c.last_session_at ??
       null;
-    const daysSinceLastSession = diffWholeDaysFromNow(lastSessionAt);
+    const daysSinceLastSession = diffWholeDaysFromNow(lastSessionAt, nowInTz);
 
     const lastVol =
       typeof last?.total_volume_kg === "number" ? last.total_volume_kg : null;

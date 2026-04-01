@@ -1,7 +1,13 @@
 import { LoginForm } from "@/components/login-form";
 import { ThemeToggle } from "@/components/theme-toggle";
-
 import Link from "next/link";
+import Image from "next/image";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Iniciar Sesión",
+  description: "Accede a tu panel personalizado de coaching con Rodrigo Urbina en la plataforma RU Coach.",
+};
 
 export default async function LoginPage() {
   return (
@@ -36,10 +42,13 @@ export default async function LoginPage() {
         </div>
       </div>
       <div className="relative hidden bg-muted lg:block">
-        <img
+        <Image
           src="/img-login.jpg"
           alt="RU Coach Training"
+          fill
+          priority
           className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.4] dark:grayscale-[0.2] transition-all duration-500"
+          sizes="50vw"
         />
         {/* Overlay for better text readability and depth */}
         <div className="absolute inset-0 bg-linear-to-t from-background/80 via-transparent to-transparent lg:from-background/20" />
