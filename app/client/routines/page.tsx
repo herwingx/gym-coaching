@@ -18,11 +18,15 @@ import {
   TrendingUp,
   Info,
   Dumbbell,
+  CalendarDays,
+  RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
 import { ExerciseDetailDrawer } from "@/components/client/exercise-detail-drawer";
 import { ExerciseMedia } from "@/components/client/exercise-media";
 import { ClientRoutinesPageSkeleton } from "@/components/client/client-routines-skeleton";
+import { ExerciseSwapDrawer } from "@/components/client/exercise-swap-drawer";
+import { ScheduleOverrideDialog } from "@/components/client/schedule-override-dialog";
 import {
   CLIENT_DATA_PAGE_SHELL,
   ClientStackPageHeader,
@@ -120,6 +124,21 @@ export default function ClientRoutinesPage() {
   );
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
+  // --- Swap exercise ---
+  const [swapDrawerOpen, setSwapDrawerOpen] = useState(false);
+  const [swapTarget, setSwapTarget] = useState<{
+    clientRoutineId: string;
+    routineExerciseId: number;
+    exercise: Exercise;
+  } | null>(null);
+
+  // --- Schedule override ---
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+  const [scheduleRoutineId, setScheduleRoutineId] = useState<string>("");
+  const [trainDays, setTrainDays] = useState<
+    { id: string; day_number: number; day_name?: string | null; is_rest_day?: boolean | null }[]
+  >([]);
+
   const handleExerciseClick = (exercise: Exercise) => {
     setSelectedExercise(exercise);
     setIsDrawerOpen(true);
@@ -178,6 +197,17 @@ export default function ClientRoutinesPage() {
             normalized[0].id,
           );
           setSuggestions(progressSuggestions);
+
+          // Cargar días de entreno para el schedule override dialog
+          const { data: rDays } = await supabase
+            .from("routine_days")
+            .select("id, day_number, day_name, is_rest_day")
+            .eq("routine_id", clientRoutines[0].routine_id)
+            .order("day_number", { ascending: true });
+          setTrainDays(
+            (rDays ?? []).filter((d) => !d.is_rest_day)
+          );
+          setScheduleRoutineId(clientRoutines[0].id);
         }
       } catch (error) {
         toast.error("No pudimos cargar tus rutinas. Recarga la página.");
@@ -323,6 +353,17 @@ export default function ClientRoutinesPage() {
                       <div className="flex items-center gap-3">
                         <div className="size-2 rounded-full bg-primary animate-pulse" />
                         <h3 className="text-sm font-black uppercase tracking-[0.15em] text-foreground/80">Tu Próxima Cita</h3>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="ml-auto h-8 gap-1.5 rounded-full border border-border/50 px-3 text-xs font-semibold text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                          onClick={() => setScheduleDialogOpen(true)}
+                          aria-label="Cambiar sesión de hoy"
+                        >
+                          <CalendarDays className="size-3.5" />
+                          Cambiar sesión
+                        </Button>
                       </div>
 
                       {nw.isComplete ? (
@@ -357,7 +398,7 @@ export default function ClientRoutinesPage() {
                                       type="button"
                                       disabled={!exDetails}
                                       onClick={() => exDetails && handleExerciseClick(exDetails)}
-                                      className="group flex items-center gap-4 rounded-2xl border border-border/40 bg-background/50 p-3 text-left transition-all hover:bg-background hover:border-primary/30 hover:shadow-lg active:scale-[0.98]"
+                                      className="group relative flex items-center gap-4 rounded-2xl border border-border/40 bg-background/50 p-3 text-left transition-all hover:bg-background hover:border-primary/30 hover:shadow-lg active:scale-[0.98]"
                                     >
                                       <div className="relative size-14 shrink-0 overflow-hidden rounded-xl bg-muted">
                                         <ExerciseMedia
@@ -382,7 +423,28 @@ export default function ClientRoutinesPage() {
                                            </span>
                                         </div>
                                       </div>
-                                      <Info className="size-4 text-muted-foreground/40 group-hover:text-primary transition-colors mr-1" />
+                                      <div className="flex flex-col items-end gap-1">
+                                        <Info className="size-4 text-muted-foreground/40 group-hover:text-primary transition-colors" />
+                                        {exDetails && routines[0] && (
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              setSwapTarget({
+                                                clientRoutineId: routines[0].id,
+                                                routineExerciseId: Number(exercise.id),
+                                                exercise: exDetails,
+                                              });
+                                              setSwapDrawerOpen(true);
+                                            }}
+                                            className="rounded-full p-1 text-muted-foreground/40 hover:bg-amber-500/10 hover:text-amber-600 transition-colors"
+                                            aria-label={`Cambiar ${exDetails.name ?? 'ejercicio'} por alternativa`}
+                                            title="Cambiar ejercicio"
+                                          >
+                                            <RefreshCw className="size-3.5" />
+                                          </button>
+                                        )}
+                                      </div>
                                     </button>
                                   );
                                 })}
@@ -508,6 +570,37 @@ export default function ClientRoutinesPage() {
         open={isDrawerOpen}
         onOpenChange={setIsDrawerOpen}
         exercise={selectedExercise}
+      />
+
+      {/* Exercise Swap Drawer */}
+      {swapTarget && (
+        <ExerciseSwapDrawer
+          open={swapDrawerOpen}
+          onOpenChange={setSwapDrawerOpen}
+          clientRoutineId={swapTarget.clientRoutineId}
+          originalRoutineExerciseId={swapTarget.routineExerciseId}
+          originalExercise={swapTarget.exercise}
+          onSwapped={() => {
+            setSwapTarget(null);
+            // Recargar el próximo workout para reflejar el cambio
+            void getNextWorkoutDay(routines[0]?.id ?? "").then((nw) =>
+              setNextWorkout(nw as Record<string, unknown>)
+            );
+          }}
+        />
+      )}
+
+      {/* Schedule Override Dialog */}
+      <ScheduleOverrideDialog
+        open={scheduleDialogOpen}
+        onOpenChange={setScheduleDialogOpen}
+        clientRoutineId={scheduleRoutineId}
+        trainDays={trainDays}
+        onOverrideSet={() => {
+          void getNextWorkoutDay(routines[0]?.id ?? "").then((nw) =>
+            setNextWorkout(nw as Record<string, unknown>)
+          );
+        }}
       />
     </>
   );

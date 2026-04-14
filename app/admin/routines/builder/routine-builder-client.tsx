@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   Card,
@@ -23,6 +23,8 @@ import {
   Lightbulb,
   Loader2,
   Dumbbell,
+  ClipboardCopy,
+  ClipboardPaste,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { FieldGroup, Field, FieldLabel } from "@/components/ui/field";
@@ -61,6 +63,7 @@ interface DayExercise {
   sets: number;
   reps: string;
   restSeconds: number;
+  supersetGroup: string | null;
 }
 
 interface Day {
@@ -80,6 +83,9 @@ const DAY_NAMES = [
   "Sábado",
   "Domingo",
 ];
+
+// Letras disponibles para grupos de biserie
+const SUPERSET_LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
 export interface RoutineBuilderClientProps {
   exercises?: Exercise[];
@@ -126,6 +132,12 @@ export function RoutineBuilderClient({
 
   const [selectorOpen, setSelectorOpen] = useState(false);
   const [activeDayId, setActiveDayId] = useState<string | null>(null);
+
+  // Portapapeles para copiar/pegar días
+  const [clipboard, setClipboard] = useState<{
+    sourceDayName: string;
+    exercises: DayExercise[];
+  } | null>(null);
 
   // Fetch exercises on client if not provided
   useEffect(() => {
@@ -191,6 +203,7 @@ export function RoutineBuilderClient({
                   sets: 3,
                   reps: "",
                   restSeconds: 60,
+                  supersetGroup: null,
                 })),
               ],
             }
@@ -246,6 +259,109 @@ export function RoutineBuilderClient({
     );
   };
 
+  /**
+   * Manejo de biseries:
+   * - Calcula el siguiente grupo libre para el día
+   * - Asigna el grupo al ejercicio actual con el ejercicio anterior
+   *   (si el anterior ya tiene grupo, usa el mismo; si no, crea uno nuevo)
+   */
+  const handleToggleSuperset = useCallback(
+    (dayId: string, exId: string) => {
+      setDays((prev) =>
+        prev.map((d) => {
+          if (d.id !== dayId) return d;
+
+          const idx = d.exercises.findIndex((ex) => ex.id === exId);
+          if (idx < 0) return d;
+
+          // Grupos en uso en este día
+          const usedGroups = new Set(
+            d.exercises.map((ex) => ex.supersetGroup).filter(Boolean),
+          );
+
+          // Si el ejercicio anterior ya tiene grupo, unir al mismo
+          const prevEx = idx > 0 ? d.exercises[idx - 1] : null;
+          let targetGroup: string;
+
+          if (prevEx?.supersetGroup) {
+            targetGroup = prevEx.supersetGroup;
+          } else {
+            // Encontrar la primera letra no usada
+            targetGroup =
+              SUPERSET_LETTERS.find((l) => !usedGroups.has(l)) ?? "A";
+          }
+
+          const updated = d.exercises.map((ex, i) => {
+            if (i === idx) return { ...ex, supersetGroup: targetGroup };
+            // Si el ejercicio anterior no tiene grupo, asignarlo también
+            if (i === idx - 1 && !prevEx?.supersetGroup) {
+              return { ...ex, supersetGroup: targetGroup };
+            }
+            return ex;
+          });
+
+          return { ...d, exercises: updated };
+        }),
+      );
+    },
+    [],
+  );
+
+  const handleRemoveSuperset = useCallback((dayId: string, exId: string) => {
+    setDays((prev) =>
+      prev.map((d) => {
+        if (d.id !== dayId) return d;
+        const ex = d.exercises.find((e) => e.id === exId);
+        const group = ex?.supersetGroup;
+
+        // Si solo hay 2 ejercicios en el grupo, desasignar ambos
+        const groupCount = d.exercises.filter(
+          (e) => e.supersetGroup === group,
+        ).length;
+
+        const updated = d.exercises.map((e) => {
+          if (e.id === exId) return { ...e, supersetGroup: null };
+          if (groupCount <= 2 && e.supersetGroup === group)
+            return { ...e, supersetGroup: null };
+          return e;
+        });
+
+        return { ...d, exercises: updated };
+      }),
+    );
+  }, []);
+
+  // ── Copiar/pegar días ──────────────────────────────────────
+  const handleCopyDay = (day: Day) => {
+    setClipboard({
+      sourceDayName: day.name,
+      exercises: day.exercises.map((ex) => ({ ...ex })),
+    });
+    toast.success(`Día "${day.name}" copiado. Pégalo en otro día.`);
+  };
+
+  const handlePasteDay = (targetDayId: string) => {
+    if (!clipboard) return;
+    setDays((prev) =>
+      prev.map((d) => {
+        if (d.id !== targetDayId) return d;
+        // Re-asignar IDs nuevos para evitar colisiones
+        const newExercises = clipboard.exercises.map((ex) => ({
+          ...ex,
+          id: crypto.randomUUID(),
+        }));
+        return {
+          ...d,
+          isRestDay: false,
+          exercises: [...d.exercises, ...newExercises],
+        };
+      }),
+    );
+    toast.success(
+      `Ejercicios de "${clipboard.sourceDayName}" pegados.`,
+    );
+  };
+
   const handleSave = async () => {
     if (!name.trim()) {
       toast.error("Escribe un nombre para la rutina.");
@@ -281,6 +397,7 @@ export function RoutineBuilderClient({
             sets: ex.sets,
             reps: ex.reps,
             rest_seconds: ex.restSeconds,
+            superset_group: ex.supersetGroup ?? null,
           })),
         })),
       };
@@ -339,8 +456,10 @@ export function RoutineBuilderClient({
         </AlertTitle>
         <AlertDescription className="text-[13px] leading-relaxed text-muted-foreground">
           1) Nombre y duración → 2) Marca días de entreno o descanso → 3) Añade
-          ejercicios por día, arrastra para ordenar → 4) Indica series, reps y
-          descanso → Guardar.
+          ejercicios, arrastra para ordenar, usa{" "}
+          <span className="font-semibold text-foreground">🔗</span> para crear
+          biseriesde → 4) Copia días con{" "}
+          <span className="font-semibold text-foreground">📋</span> → 5) Guardar.
         </AlertDescription>
       </Alert>
 
@@ -417,18 +536,35 @@ export function RoutineBuilderClient({
               </h2>
             </div>
             <p className="text-sm text-muted-foreground">
-              Activa o desactiva cada día. Solo los días de entreno llevan
-              ejercicios.
+              Activa o desactiva cada día. Usa{" "}
+              <span className="inline-flex items-center gap-1 font-semibold text-foreground">
+                <ClipboardCopy className="size-3" /> Copiar
+              </span>{" "}
+              y{" "}
+              <span className="inline-flex items-center gap-1 font-semibold text-foreground">
+                <ClipboardPaste className="size-3" /> Pegar
+              </span>{" "}
+              para duplicar días.
             </p>
           </div>
-          <Badge
-            variant="secondary"
-            className="w-fit rounded-full px-3 py-1 text-xs font-medium"
-          >
-            {trainingDays} entreno{trainingDays !== 1 ? "s" : ""} · {restDays}{" "}
-            descanso
-            {restDays !== 1 ? "s" : ""}
-          </Badge>
+          <div className="flex items-center gap-2">
+            {clipboard && (
+              <Badge
+                variant="outline"
+                className="animate-pulse rounded-full border-violet-500/30 bg-violet-500/10 px-3 py-1 text-xs font-semibold text-violet-600"
+              >
+                <ClipboardCopy className="mr-1.5 size-3" />
+                &quot;{clipboard.sourceDayName}&quot; en portapapeles
+              </Badge>
+            )}
+            <Badge
+              variant="secondary"
+              className="w-fit rounded-full px-3 py-1 text-xs font-medium"
+            >
+              {trainingDays} entreno{trainingDays !== 1 ? "s" : ""} ·{" "}
+              {restDays} descanso{restDays !== 1 ? "s" : ""}
+            </Badge>
+          </div>
         </div>
 
         <Separator />
@@ -480,14 +616,41 @@ export function RoutineBuilderClient({
                         </CardDescription>
                       </div>
                     </div>
-                    <div className="flex w-full flex-col gap-1.5 sm:w-auto sm:items-end">
+
+                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+                      {/* Botones copiar/pegar */}
+                      {!day.isRestDay && day.exercises.length > 0 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-9 gap-2 rounded-xl border border-border/50 px-3 text-xs font-semibold text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                          onClick={() => handleCopyDay(day)}
+                        >
+                          <ClipboardCopy className="size-3.5" />
+                          Copiar día
+                        </Button>
+                      )}
+                      {clipboard && !day.isRestDay && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-9 gap-2 rounded-xl border border-violet-500/30 bg-violet-500/5 px-3 text-xs font-semibold text-violet-600 hover:bg-violet-500/15"
+                          onClick={() => handlePasteDay(day.id)}
+                        >
+                          <ClipboardPaste className="size-3.5" />
+                          Pegar aquí
+                        </Button>
+                      )}
+
                       <label
                         htmlFor={`day-kind-switch-${day.id}`}
                         className={cn(
                           "flex w-full cursor-pointer flex-row items-center justify-between gap-6 rounded-xl border p-3 shadow-sm transition-colors hover:bg-muted/20 sm:w-auto sm:px-4",
                           day.isRestDay
                             ? "border-border/50 bg-muted/10"
-                            : "border-primary/20 bg-primary/5 hover:bg-primary/10"
+                            : "border-primary/20 bg-primary/5 hover:bg-primary/10",
                         )}
                       >
                         <div className="flex flex-col gap-0.5 pointer-events-none">
@@ -497,7 +660,9 @@ export function RoutineBuilderClient({
                           <span
                             className={cn(
                               "text-sm font-semibold transition-colors",
-                              day.isRestDay ? "text-muted-foreground" : "text-primary"
+                              day.isRestDay
+                                ? "text-muted-foreground"
+                                : "text-primary",
                             )}
                           >
                             {day.isRestDay ? "Descanso" : "Entreno"}
@@ -526,6 +691,19 @@ export function RoutineBuilderClient({
                             Añadir ejercicios
                           </span>{" "}
                           y elige del catálogo.
+                          {clipboard && (
+                            <span className="mt-2 block">
+                              O usa{" "}
+                              <button
+                                type="button"
+                                className="font-semibold text-violet-600 underline underline-offset-2"
+                                onClick={() => handlePasteDay(day.id)}
+                              >
+                                Pegar ejercicios de &quot;{clipboard.sourceDayName}&quot;
+                              </button>
+                              .
+                            </span>
+                          )}
                         </p>
                       </div>
                     )}
@@ -555,11 +733,18 @@ export function RoutineBuilderClient({
                                   sets={ex.sets}
                                   reps={ex.reps}
                                   restSeconds={ex.restSeconds}
+                                  supersetGroup={ex.supersetGroup}
                                   exerciseInfo={exerciseInfo}
                                   onUpdate={(field, value) =>
                                     updateExercise(day.id, ex.id, field, value)
                                   }
                                   onRemove={() => removeExercise(day.id, ex.id)}
+                                  onToggleSuperset={() =>
+                                    handleToggleSuperset(day.id, ex.id)
+                                  }
+                                  onRemoveSuperset={() =>
+                                    handleRemoveSuperset(day.id, ex.id)
+                                  }
                                 />
                               );
                             })}
@@ -568,23 +753,37 @@ export function RoutineBuilderClient({
                       </DndContext>
                     )}
 
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="lg"
-                      onClick={() => handleOpenSelector(day.id)}
-                      className={cn(
-                        "h-12 w-full rounded-xl border-2 border-dashed text-sm font-medium",
-                        selectorActive
-                          ? "border-primary bg-primary/5 text-primary"
-                          : "border-muted-foreground/30 hover:border-primary/40 hover:bg-accent/50",
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="lg"
+                        onClick={() => handleOpenSelector(day.id)}
+                        className={cn(
+                          "h-12 flex-1 rounded-xl border-2 border-dashed text-sm font-medium",
+                          selectorActive
+                            ? "border-primary bg-primary/5 text-primary"
+                            : "border-muted-foreground/30 hover:border-primary/40 hover:bg-accent/50",
+                        )}
+                      >
+                        <Plus className="size-4 shrink-0" />
+                        {selectorActive
+                          ? "Catálogo abierto — selecciona ejercicios"
+                          : "Añadir ejercicios"}
+                      </Button>
+                      {clipboard && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="lg"
+                          onClick={() => handlePasteDay(day.id)}
+                          className="h-12 rounded-xl border-2 border-dashed border-violet-500/40 bg-violet-500/5 text-xs font-semibold text-violet-600 hover:bg-violet-500/15"
+                        >
+                          <ClipboardPaste className="size-4 shrink-0" />
+                          Pegar
+                        </Button>
                       )}
-                    >
-                      <Plus className="size-4 shrink-0" />
-                      {selectorActive
-                        ? "Catálogo abierto — selecciona ejercicios"
-                        : "Añadir ejercicios"}
-                    </Button>
+                    </div>
                   </CardContent>
                 )}
               </Card>

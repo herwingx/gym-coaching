@@ -17,6 +17,7 @@ export async function saveRoutineFromBuilder(data: {
       sets: number;
       reps: string;
       rest_seconds: number;
+      superset_group: string | null;
     }[];
   }[];
 }): Promise<string> {
@@ -63,6 +64,7 @@ export async function saveRoutineFromBuilder(data: {
           sets: ex.sets,
           reps: ex.reps,
           rest_seconds: ex.rest_seconds,
+          superset_group: ex.superset_group ?? null,
         });
       if (reError) throw new Error(reError.message);
     }
@@ -87,6 +89,7 @@ export async function updateRoutineFromBuilder(
         sets: number;
         reps: string;
         rest_seconds: number;
+        superset_group: string | null;
       }[];
     }[];
   },
@@ -154,6 +157,7 @@ export async function updateRoutineFromBuilder(
           sets: ex.sets,
           reps: ex.reps,
           rest_seconds: ex.rest_seconds,
+          superset_group: ex.superset_group ?? null,
         });
       if (reError) throw new Error(reError.message);
     }

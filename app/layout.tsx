@@ -96,7 +96,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <a
             href="#main-content"
-            className="fixed left-4 z-100 -translate-y-[150%] px-4 py-3 bg-primary text-primary-foreground rounded-lg font-medium outline-none ring-2 ring-ring transition-transform duration-200 focus:translate-y-0 focus-visible:translate-y-0 top-[max(1rem,env(safe-area-inset-top))]"
+            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-[max(1rem,env(safe-area-inset-top))] focus:z-[9999] focus:px-4 focus:py-3 focus:bg-primary focus:text-primary-foreground focus:rounded-lg focus:font-medium focus:outline-none focus:ring-2 focus:ring-ring"
           >
             Saltar al contenido principal
           </a>

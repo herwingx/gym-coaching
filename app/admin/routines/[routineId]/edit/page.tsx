@@ -12,6 +12,7 @@ type RoutineExerciseRow = {
   sets: number | null;
   reps: string | number | null;
   rest_seconds: number | null;
+  superset_group: string | null;
 };
 
 type RoutineDayRow = {
@@ -59,7 +60,8 @@ export default async function EditRoutinePage({ params }: Props) {
           order_index,
           sets,
           reps,
-          rest_seconds
+          rest_seconds,
+          superset_group
         )
       )
     `,
@@ -109,6 +111,7 @@ export default async function EditRoutinePage({ params }: Props) {
               sets: re.sets ?? 3,
               reps: re.reps != null ? String(re.reps) : "",
               restSeconds: re.rest_seconds ?? 60,
+              supersetGroup: re.superset_group ?? null,
             })),
         };
       }
@@ -123,6 +126,7 @@ export default async function EditRoutinePage({ params }: Props) {
           sets: number;
           reps: string;
           restSeconds: number;
+          supersetGroup: string | null;
         }[],
       };
     }),

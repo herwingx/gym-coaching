@@ -6,10 +6,24 @@ import { CSS } from '@dnd-kit/utilities'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { X, GripVertical, ImageOff } from 'lucide-react'
+import { X, GripVertical, ImageOff, Link2, Unlink } from 'lucide-react'
 import { Exercise } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { exName, exEquipment } from '@/lib/exercise-i18n'
+
+/** Mapa de colores por letra de biserie */
+const SUPERSET_COLORS: Record<string, { bg: string; text: string; ring: string }> = {
+  A: { bg: 'bg-violet-500/15', text: 'text-violet-500', ring: 'ring-violet-500/30' },
+  B: { bg: 'bg-sky-500/15',    text: 'text-sky-500',    ring: 'ring-sky-500/30'    },
+  C: { bg: 'bg-emerald-500/15',text: 'text-emerald-500',ring: 'ring-emerald-500/30'},
+  D: { bg: 'bg-amber-500/15',  text: 'text-amber-500',  ring: 'ring-amber-500/30'  },
+  E: { bg: 'bg-rose-500/15',   text: 'text-rose-500',   ring: 'ring-rose-500/30'   },
+}
+
+function getSupersetColor(group: string | null | undefined) {
+  if (!group) return null
+  return SUPERSET_COLORS[group.toUpperCase()] ?? SUPERSET_COLORS['A']
+}
 
 interface SortableExerciseProps {
   id: string
@@ -18,9 +32,12 @@ interface SortableExerciseProps {
   sets: number
   reps: string
   restSeconds: number
+  supersetGroup?: string | null
   exerciseInfo?: Exercise
   onUpdate: (field: string, value: string | number) => void
   onRemove: () => void
+  onToggleSuperset?: () => void   // añadir/quitar del siguiente grupo disponible
+  onRemoveSuperset?: () => void   // quitar la biserie de este ejercicio
 }
 
 export function SortableExercise({
@@ -28,9 +45,12 @@ export function SortableExercise({
   sets,
   reps,
   restSeconds,
+  supersetGroup,
   exerciseInfo,
   onUpdate,
   onRemove,
+  onToggleSuperset,
+  onRemoveSuperset,
 }: SortableExerciseProps) {
   const [imgFailed, setImgFailed] = useState(false)
   const {
@@ -47,15 +67,33 @@ export function SortableExercise({
     transition,
   }
 
+  const color = getSupersetColor(supersetGroup)
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={cn(
-        'group/ex relative flex flex-col gap-4 rounded-2xl border border-border/60 bg-card p-4 transition-all duration-300 sm:flex-row sm:items-center',
-        isDragging ? 'z-50 opacity-90 shadow-2xl ring-2 ring-primary/40 scale-[1.02]' : 'hover:border-primary/30 hover:shadow-md',
+        'group/ex relative flex flex-col gap-4 rounded-2xl border bg-card p-4 transition-all duration-300 sm:flex-row sm:items-center',
+        isDragging
+          ? 'z-50 opacity-90 shadow-2xl ring-2 ring-primary/40 scale-[1.02]'
+          : 'hover:shadow-md',
+        supersetGroup && color
+          ? `border-2 ${color.ring} ring-2 ${color.ring}`
+          : 'border-border/60 hover:border-primary/30',
       )}
     >
+      {/* Badge biserie */}
+      {supersetGroup && color && (
+        <div className={cn(
+          'absolute -top-3 left-4 flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest shadow-sm',
+          color.bg, color.text
+        )}>
+          <Link2 className="size-2.5" />
+          Biserie {supersetGroup}
+        </div>
+      )}
+
       <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
         <button
           type="button"
@@ -144,16 +182,45 @@ export function SortableExercise({
           </div>
         </div>
 
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="size-10 shrink-0 rounded-xl text-muted-foreground/40 hover:bg-destructive/10 hover:text-destructive transition-colors"
-          onClick={onRemove}
-          aria-label="Quitar ejercicio"
-        >
-          <X className="size-4" />
-        </Button>
+        {/* Acciones: biserie + eliminar */}
+        <div className="flex items-center gap-1.5">
+          {supersetGroup ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-9 shrink-0 rounded-xl text-muted-foreground/40 hover:bg-amber-500/10 hover:text-amber-500 transition-colors"
+              onClick={onRemoveSuperset}
+              aria-label="Quitar de biserie"
+              title="Quitar de biserie"
+            >
+              <Unlink className="size-4" />
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-9 shrink-0 rounded-xl text-muted-foreground/40 hover:bg-violet-500/10 hover:text-violet-500 transition-colors"
+              onClick={onToggleSuperset}
+              aria-label="Añadir a biserie"
+              title="Añadir a biserie (unir con ejercicio anterior)"
+            >
+              <Link2 className="size-4" />
+            </Button>
+          )}
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-9 shrink-0 rounded-xl text-muted-foreground/40 hover:bg-destructive/10 hover:text-destructive transition-colors"
+            onClick={onRemove}
+            aria-label="Quitar ejercicio"
+          >
+            <X className="size-4" />
+          </Button>
+        </div>
       </div>
     </div>
   )

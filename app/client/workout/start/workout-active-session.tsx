@@ -56,6 +56,20 @@ import { exerciseUsesExternalLoad } from "@/lib/exercise-tracking";
 import { exName } from "@/lib/exercise-i18n";
 import { AchievementUnlockModal } from "@/components/client/achievement-unlock-modal";
 import type { Achievement } from "@/lib/types";
+import { Link2 } from "lucide-react";
+
+// ─── Superset color system (mirrors the builder) ───────────────────────────
+const SUPERSET_COLORS: Record<string, { bg: string; text: string; border: string; ring: string; connector: string }> = {
+  A: { bg: 'bg-violet-500/15', text: 'text-violet-600 dark:text-violet-400', border: 'border-violet-400/30', ring: 'ring-violet-400/30', connector: 'bg-violet-400/50' },
+  B: { bg: 'bg-sky-500/15',    text: 'text-sky-600 dark:text-sky-400',       border: 'border-sky-400/30',    ring: 'ring-sky-400/30',    connector: 'bg-sky-400/50'    },
+  C: { bg: 'bg-emerald-500/15',text: 'text-emerald-600 dark:text-emerald-400',border: 'border-emerald-400/30',ring: 'ring-emerald-400/30',connector: 'bg-emerald-400/50'},
+  D: { bg: 'bg-amber-500/15',  text: 'text-amber-600 dark:text-amber-400',   border: 'border-amber-400/30',  ring: 'ring-amber-400/30',  connector: 'bg-amber-400/50'  },
+  E: { bg: 'bg-rose-500/15',   text: 'text-rose-600 dark:text-rose-400',     border: 'border-rose-400/30',   ring: 'ring-rose-400/30',   connector: 'bg-rose-400/50'   },
+}
+function getSupersetColor(group: string | null | undefined) {
+  if (!group) return null;
+  return SUPERSET_COLORS[group.toUpperCase()] ?? SUPERSET_COLORS['A'];
+}
 
 function formatElapsed(totalSeconds: number) {
   const s = Math.max(0, totalSeconds);
@@ -121,6 +135,36 @@ export function WorkoutActiveSession({
     return m;
   }, [exercises]);
   const draftKey = workoutDraftStorageKey(routineDay.id);
+
+  // ─── Superset metadata ─────────────────────────────────────────────────────
+  /** Map: routine_exercise.id → superset group letter ("A", "B", etc.) or null */
+
+  /** For a given exercise index, what position is it within its superset? (1-based, e.g. A1, A2) */
+  const getSupersetPosition = useCallback((idx: number): number => {
+    const group = exercises[idx]?.superset_group;
+    if (!group) return 1;
+    let pos = 1;
+    for (let i = 0; i < idx; i++) {
+      if (exercises[i]?.superset_group === group) pos++;
+    }
+    return pos;
+  }, [exercises]);
+
+  /** Is the next exercise in the same superset as the current one? */
+  const nextIsSameSuperset = useCallback((idx: number): boolean => {
+    const current = exercises[idx]?.superset_group;
+    if (!current) return false;
+    const next = exercises[idx + 1]?.superset_group;
+    return next === current;
+  }, [exercises]);
+
+  /** Is the previous exercise in the same superset? (to render connecting line) */
+  const prevIsSameSuperset = useCallback((idx: number): boolean => {
+    const current = exercises[idx]?.superset_group;
+    if (!current) return false;
+    const prev = exercises[idx - 1]?.superset_group;
+    return prev === current;
+  }, [exercises]);
 
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [sets, setSets] = useState<Map<string, SetLog[]>>(new Map());
@@ -375,7 +419,14 @@ export function WorkoutActiveSession({
       if (isPR && loadPolicyByExerciseId.get(currentExercise.exercise_id)) {
         prToast = { weight: set.weight, reps: set.reps };
       }
-      shouldRest = setIndex < updatedSets.length - 1;
+      // Only trigger rest if NOT moving to a superset partner (they go back-to-back)
+      const allCompleted = updatedSets.every(s => s.completed);
+      shouldRest = setIndex < updatedSets.length - 1 && !nextIsSameSuperset(currentExerciseIndex);
+      // If all sets done AND we're in a superset and next is a partner — no intra-superset rest
+      // Rest fires only after the last exercise in the superset group is fully done
+      if (allCompleted && nextIsSameSuperset(currentExerciseIndex)) {
+        shouldRest = false; // handled by auto-advance below
+      }
       return new Map(prev).set(id, updatedSets);
     });
 
@@ -616,6 +667,30 @@ export function WorkoutActiveSession({
   const completedSetsCount = currentSets.filter((s) => s.completed).length;
   const allSetsCompleted =
     completedSetsCount === currentSets.length && currentSets.length > 0;
+
+  // ─── Superset UI helpers for current exercise ────────────────────────────
+  const currentSupersetGroup = currentExercise?.superset_group ?? null;
+  const currentSupersetColor = getSupersetColor(currentSupersetGroup);
+  const currentSupersetPos = currentExercise ? getSupersetPosition(currentExerciseIndex) : 1;
+  const isInSuperset = !!currentSupersetGroup;
+  const isLastOfSuperset = isInSuperset && !nextIsSameSuperset(currentExerciseIndex);
+  const isFirstOfSuperset = isInSuperset && !prevIsSameSuperset(currentExerciseIndex);
+
+  // Auto-advance to superset partner when all sets of current exercise are done
+  useEffect(() => {
+    if (!allSetsCompleted) return;
+    if (!nextIsSameSuperset(currentExerciseIndex)) return;
+    // Short pause (300ms) so the ✓ checkmark shows before switching 
+    const timer = window.setTimeout(() => {
+      toast.info(`Biserie: pasando a ${exName(exercises[currentExerciseIndex + 1]?.exercises)}`, {
+        duration: 2000,
+        description: "Sin descanso — van back-to-back",
+      });
+      goToExercise(currentExerciseIndex + 1);
+    }, 600);
+    return () => window.clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allSetsCompleted, currentExerciseIndex]);
 
   const usesExternalLoad = currentExercise
     ? exerciseUsesExternalLoad(
@@ -859,18 +934,27 @@ export function WorkoutActiveSession({
                     role="tablist"
                     aria-label="Ejercicios del día"
                   >
-                    {exercises.map((re, idx) => {
+                     {exercises.map((re, idx) => {
                       const ex = re.exercises as Exercise | undefined;
                       const active = idx === currentExerciseIndex;
+                      const ssGroup = re.superset_group ?? null;
+                      const ssColor = getSupersetColor(ssGroup);
+                      const ssPos = getSupersetPosition(idx);
+                      const isPrevSS = prevIsSameSuperset(idx);
                   return (
+                    <div key={re.id} className="relative flex flex-col items-center">
+                      {/* Connecting line above — joins to previous in same superset */}
+                      {isPrevSS && ssColor && (
+                        <div className={cn('absolute -top-3 left-1/2 -translate-x-1/2 w-0.5 h-4 rounded-full', ssColor.connector)} />
+                      )}
                       <button
-                        key={re.id}
                         type="button"
                         ref={(el) => {
                           thumbRefs.current[idx] = el;
                         }}
                         role="tab"
                         aria-selected={active}
+                        aria-label={`${exName(ex)}${ssGroup ? ` (Biserie ${ssGroup}${ssPos})` : ''}`}
                         onClick={() => requestGoToExercise(idx)}
                         className={cn(
                           "group relative flex shrink-0 flex-col items-center gap-2 transition-all duration-300 snap-center",
@@ -879,7 +963,11 @@ export function WorkoutActiveSession({
                       >
                          <div className={cn(
                            "relative size-16 shrink-0 overflow-hidden rounded-2xl border-2 transition-all duration-300 sm:size-20 shadow-none",
-                           active ? "border-primary shadow-[0_0_20px_rgba(var(--primary),0.2)]" : "border-border/40"
+                           active
+                             ? ssColor
+                               ? cn(ssColor.border, 'shadow-[0_0_20px_rgba(var(--primary),0.15)]')
+                               : 'border-primary shadow-[0_0_20px_rgba(var(--primary),0.2)]'
+                             : 'border-border/40'
                          )}>
                             <ExerciseMedia
                               src={ex?.gif_url || ex?.image_url}
@@ -889,17 +977,29 @@ export function WorkoutActiveSession({
                               imgClassName="object-cover"
                             />
                             {active && (
-                               <div className="absolute inset-x-0 bottom-0 h-1 bg-primary animate-pulse" />
+                               <div className={cn('absolute inset-x-0 bottom-0 h-1 animate-pulse', ssColor ? ssColor.connector : 'bg-primary')} />
+                            )}
+                            {/* Superset group badge on thumbnail */}
+                            {ssGroup && (
+                              <div className={cn(
+                                'absolute top-1 left-1 flex size-5 items-center justify-center rounded-md text-[8px] font-black uppercase',
+                                ssColor ? cn(ssColor.bg, ssColor.text) : 'bg-primary/15 text-primary'
+                              )}>
+                                {ssGroup}{ssPos}
+                              </div>
                             )}
                          </div>
                          <span className={cn(
                            "text-[10px] font-black uppercase tracking-widest transition-colors",
-                           active ? "text-primary" : "text-muted-foreground"
+                           active
+                             ? ssColor ? ssColor.text : 'text-primary'
+                             : "text-muted-foreground"
                          )}>
                            {idx + 1}
                          </span>
                       </button>
-                    );
+                    </div>
+                  );
                   })}
                 </div>
               </div>
@@ -963,6 +1063,18 @@ export function WorkoutActiveSession({
                  <div className="flex items-center gap-2">
                     <div className="size-2 rounded-full bg-primary animate-pulse" />
                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">En Curso</span>
+                    {/* Superset badge */}
+                    {isInSuperset && currentSupersetColor && (
+                      <div className={cn(
+                        'flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-widest',
+                        currentSupersetColor.bg,
+                        currentSupersetColor.text,
+                      )}>
+                        <Link2 className="size-2.5" />
+                        Biserie {currentSupersetGroup}{currentSupersetPos}
+                        {isLastOfSuperset && isFirstOfSuperset === false ? ' — Última' : ''}
+                      </div>
+                    )}
                  </div>
                 <h2 className="text-balance text-2xl font-black uppercase tracking-tight leading-tight sm:text-3xl">
                   {exName(currentExercise.exercises)}
@@ -1346,7 +1458,8 @@ export function WorkoutActiveSession({
               </div>
 
               {allSetsCompleted &&
-                currentExerciseIndex < exercises.length - 1 && (
+                currentExerciseIndex < exercises.length - 1 &&
+                !nextIsSameSuperset(currentExerciseIndex) && (
                   <Button
                     className="h-16 w-full rounded-2xl bg-primary text-primary-foreground font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
                     size="lg"
