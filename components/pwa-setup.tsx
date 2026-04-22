@@ -13,6 +13,17 @@ export function PWASetup() {
 
       // En dev el SW + HMR provocan updates constantes; el reload automático puede buclear la app.
       if (process.env.NODE_ENV === 'development') {
+        navigator.serviceWorker
+          .getRegistrations()
+          .then((registrations) => Promise.all(registrations.map((r) => r.unregister())))
+          .catch(() => {})
+
+        if ('caches' in window) {
+          caches
+            .keys()
+            .then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
+            .catch(() => {})
+        }
         return
       }
 

@@ -2,11 +2,11 @@ import { VerifyOtpForm } from "@/components/verify-otp-form";
 import { ThemeToggle } from "@/components/theme-toggle";
 import Link from "next/link";
 import { Metadata } from "next";
-import { ShieldAlert, MailCheck } from "lucide-react";
+import { MailCheck } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Verifica tu cuenta",
-  description: "Ingresa el código de 6 dígitos que enviamos a tu correo.",
+  description: "Ingresa el código de verificación que enviamos a tu correo.",
 };
 
 export default function VerifyOtpPage() {

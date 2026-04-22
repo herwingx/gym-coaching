@@ -127,9 +127,10 @@ function ExerciseDetailSections({
       ) : null}
 
       {showHeroMedia ? (
-        <div className="overflow-hidden rounded-[1.5rem] border border-border/40 bg-white dark:bg-[#f8f9fa] shadow-sm">
+        <div className="overflow-hidden rounded-3xl border border-border/40 bg-white dark:bg-[#f8f9fa] shadow-sm">
           <ExerciseMedia
-            src={exercise.gif_url || exercise.image_url}
+            src={exercise.gif_url}
+            fallbackSrc={exercise.image_url}
             alt={exName(exercise)}
             variant="fill"
             className="aspect-square w-full max-h-[min(55vh,420px)] sm:max-h-[min(50vh,480px)]"
@@ -271,7 +272,8 @@ export function ExerciseDetailDrawer({
                     <div className="px-6 pb-6 lg:px-6 lg:pb-6">
                       <div className="overflow-hidden rounded-2xl border border-border/60 bg-muted/50 dark:bg-muted/25">
                         <ExerciseMedia
-                          src={exercise.gif_url || exercise.image_url}
+                          src={exercise.gif_url}
+                          fallbackSrc={exercise.image_url}
                           alt={exName(exercise)}
                           variant="fill"
                           className="aspect-4/3 w-full lg:aspect-square lg:max-h-[min(52vh,520px)]"
@@ -352,7 +354,7 @@ export function ExerciseDetailDrawer({
 
               <DrawerFooter className="border-t border-border/40 pt-4 pb-6 px-5 bg-background">
                 <DrawerClose asChild>
-                  <Button type="button" variant="secondary" className="w-full h-12 rounded-[1rem] font-semibold text-[15px] bg-secondary/80 hover:bg-secondary shadow-sm transition-all active:scale-[0.98]">
+                  <Button type="button" variant="secondary" className="w-full h-12 rounded-2xl font-semibold text-[15px] bg-secondary/80 hover:bg-secondary shadow-sm transition-all active:scale-[0.98]">
                     Cerrar
                   </Button>
                 </DrawerClose>

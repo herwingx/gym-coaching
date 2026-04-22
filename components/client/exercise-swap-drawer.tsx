@@ -169,7 +169,8 @@ export function ExerciseSwapDrawer({
                   >
                     <div className="relative size-12 shrink-0 overflow-hidden rounded-xl bg-muted">
                       <ExerciseMedia
-                        src={ex.gif_url || ex.image_url}
+                          src={ex.gif_url}
+                          fallbackSrc={ex.image_url}
                         alt={exName(ex)}
                         variant="thumb"
                         className="size-full object-cover"
@@ -228,7 +229,7 @@ export function ExerciseSwapDrawer({
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Ej. La máquina está ocupada, prefiero cable…"
-                className="min-h-[72px] resize-none rounded-xl border-border/60 bg-muted/30 text-sm"
+                className="min-h-18 resize-none rounded-xl border-border/60 bg-muted/30 text-sm"
               />
             </Field>
           )}

@@ -206,16 +206,18 @@ function SignUpFormInner({
         )
         router.push(signUpRole === 'admin' ? '/admin/onboarding' : '/onboarding')
       } else {
+        toast.success('Cuenta creada. Revisa tu correo para continuar la verificación.')
         router.push(`/auth/verify-otp?email=${encodeURIComponent(email)}`)
       }
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : ''
+      console.error('[auth] signUp failed:', error)
       const isRateLimit =
         msg.toLowerCase().includes('rate limit') || msg.includes('429')
       toast.error(
         isRateLimit
           ? 'Demasiados intentos. Espera un minuto e intenta de nuevo.'
-          : 'No pudimos crear la cuenta. Revisa tus datos e intenta de nuevo.'
+          : msg || 'No pudimos crear la cuenta. Revisa tus datos e intenta de nuevo.'
       )
     } finally {
       setIsLoading(false)

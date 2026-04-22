@@ -40,7 +40,7 @@ export async function proxy(request: NextRequest) {
   // 3. Obtener usuario (esto dispara setAll si el token expiró)
   const { data: { user } } = await supabase.auth.getUser()
 
-  const publicPaths = ['/auth', '/welcome', '/offline', '/api/invitations', '/favicon.ico', '/manifest.json']
+  const publicPaths = ['/auth', '/welcome', '/offline', '/api/invitations', '/favicon.ico', '/manifest.json', '/dev-sw.js']
   const isPublicPath = publicPaths.some(path => url.startsWith(path))
 
   // 4. Si no hay usuario y es ruta protegida -> Redirigir
@@ -67,6 +67,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|manifest\\.json|sw\\.js|offline\\.html|icons/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|manifest\\.json|sw\\.js|dev-sw\\.js|offline\\.html|icons/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

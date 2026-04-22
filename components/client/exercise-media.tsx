@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Dumbbell } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Skeleton } from '@/components/ui/skeleton'
 
 type ExerciseMediaProps = {
   src?: string | null
+  fallbackSrc?: string | null
   alt: string
   className?: string
   imgClassName?: string
@@ -17,11 +18,24 @@ type ExerciseMediaProps = {
 /**
  * GIF / imagen de ejercicio con reserva de espacio (CLS), lazy decode y fallback si falla la URL o no hay archivo en /public.
  */
-export function ExerciseMedia({ src, alt, className, imgClassName, variant = 'fill' }: ExerciseMediaProps) {
+export function ExerciseMedia({ src, fallbackSrc, alt, className, imgClassName, variant = 'fill' }: ExerciseMediaProps) {
+  const candidates = useMemo(
+    () => [src, fallbackSrc].filter((u): u is string => !!u && u.trim().length > 0),
+    [src, fallbackSrc],
+  )
+  const [sourceIndex, setSourceIndex] = useState(0)
   const [loaded, setLoaded] = useState(false)
-  const [failed, setFailed] = useState(!src)
+  const [failed, setFailed] = useState(candidates.length === 0)
+  const currentSrc = candidates[sourceIndex]
 
-  if (!src || failed) {
+  // Reset media lifecycle when source changes (exercise switch, fallback recoveries).
+  useEffect(() => {
+    setSourceIndex(0)
+    setLoaded(false)
+    setFailed(candidates.length === 0)
+  }, [candidates])
+
+  if (!currentSrc || failed) {
     return (
       <div
         className={cn(
@@ -48,7 +62,7 @@ export function ExerciseMedia({ src, alt, className, imgClassName, variant = 'fi
       )}
       {/* eslint-disable-next-line @next/next/no-img-element -- GIF locales / externos; onError necesario */}
       <img
-        src={src}
+        src={currentSrc}
         alt={alt}
         width={variant === 'thumb' ? 128 : undefined}
         height={variant === 'thumb' ? 128 : undefined}
@@ -62,7 +76,11 @@ export function ExerciseMedia({ src, alt, className, imgClassName, variant = 'fi
         decoding="async"
         onLoad={() => setLoaded(true)}
         onError={() => {
-          setFailed(true)
+          if (sourceIndex < candidates.length - 1) {
+            setSourceIndex((idx) => idx + 1)
+          } else {
+            setFailed(true)
+          }
           setLoaded(false)
         }}
       />

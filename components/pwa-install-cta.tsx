@@ -56,6 +56,18 @@ export function PWAInstallCTA() {
       const onDisplayModeChange = () => setInstalled(isStandalone())
 
       const onBeforeInstall = (e: Event) => {
+        try {
+          const wasDismissed = localStorage.getItem(DISMISS_KEY) === '1'
+          const alreadyInstalled = isStandalone()
+
+          // Solo interceptamos el banner nativo si vamos a mostrar CTA propia.
+          if (wasDismissed || alreadyInstalled) {
+            return
+          }
+        } catch {
+          // si localStorage falla, seguimos con la CTA custom
+        }
+
         e.preventDefault()
         setDeferred(e as DeferredPromptEvent)
       }

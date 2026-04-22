@@ -1,6 +1,5 @@
 "use client";
 
-// Triggering re-build for chunkload fix
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -40,6 +39,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { cn } from "@/lib/utils";
 
 interface RoutineSummary {
   id: string;
@@ -393,27 +393,40 @@ export default function ClientRoutinesPage() {
                                   const raw = exercise.exercises;
                                   const exDetails = Array.isArray(raw) ? raw[0] : raw;
                                   return (
-                                    <button
+                                    <div
                                       key={exercise.id}
-                                      type="button"
-                                      disabled={!exDetails}
+                                      role="button"
+                                      tabIndex={exDetails ? 0 : -1}
+                                      aria-disabled={!exDetails}
                                       onClick={() => exDetails && handleExerciseClick(exDetails)}
-                                      className="group relative flex items-center gap-4 rounded-2xl border border-border/40 bg-background/50 p-3 text-left transition-all hover:bg-background hover:border-primary/30 hover:shadow-lg active:scale-[0.98]"
+                                      onKeyDown={(e) => {
+                                        if (!exDetails) return;
+                                        if (e.key === "Enter" || e.key === " ") {
+                                          e.preventDefault();
+                                          handleExerciseClick(exDetails);
+                                        }
+                                      }}
+                                      className={cn(
+                                        "group relative flex cursor-pointer flex-col gap-3 rounded-2xl border border-border/40 bg-background/50 p-3 text-left transition-all hover:border-primary/30 hover:bg-background hover:shadow-lg active:scale-[0.99] sm:flex-row sm:items-center sm:gap-4",
+                                        !exDetails && "cursor-default opacity-60",
+                                        exDetails && "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                                      )}
                                     >
-                                      <div className="relative size-14 shrink-0 overflow-hidden rounded-xl bg-muted">
+                                      <div className="relative size-16 shrink-0 overflow-hidden rounded-xl bg-muted sm:size-14">
                                         <ExerciseMedia
-                                          src={exDetails?.gif_url || exDetails?.image_url}
+                                          src={exDetails?.gif_url}
+                                          fallbackSrc={exDetails?.image_url}
                                           alt={exDetails?.name ?? "Ejercicio"}
                                           variant="thumb"
                                           className="size-full object-cover group-hover:scale-110 transition-transform duration-500"
                                         />
                                         <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                                       </div>
-                                      <div className="flex flex-col min-w-0 flex-1">
+                                      <div className="flex min-w-0 flex-1 flex-col gap-1">
                                         <span className="truncate text-sm font-black capitalize tracking-tight group-hover:text-primary transition-colors">
                                           {exDetails?.name ?? "Ejercicio"}
                                         </span>
-                                        <div className="flex items-center gap-3 mt-1">
+                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                                            <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest tabular-nums">
                                              {exercise.sets} <span className="font-medium text-[8px] opacity-40">SET</span>
                                            </span>
@@ -423,8 +436,8 @@ export default function ClientRoutinesPage() {
                                            </span>
                                         </div>
                                       </div>
-                                      <div className="flex flex-col items-end gap-1">
-                                        <Info className="size-4 text-muted-foreground/40 group-hover:text-primary transition-colors" />
+                                      <div className="flex items-center justify-between gap-3 sm:flex-col sm:items-end sm:justify-start sm:gap-1">
+                                        <Info className="size-4 shrink-0 text-muted-foreground/40 transition-colors group-hover:text-primary" />
                                         {exDetails && routines[0] && (
                                           <button
                                             type="button"
@@ -445,7 +458,7 @@ export default function ClientRoutinesPage() {
                                           </button>
                                         )}
                                       </div>
-                                    </button>
+                                    </div>
                                   );
                                 })}
                               </div>
@@ -455,7 +468,7 @@ export default function ClientRoutinesPage() {
                           {!nw.isRestDay && (
                             <Button
                               asChild
-                              className="h-14 w-full text-base font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:translate-y-[-2px] active:translate-y-[0] active:scale-[0.98]"
+                              className="h-14 w-full text-base font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
                             >
                               <Link href="/client/workout/start">
                                 Iniciar Sesión Ahora
@@ -551,7 +564,7 @@ export default function ClientRoutinesPage() {
           )}
           
           {/* Quick Tip / Motivation Card */}
-          <Card className="overflow-hidden border-border/40 shadow-sm rounded-3xl bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent border-t-indigo-500/20">
+          <Card className="overflow-hidden border-border/40 shadow-sm rounded-3xl bg-linear-to-br from-indigo-500/10 via-purple-500/5 to-transparent border-t-indigo-500/20">
              <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="size-8 rounded-xl bg-indigo-500/20 flex items-center justify-center">

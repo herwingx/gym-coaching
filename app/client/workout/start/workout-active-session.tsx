@@ -23,7 +23,6 @@ import {
   SkipForward,
   Check,
   Trophy,
-  ChevronLeft,
   ChevronRight,
   Minus,
   Plus,
@@ -31,11 +30,13 @@ import {
   PlayCircle,
   Trash2,
   History,
+  Link2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { calculate1RM } from "@/lib/types";
-import type {
+import {
+  calculate1RM,
+  type Achievement,
   RoutineDay,
   RoutineExercise,
   PersonalRecord,
@@ -55,8 +56,6 @@ import { cn } from "@/lib/utils";
 import { exerciseUsesExternalLoad } from "@/lib/exercise-tracking";
 import { exName } from "@/lib/exercise-i18n";
 import { AchievementUnlockModal } from "@/components/client/achievement-unlock-modal";
-import type { Achievement } from "@/lib/types";
-import { Link2 } from "lucide-react";
 
 // ─── Superset color system (mirrors the builder) ───────────────────────────
 const SUPERSET_COLORS: Record<string, { bg: string; text: string; border: string; ring: string; connector: string }> = {
@@ -525,12 +524,6 @@ export function WorkoutActiveSession({
     }
   };
 
-  const prevExercise = () => {
-    if (currentExerciseIndex > 0) {
-      goToExercise(currentExerciseIndex - 1);
-    }
-  };
-
   const finishWorkout = async () => {
     if (isFinishing) return;
     setIsFinishing(true);
@@ -911,11 +904,11 @@ export function WorkoutActiveSession({
         </div>
       )}
 
-      <main className="container mx-auto min-w-0 max-w-7xl flex-1 overflow-x-clip px-4 py-8 sm:px-6">
+      <main className="container mx-auto flex w-full min-w-0 max-w-7xl flex-1 flex-col overflow-x-clip px-3 py-6 pb-28 sm:px-6 sm:py-8 sm:pb-8">
         {currentExercise && (
-          <div className="grid gap-8 lg:grid-cols-12 lg:items-start lg:gap-12">
-            <div className="flex flex-col gap-8 lg:col-span-5">
-              <div className="flex flex-col gap-3">
+          <div className="grid w-full min-w-0 gap-5 sm:gap-6 lg:grid-cols-12 lg:items-start lg:gap-12">
+            <div className="flex w-full min-w-0 flex-col gap-5 sm:gap-6 lg:col-span-5">
+              <div className="flex w-full min-w-0 flex-col gap-3">
                 <div className="flex items-center justify-between">
                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Tu Ruta de Hoy</span>
                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">
@@ -923,14 +916,14 @@ export function WorkoutActiveSession({
                    </span>
                 </div>
 
-                <div className="relative -mx-4 overflow-x-hidden">
+                <div className="relative w-full min-w-0 max-w-full overflow-x-hidden">
                   {/* Symmetrical Gradient Masks for premium scroll indication */}
                   <div className="absolute left-0 top-0 bottom-4 z-10 w-8 bg-linear-to-r from-background to-transparent pointer-events-none opacity-0 sm:opacity-100" />
                   <div className="absolute right-0 top-0 bottom-4 z-10 w-8 bg-linear-to-l from-background to-transparent pointer-events-none opacity-0 sm:opacity-100" />
                   
                   <div
                     ref={carouselRef}
-                    className="flex gap-5 overflow-x-auto px-4 pb-6 pt-2 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                    className="flex w-full min-w-0 max-w-full touch-pan-x gap-4 overflow-x-auto overscroll-x-contain px-1 pb-4 pt-2 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-5 sm:pb-6"
                     role="tablist"
                     aria-label="Ejercicios del día"
                   >
@@ -942,7 +935,7 @@ export function WorkoutActiveSession({
                       const ssPos = getSupersetPosition(idx);
                       const isPrevSS = prevIsSameSuperset(idx);
                   return (
-                    <div key={re.id} className="relative flex flex-col items-center">
+                    <div key={re.id} className="relative shrink-0 flex flex-col items-center">
                       {/* Connecting line above — joins to previous in same superset */}
                       {isPrevSS && ssColor && (
                         <div className={cn('absolute -top-3 left-1/2 -translate-x-1/2 w-0.5 h-4 rounded-full', ssColor.connector)} />
@@ -957,7 +950,7 @@ export function WorkoutActiveSession({
                         aria-label={`${exName(ex)}${ssGroup ? ` (Biserie ${ssGroup}${ssPos})` : ''}`}
                         onClick={() => requestGoToExercise(idx)}
                         className={cn(
-                          "group relative flex shrink-0 flex-col items-center gap-2 transition-all duration-300 snap-center",
+                          "group relative flex shrink-0 flex-col items-center gap-2 transition-all duration-300 snap-start",
                           active ? "scale-105" : "opacity-40 hover:opacity-60"
                         )}
                       >
@@ -1005,7 +998,7 @@ export function WorkoutActiveSession({
               </div>
             </div>
 
-            <div className="group relative overflow-hidden rounded-3xl border border-border/80 bg-card shadow-2xl ring-1 ring-primary/5 sm:rounded-[2.5rem]">
+            <div className="group relative overflow-hidden rounded-3xl border border-border/80 bg-card shadow-xl ring-1 ring-primary/5 sm:rounded-[2.5rem] sm:shadow-2xl">
                 <button
                   type="button"
                   className="relative flex w-full flex-col outline-none overflow-hidden"
@@ -1014,12 +1007,10 @@ export function WorkoutActiveSession({
                     setDetailOpen(true);
                   }}
                 >
-                  <div className="relative aspect-4/3 w-full bg-muted/20">
+                  <div className="relative aspect-4/3 max-h-[42vh] w-full bg-muted/20 sm:aspect-16/10 sm:max-h-[54vh] lg:aspect-4/3 lg:max-h-none">
                     <ExerciseMedia
-                      src={
-                        currentExercise.exercises?.gif_url ||
-                        currentExercise.exercises?.image_url
-                      }
+                      src={currentExercise.exercises?.gif_url}
+                      fallbackSrc={currentExercise.exercises?.image_url}
                       alt={exName(currentExercise.exercises)}
                       variant="fill"
                       className="absolute inset-0 size-full transition-transform duration-700 group-hover:scale-110"
@@ -1028,12 +1019,12 @@ export function WorkoutActiveSession({
                     <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </div>
                 </button>
-                <div className="absolute bottom-3 left-3 right-3 flex flex-col items-stretch gap-2 sm:bottom-4 sm:left-4 sm:right-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2 sm:bottom-4 sm:left-4 sm:right-4 sm:gap-3">
                   <Button
                     type="button"
                     variant="secondary"
                     size="sm"
-                    className="h-10 w-full rounded-xl border border-white/10 bg-background/80 px-4 text-[10px] font-black uppercase tracking-widest backdrop-blur-md transition-all hover:bg-background sm:w-auto"
+                    className="h-10 min-w-0 flex-1 rounded-xl border border-white/10 bg-background/80 px-3 text-[10px] font-black uppercase tracking-wide backdrop-blur-md transition-all hover:bg-background sm:flex-none sm:px-4 sm:tracking-widest"
                     onClick={() => {
                       setSelectedExercise(currentExercise.exercises);
                       setDetailOpen(true);
@@ -1042,7 +1033,7 @@ export function WorkoutActiveSession({
                     <PlayCircle className="size-4 text-primary" aria-hidden />
                     Ver técnica
                   </Button>
-                  <Badge className="h-10 w-full justify-center rounded-xl bg-primary/90 px-4 text-[10px] font-black uppercase tracking-widest text-primary-foreground shadow-xl shadow-primary/20 sm:w-auto">
+                  <Badge className="h-10 shrink-0 justify-center rounded-xl bg-primary/90 px-3 text-[10px] font-black uppercase tracking-wide text-primary-foreground shadow-xl shadow-primary/20 sm:px-4 sm:tracking-widest">
                     {restSeconds}s Rest
                   </Badge>
                 </div>
@@ -1052,13 +1043,13 @@ export function WorkoutActiveSession({
                 value={workoutNote}
                 onChange={(e) => setWorkoutNote(e.target.value)}
                 placeholder="Nota del entreno (opcional). ¿Cómo te has sentido?"
-                className="min-h-18 text-base md:text-sm"
+                className="min-h-[72px] w-full text-base md:text-sm"
                 maxLength={2000}
                 aria-label="Notas del entrenamiento"
               />
             </div>
 
-            <div className="flex min-w-0 flex-col gap-6 lg:sticky lg:col-span-7 lg:self-start lg:pt-1">
+            <div className="flex w-full min-w-0 flex-col gap-4 sm:gap-6 lg:sticky lg:col-span-7 lg:self-start lg:pt-1">
               <div className="flex flex-col gap-2">
                  <div className="flex items-center gap-2">
                     <div className="size-2 rounded-full bg-primary animate-pulse" />
@@ -1076,7 +1067,7 @@ export function WorkoutActiveSession({
                       </div>
                     )}
                  </div>
-                <h2 className="text-balance text-2xl font-black uppercase tracking-tight leading-tight sm:text-3xl">
+                <h2 className="text-balance text-xl font-black uppercase tracking-tight leading-tight sm:text-3xl">
                   {exName(currentExercise.exercises)}
                 </h2>
                 <div className="flex flex-wrap items-center gap-3">
@@ -1094,7 +1085,7 @@ export function WorkoutActiveSession({
               <div className="flex flex-col gap-4">
                 <div
                   className={cn(
-                    "hidden items-end gap-x-2 px-0.5 sm:grid",
+                    "hidden items-end gap-x-2 px-0.5 lg:grid",
                     usesExternalLoad
                       ? "grid-cols-[2.75rem_4rem_1fr_1fr_auto] lg:grid-cols-[2.75rem_4rem_1fr_1fr_3.5rem]"
                       : "grid-cols-[2.75rem_4rem_1fr_auto] lg:grid-cols-[2.75rem_4rem_1fr_3.5rem]",
@@ -1128,39 +1119,39 @@ export function WorkoutActiveSession({
                     <Card
                       key={`${currentExercise.id}-${set.setNumber}-${index}`}
                       className={cn(
-                        "group relative overflow-hidden transition-all duration-500 rounded-3xl border-border/80",
+                        "group relative w-full max-w-full overflow-hidden transition-all duration-500 rounded-3xl border-border/80",
                         set.completed &&
                           (set.isPR
                             ? "border-primary bg-primary/5 ring-1 ring-primary/20 shadow-lg shadow-primary/5 scale-[1.02]"
                             : "border-primary/40 bg-muted/20 opacity-90")
                       )}
                     >
-                      <CardContent className="p-4 sm:p-5">
+                      <CardContent className="w-full max-w-full p-4 sm:p-5">
                         {/* MÓVIL: PREMIUM DATA POD */}
-                        <div className="flex flex-col gap-6 sm:hidden">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
+                        <div className="flex flex-col gap-4 lg:hidden">
+                          <div className="flex flex-wrap items-start gap-3">
+                            <div className="flex min-w-0 flex-1 items-center gap-3">
                               <div
                                 className={cn(
-                                  "flex size-14 shrink-0 items-center justify-center rounded-2xl text-lg font-black transition-all duration-500",
+                                  "flex size-12 shrink-0 items-center justify-center rounded-2xl text-base font-black transition-all duration-500 sm:size-14 sm:text-lg",
                                   set.completed
                                     ? "bg-primary text-primary-foreground rotate-360 shadow-lg shadow-primary/30"
                                     : "bg-muted border border-border/50 text-muted-foreground",
                                 )}
                               >
                                 {set.completed ? (
-                                  <Check className="size-8" strokeWidth={3} />
+                                  <Check className="size-6 sm:size-8" strokeWidth={3} />
                                 ) : (
                                   set.setNumber
                                 )}
                               </div>
-                              <div className="flex flex-col">
+                              <div className="flex min-w-0 flex-col">
                                 <div className="flex items-center gap-1.5 overflow-hidden">
                                    <History className="size-3 text-muted-foreground/40 shrink-0" />
                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 truncate">Meta (Pasada)</span>
                                 </div>
-                                <span className={cn(
-                                   "text-lg font-black tabular-nums tracking-tight",
+                                  <span className={cn(
+                                    "text-base font-black tabular-nums tracking-tight sm:text-lg",
                                    set.completed ? "text-primary italic" : "text-foreground"
                                 )}>
                                    {previewLabel === "—" ? (
@@ -1169,7 +1160,7 @@ export function WorkoutActiveSession({
                                 </span>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="ml-auto flex w-auto shrink-0 items-center gap-2 max-[360px]:w-full max-[360px]:justify-end">
                                {canRemoveRow && !set.completed && (
                                   <Button
                                     variant="ghost"
@@ -1184,30 +1175,30 @@ export function WorkoutActiveSession({
                                   variant={set.completed ? "secondary" : "default"}
                                   size="icon"
                                   className={cn(
-                                    "size-14 rounded-2xl transition-all active:scale-90",
+                                  "size-12 rounded-2xl transition-all active:scale-90 sm:size-14",
                                     !set.completed ? "bg-primary shadow-lg shadow-primary/20" : "bg-primary/10 text-primary"
                                   )}
                                   onClick={() => completeSet(index)}
                                   disabled={set.completed}
                                >
-                                  <Check className={cn("size-8 transition-transform", set.completed ? "scale-100" : "scale-110")} strokeWidth={4} />
+                                 <Check className={cn("size-6 transition-transform sm:size-8", set.completed ? "scale-100" : "scale-110")} strokeWidth={4} />
                                </Button>
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 gap-3">
                              {usesExternalLoad && (
-                                <div className="flex flex-col gap-2">
+                                <div className="flex min-w-0 flex-col gap-2">
                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-2">CARGA (KG)</label>
-                                   <div className="relative flex items-center">
+                                  <div className="relative flex min-w-0 items-center">
                                       <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="absolute left-1 size-9 rounded-lg text-primary hover:bg-primary/10"
+                                     className="absolute left-1 size-8 rounded-lg text-primary hover:bg-primary/10"
                                         onClick={() => updateSetValue(index, "weight", -2.5)}
                                         disabled={set.completed}
                                       >
-                                        <Minus className="size-5" />
+                                     <Minus className="size-4" />
                                       </Button>
                                       <Input
                                         type="number"
@@ -1224,32 +1215,32 @@ export function WorkoutActiveSession({
                                             return new Map(prev).set(id, copy);
                                           });
                                         }}
-                                        className="h-14 w-full rounded-2xl border-border/80 bg-muted/40 px-10 text-center text-xl font-black tabular-nums transition-all focus:bg-background focus:ring-primary/20"
+                                        className="h-12 min-w-0 w-full rounded-2xl border-border/80 bg-muted/40 px-9 text-center text-lg font-black tabular-nums transition-all focus:bg-background focus:ring-primary/20"
                                         disabled={set.completed}
                                       />
                                       <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="absolute right-1 size-9 rounded-lg text-primary hover:bg-primary/10"
+                                        className="absolute right-1 size-8 rounded-lg text-primary hover:bg-primary/10"
                                         onClick={() => updateSetValue(index, "weight", 2.5)}
                                         disabled={set.completed}
                                       >
-                                        <Plus className="size-5" />
+                                        <Plus className="size-4" />
                                       </Button>
                                    </div>
                                 </div>
                              )}
-                             <div className="flex flex-col gap-2">
+                              <div className="flex min-w-0 flex-col gap-2">
                                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-2">REPETICIONES</label>
-                                <div className="relative flex items-center">
+                                <div className="relative flex min-w-0 items-center">
                                    <Button
                                      variant="ghost"
                                      size="icon"
-                                     className="absolute left-1 size-9 rounded-lg text-primary hover:bg-primary/10"
+                                     className="absolute left-1 size-8 rounded-lg text-primary hover:bg-primary/10"
                                      onClick={() => updateSetValue(index, "reps", -1)}
                                      disabled={set.completed}
                                    >
-                                     <Minus className="size-5" />
+                                     <Minus className="size-4" />
                                    </Button>
                                    <Input
                                      type="number"
@@ -1266,17 +1257,17 @@ export function WorkoutActiveSession({
                                          return new Map(prev).set(id, copy);
                                        });
                                      }}
-                                     className="h-14 w-full rounded-2xl border-border/80 bg-muted/40 px-10 text-center text-xl font-black tabular-nums transition-all focus:bg-background focus:ring-primary/20"
+                                     className="h-12 min-w-0 w-full rounded-2xl border-border/80 bg-muted/40 px-9 text-center text-lg font-black tabular-nums transition-all focus:bg-background focus:ring-primary/20"
                                      disabled={set.completed}
                                    />
                                    <Button
                                      variant="ghost"
                                      size="icon"
-                                     className="absolute right-1 size-9 rounded-lg text-primary hover:bg-primary/10"
+                                     className="absolute right-1 size-8 rounded-lg text-primary hover:bg-primary/10"
                                      onClick={() => updateSetValue(index, "reps", 1)}
                                      disabled={set.completed}
                                    >
-                                     <Plus className="size-5" />
+                                     <Plus className="size-4" />
                                    </Button>
                                 </div>
                              </div>
@@ -1286,7 +1277,7 @@ export function WorkoutActiveSession({
                         {/* DESKTOP: ROW VIEW */}
                         <div
                           className={cn(
-                            "hidden items-center gap-6 sm:grid",
+                            "hidden items-center gap-6 lg:grid",
                             usesExternalLoad
                               ? "grid-cols-[auto_1fr_2fr_2fr_auto]"
                               : "grid-cols-[auto_1fr_2fr_auto]",
@@ -1461,25 +1452,25 @@ export function WorkoutActiveSession({
                 currentExerciseIndex < exercises.length - 1 &&
                 !nextIsSameSuperset(currentExerciseIndex) && (
                   <Button
-                    className="h-16 w-full rounded-2xl bg-primary text-primary-foreground font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                    className="h-14 w-full rounded-2xl bg-primary text-primary-foreground font-black uppercase tracking-wide shadow-xl shadow-primary/20 transition-all hover:scale-[1.01] active:scale-95 sm:h-16 sm:tracking-widest sm:hover:scale-105"
                     size="lg"
                     onClick={nextExercise}
                   >
                     Siguiente Ejercicio
-                    <ChevronRight className="ml-3 size-6" strokeWidth={3} />
+                    <ChevronRight className="ml-2 size-5 sm:ml-3 sm:size-6" strokeWidth={3} />
                   </Button>
                 )}
 
               {allSetsCompleted &&
                 currentExerciseIndex === exercises.length - 1 && (
                   <Button
-                    className="h-16 w-full rounded-2xl bg-primary text-primary-foreground font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                    className="h-14 w-full rounded-2xl bg-primary text-primary-foreground font-black uppercase tracking-wide shadow-xl shadow-primary/20 transition-all hover:scale-[1.01] active:scale-95 sm:h-16 sm:tracking-widest sm:hover:scale-105"
                     size="lg"
                     onClick={finishWorkout}
                     disabled={isFinishing}
                   >
                     Finalizar Entrenamiento
-                    <Trophy className="ml-3 size-6" />
+                    <Trophy className="ml-2 size-5 sm:ml-3 sm:size-6" />
                   </Button>
                 )}
             </div>

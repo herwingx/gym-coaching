@@ -37,8 +37,8 @@ function VerifyOtpFormInner({
       return
     }
 
-    if (token.length !== 8) {
-      toast.error('El código debe tener 8 dígitos.')
+    if (token.length < 6 || token.length > 8) {
+      toast.error('El código debe tener entre 6 y 8 dígitos.')
       return
     }
 
@@ -70,10 +70,11 @@ function VerifyOtpFormInner({
       }
     } catch (error: any) {
       const msg = error.message || ''
+      console.error('[auth] verifyOtp failed:', error)
       if (msg.toLowerCase().includes('expired') || msg.toLowerCase().includes('invalid')) {
         toast.error('El código es incorrecto o ya expiró.')
       } else {
-        toast.error('Ocurrió un error al verificar. Intenta de nuevo.')
+        toast.error(msg || 'Ocurrió un error al verificar. Intenta de nuevo.')
       }
       setToken('')
     } finally {
@@ -98,13 +99,14 @@ function VerifyOtpFormInner({
 
       if (error) throw error
 
-      toast.success('Te hemos enviado un nuevo código de 8 dígitos.')
+      toast.success('Te hemos enviado un nuevo código de verificación.')
     } catch (error: any) {
       const msg = error.message || ''
+      console.error('[auth] resend signup OTP failed:', error)
       if (msg.includes('rate limit') || msg.includes('429')) {
         toast.error('Por favor, espera un minuto antes de pedir otro código.')
       } else {
-        toast.error('No pudimos reenviar el código. Intenta de nuevo.')
+        toast.error(msg || 'No pudimos reenviar el código. Intenta de nuevo.')
       }
     } finally {
       setIsResending(false)
@@ -116,7 +118,7 @@ function VerifyOtpFormInner({
       <div className="flex flex-col items-center gap-2 text-center overflow-hidden">
         <h1 className="text-2xl font-bold tracking-tight">Verifica tu correo</h1>
         <p className="text-sm text-balance text-muted-foreground">
-          Enviamos un código de 8 dígitos a <span className="font-medium text-foreground">{email || "tu correo"}</span>.
+          Enviamos un código de verificación a <span className="font-medium text-foreground">{email || "tu correo"}</span>.
           Ingrésalo abajo para activar tu cuenta.
         </p>
       </div>
