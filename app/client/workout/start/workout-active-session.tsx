@@ -725,7 +725,7 @@ export function WorkoutActiveSession({
     <div
       id="main-content"
       role="main"
-      className="flex min-h-dvh flex-col bg-background"
+      className="flex min-h-dvh flex-col overflow-x-clip bg-background"
       tabIndex={-1}
     >
       <ClientStackPageHeader
@@ -858,7 +858,7 @@ export function WorkoutActiveSession({
       </AlertDialog>
 
       {isResting && (
-        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background/80 p-8 backdrop-blur-2xl animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-100 flex flex-col items-center justify-center bg-background/80 p-4 backdrop-blur-2xl animate-in fade-in duration-300 sm:p-8">
            <div className="absolute inset-0 bg-linear-to-b from-primary/5 via-transparent to-primary/5 pointer-events-none" />
 
           <div className="relative flex flex-col items-center">
@@ -866,24 +866,24 @@ export function WorkoutActiveSession({
             <CircularProgress
               value={restTime}
               max={totalRestTime}
-              size={280}
+              size={240}
               strokeWidth={4}
               className="relative text-primary"
             >
               <div className="flex flex-col items-center justify-center gap-2">
                 <span className="text-sm font-black uppercase tracking-[0.3em] text-primary/60">Descanso</span>
-                <span className="text-7xl font-black tabular-nums tracking-tighter">{restTime}</span>
+                <span className="text-6xl font-black tabular-nums tracking-tighter sm:text-7xl">{restTime}</span>
                 <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Segundos</span>
               </div>
             </CircularProgress>
           </div>
 
-          <div className="mt-16 flex items-center gap-4 relative z-10">
+          <div className="relative z-10 mt-10 flex w-full max-w-sm flex-col items-stretch gap-3 sm:mt-16 sm:max-w-none sm:flex-row sm:items-center sm:justify-center sm:gap-4">
             <Button
               variant="secondary"
               size="icon"
               onClick={() => setIsPaused(!isPaused)}
-              className="size-16 rounded-3xl bg-secondary/80 hover:bg-secondary transition-all"
+              className="mx-auto size-14 rounded-3xl bg-secondary/80 transition-all hover:bg-secondary sm:mx-0 sm:size-16"
             >
               {isPaused ? (
                 <Play className="size-8 fill-current" />
@@ -895,7 +895,7 @@ export function WorkoutActiveSession({
               variant="default"
               size="lg"
               onClick={skipRest}
-              className="h-16 px-10 rounded-3xl bg-primary text-primary-foreground font-black uppercase tracking-widest shadow-xl shadow-primary/30 hover:scale-105 active:scale-95 transition-all"
+              className="h-14 w-full rounded-3xl bg-primary px-6 font-black uppercase tracking-widest text-primary-foreground shadow-xl shadow-primary/30 transition-all hover:scale-[1.01] active:scale-95 sm:h-16 sm:w-auto sm:px-10 sm:hover:scale-105"
             >
               <SkipForward className="mr-3 size-6" />
               Saltar
@@ -911,7 +911,7 @@ export function WorkoutActiveSession({
         </div>
       )}
 
-      <main className="container mx-auto min-w-0 max-w-7xl flex-1 px-4 py-8 sm:px-6">
+      <main className="container mx-auto min-w-0 max-w-7xl flex-1 overflow-x-clip px-4 py-8 sm:px-6">
         {currentExercise && (
           <div className="grid gap-8 lg:grid-cols-12 lg:items-start lg:gap-12">
             <div className="flex flex-col gap-8 lg:col-span-5">
@@ -923,10 +923,10 @@ export function WorkoutActiveSession({
                    </span>
                 </div>
 
-                <div className="relative -mx-4">
+                <div className="relative -mx-4 overflow-x-hidden">
                   {/* Symmetrical Gradient Masks for premium scroll indication */}
-                  <div className="absolute left-0 top-0 bottom-4 w-8 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none opacity-0 sm:opacity-100" />
-                  <div className="absolute right-0 top-0 bottom-4 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none opacity-0 sm:opacity-100" />
+                  <div className="absolute left-0 top-0 bottom-4 z-10 w-8 bg-linear-to-r from-background to-transparent pointer-events-none opacity-0 sm:opacity-100" />
+                  <div className="absolute right-0 top-0 bottom-4 z-10 w-8 bg-linear-to-l from-background to-transparent pointer-events-none opacity-0 sm:opacity-100" />
                   
                   <div
                     ref={carouselRef}
@@ -1005,7 +1005,7 @@ export function WorkoutActiveSession({
               </div>
             </div>
 
-            <div className="group relative overflow-hidden rounded-[2.5rem] border border-border/80 bg-card shadow-2xl ring-1 ring-primary/5">
+            <div className="group relative overflow-hidden rounded-3xl border border-border/80 bg-card shadow-2xl ring-1 ring-primary/5 sm:rounded-[2.5rem]">
                 <button
                   type="button"
                   className="relative flex w-full flex-col outline-none overflow-hidden"
@@ -1014,7 +1014,7 @@ export function WorkoutActiveSession({
                     setDetailOpen(true);
                   }}
                 >
-                  <div className="relative aspect-video w-full bg-muted/20 sm:aspect-4/3">
+                  <div className="relative aspect-4/3 w-full bg-muted/20">
                     <ExerciseMedia
                       src={
                         currentExercise.exercises?.gif_url ||
@@ -1023,17 +1023,17 @@ export function WorkoutActiveSession({
                       alt={exName(currentExercise.exercises)}
                       variant="fill"
                       className="absolute inset-0 size-full transition-transform duration-700 group-hover:scale-110"
-                      imgClassName="object-contain p-4"
+                      imgClassName="object-contain p-2 sm:p-4"
                     />
                     <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </div>
                 </button>
-                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between gap-3">
+                <div className="absolute bottom-3 left-3 right-3 flex flex-col items-stretch gap-2 sm:bottom-4 sm:left-4 sm:right-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                   <Button
                     type="button"
                     variant="secondary"
                     size="sm"
-                    className="h-10 px-4 rounded-xl bg-background/80 backdrop-blur-md border border-white/10 font-black text-[10px] uppercase tracking-widest hover:bg-background transition-all"
+                    className="h-10 w-full rounded-xl border border-white/10 bg-background/80 px-4 text-[10px] font-black uppercase tracking-widest backdrop-blur-md transition-all hover:bg-background sm:w-auto"
                     onClick={() => {
                       setSelectedExercise(currentExercise.exercises);
                       setDetailOpen(true);
@@ -1042,7 +1042,7 @@ export function WorkoutActiveSession({
                     <PlayCircle className="size-4 text-primary" aria-hidden />
                     Ver técnica
                   </Button>
-                  <Badge className="h-10 px-4 rounded-xl bg-primary/90 text-primary-foreground font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20">
+                  <Badge className="h-10 w-full justify-center rounded-xl bg-primary/90 px-4 text-[10px] font-black uppercase tracking-widest text-primary-foreground shadow-xl shadow-primary/20 sm:w-auto">
                     {restSeconds}s Rest
                   </Badge>
                 </div>
@@ -1131,7 +1131,7 @@ export function WorkoutActiveSession({
                         "group relative overflow-hidden transition-all duration-500 rounded-3xl border-border/80",
                         set.completed &&
                           (set.isPR
-                            ? "border-primary bg-primary/[0.05] ring-1 ring-primary/20 shadow-lg shadow-primary/5 scale-[1.02]"
+                            ? "border-primary bg-primary/5 ring-1 ring-primary/20 shadow-lg shadow-primary/5 scale-[1.02]"
                             : "border-primary/40 bg-muted/20 opacity-90")
                       )}
                     >
@@ -1144,7 +1144,7 @@ export function WorkoutActiveSession({
                                 className={cn(
                                   "flex size-14 shrink-0 items-center justify-center rounded-2xl text-lg font-black transition-all duration-500",
                                   set.completed
-                                    ? "bg-primary text-primary-foreground rotate-[360deg] shadow-lg shadow-primary/30"
+                                    ? "bg-primary text-primary-foreground rotate-360 shadow-lg shadow-primary/30"
                                     : "bg-muted border border-border/50 text-muted-foreground",
                                 )}
                               >
